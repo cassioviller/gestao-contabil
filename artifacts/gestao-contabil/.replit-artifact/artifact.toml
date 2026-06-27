@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "ContaFácil — Gestão de Clientes"
+version = "1.0.0"
+id = "artifacts/gestao-contabil"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 18150
+
+[services.development]
+run = "pnpm --filter @workspace/gestao-contabil run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/gestao-contabil", "run", "build" ]
+publicDir = "artifacts/gestao-contabil/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18150"
+BASE_PATH = "/"

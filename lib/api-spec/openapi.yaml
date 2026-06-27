@@ -1,22 +1,37 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: ContaFácil API — gestão contábil
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: clientes
+    description: Gestão de clientes
+  - name: tipos
+    description: Tipos de obrigação
+  - name: competencias
+    description: Competências mensais
+  - name: checklist
+    description: Itens do checklist
+  - name: pagamentos
+    description: Pagamentos de honorários
+  - name: pendencias
+    description: Pendências e inadimplências
+  - name: configuracoes
+    description: Configurações do sistema
+  - name: painel
+    description: Painel de resumo
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,13 +39,649 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /painel:
+    get:
+      operationId: getPainel
+      tags: [painel]
+      summary: Resumo do painel principal
+      responses:
+        "200":
+          description: Dados do painel
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Painel"
+
+  /clientes:
+    get:
+      operationId: listarClientes
+      tags: [clientes]
+      summary: Lista todos os clientes
+      responses:
+        "200":
+          description: Lista de clientes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Cliente"
+    post:
+      operationId: criarCliente
+      tags: [clientes]
+      summary: Cria ou atualiza um cliente
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClienteInput"
+      responses:
+        "200":
+          description: Cliente salvo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cliente"
+
+  /clientes/{id}:
+    delete:
+      operationId: removerCliente
+      tags: [clientes]
+      summary: Remove um cliente
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Removido
+
+  /tipos:
+    get:
+      operationId: listarTipos
+      tags: [tipos]
+      summary: Lista tipos de obrigação
+      responses:
+        "200":
+          description: Lista de tipos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TipoObrigacao"
+    post:
+      operationId: salvarTipo
+      tags: [tipos]
+      summary: Cria ou atualiza tipo de obrigação
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TipoObrigacaoInput"
+      responses:
+        "200":
+          description: Tipo salvo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TipoObrigacao"
+
+  /tipos/{id}:
+    delete:
+      operationId: removerTipo
+      tags: [tipos]
+      summary: Remove tipo de obrigação
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Removido
+
+  /competencias:
+    get:
+      operationId: listarCompetencias
+      tags: [competencias]
+      summary: Lista competências com resumo
+      responses:
+        "200":
+          description: Lista de competências
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CompetenciaComResumo"
+    post:
+      operationId: abrirCompetencia
+      tags: [competencias]
+      summary: Abre uma nova competência (gera checklist e pagamentos)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AbrirCompetenciaInput"
+      responses:
+        "200":
+          description: Competência criada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Competencia"
+
+  /competencias/{id}:
+    get:
+      operationId: getCompetencia
+      tags: [competencias]
+      summary: Obtém uma competência com resumo
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Competência
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompetenciaComResumo"
+        "404":
+          description: Não encontrado
+    delete:
+      operationId: removerCompetencia
+      tags: [competencias]
+      summary: Remove competência
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Removida
+
+  /competencias/{id}/checklist:
+    get:
+      operationId: listarChecklist
+      tags: [checklist]
+      summary: Lista itens do checklist da competência
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Itens do checklist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ChecklistItem"
+
+  /competencias/{id}/pagamentos:
+    get:
+      operationId: listarPagamentos
+      tags: [pagamentos]
+      summary: Lista pagamentos da competência
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Pagamentos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Pagamento"
+
+  /checklist/{id}/status:
+    patch:
+      operationId: atualizarStatusChecklist
+      tags: [checklist]
+      summary: Atualiza status de um item do checklist
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StatusChecklistInput"
+      responses:
+        "200":
+          description: Atualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChecklistItem"
+
+  /checklist/{id}/vencimento:
+    patch:
+      operationId: atualizarVencimentoChecklist
+      tags: [checklist]
+      summary: Atualiza vencimento de um item do checklist
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VencimentoInput"
+      responses:
+        "200":
+          description: Atualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChecklistItem"
+
+  /pagamentos/{id}:
+    patch:
+      operationId: atualizarPagamento
+      tags: [pagamentos]
+      summary: Atualiza um pagamento
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PagamentoInput"
+      responses:
+        "200":
+          description: Pagamento atualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pagamento"
+
+  /pendencias:
+    get:
+      operationId: listarPendencias
+      tags: [pendencias]
+      summary: Lista obrigações e pagamentos em atraso
+      responses:
+        "200":
+          description: Pendências
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pendencias"
+
+  /pendencias/obrigacoes/{id}/feito:
+    patch:
+      operationId: marcarObrigacaoFeita
+      tags: [pendencias]
+      summary: Marca obrigação pendente como feita
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Marcado
+
+  /pendencias/pagamentos/{id}/pago:
+    patch:
+      operationId: marcarPagamentoPago
+      tags: [pendencias]
+      summary: Marca pagamento pendente como pago
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Marcado
+
+  /pendencias/cobrancas:
+    post:
+      operationId: registrarCobranca
+      tags: [pendencias]
+      summary: Registra que uma cobrança foi disparada
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CobrancaInput"
+      responses:
+        "204":
+          description: Registrado
+
+  /configuracoes/{chave}:
+    get:
+      operationId: getConfiguracao
+      tags: [configuracoes]
+      summary: Obtém uma configuração por chave
+      parameters:
+        - name: chave
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Configuração
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Configuracao"
+    put:
+      operationId: salvarConfiguracao
+      tags: [configuracoes]
+      summary: Salva uma configuração
+      parameters:
+        - name: chave
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConfiguracaoInput"
+      responses:
+        "200":
+          description: Salvo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Configuracao"
+
 components:
   schemas:
     HealthStatus:
       type: object
+      required: [status]
       properties:
         status:
           type: string
-      required:
-        - status
 
+    Resumo:
+      type: object
+      required: [obrigacoes, pagamentos]
+      properties:
+        obrigacoes:
+          type: object
+          required: [total, feitos, pendentes]
+          properties:
+            total: { type: integer }
+            feitos: { type: integer }
+            pendentes: { type: integer }
+        pagamentos:
+          type: object
+          required: [total, pagos, pendentes, recebido, aReceber]
+          properties:
+            total: { type: integer }
+            pagos: { type: integer }
+            pendentes: { type: integer }
+            recebido: { type: string }
+            aReceber: { type: string }
+
+    Painel:
+      type: object
+      required: [clientesAtivos, competenciaAtual]
+      properties:
+        clientesAtivos:
+          type: integer
+        competenciaAtual:
+          type: ["object", "null"]
+          properties:
+            id: { type: integer }
+            ano: { type: integer }
+            mes: { type: integer }
+            resumo:
+              $ref: "#/components/schemas/Resumo"
+
+    Cliente:
+      type: object
+      required: [id, razaoSocial, ativo, obrigacoes]
+      properties:
+        id: { type: integer }
+        codigo: { type: ["integer", "null"] }
+        razaoSocial: { type: string }
+        cnpj: { type: ["string", "null"] }
+        inscricaoEstadual: { type: ["string", "null"] }
+        formaEnvio: { type: ["string", "null"] }
+        procuracao: { type: ["string", "null"] }
+        senhaNfse: { type: ["string", "null"] }
+        observacao: { type: ["string", "null"] }
+        valorHonorario: { type: ["string", "null"] }
+        diaVencimentoHonorario: { type: ["integer", "null"] }
+        whatsapp: { type: ["string", "null"] }
+        ativo: { type: boolean }
+        obrigacoes:
+          type: array
+          items: { type: integer }
+
+    ClienteInput:
+      type: object
+      required: [razaoSocial]
+      properties:
+        id: { type: ["integer", "null"] }
+        codigo: { type: ["integer", "null"] }
+        razaoSocial: { type: string }
+        cnpj: { type: ["string", "null"] }
+        inscricaoEstadual: { type: ["string", "null"] }
+        formaEnvio: { type: ["string", "null"] }
+        procuracao: { type: ["string", "null"] }
+        senhaNfse: { type: ["string", "null"] }
+        observacao: { type: ["string", "null"] }
+        valorHonorario: { type: ["string", "null"] }
+        diaVencimentoHonorario: { type: ["integer", "null"] }
+        whatsapp: { type: ["string", "null"] }
+        ativo: { type: boolean }
+        obrigacoes:
+          type: array
+          items: { type: integer }
+
+    TipoObrigacao:
+      type: object
+      required: [id, nome, ordem, offsetMes, ativo]
+      properties:
+        id: { type: integer }
+        nome: { type: string }
+        ordem: { type: integer }
+        diaVencimento: { type: ["integer", "null"] }
+        offsetMes: { type: integer }
+        ativo: { type: boolean }
+
+    TipoObrigacaoInput:
+      type: object
+      required: [nome]
+      properties:
+        id: { type: ["integer", "null"] }
+        nome: { type: string }
+        ordem: { type: integer }
+        diaVencimento: { type: ["integer", "null"] }
+        offsetMes: { type: integer }
+
+    Competencia:
+      type: object
+      required: [id, ano, mes]
+      properties:
+        id: { type: integer }
+        ano: { type: integer }
+        mes: { type: integer }
+        rotulo: { type: ["string", "null"] }
+
+    CompetenciaComResumo:
+      type: object
+      required: [id, ano, mes, resumo]
+      properties:
+        id: { type: integer }
+        ano: { type: integer }
+        mes: { type: integer }
+        rotulo: { type: ["string", "null"] }
+        resumo:
+          $ref: "#/components/schemas/Resumo"
+
+    AbrirCompetenciaInput:
+      type: object
+      required: [ano, mes]
+      properties:
+        ano: { type: integer }
+        mes: { type: integer }
+
+    ChecklistItem:
+      type: object
+      required: [id, status, clienteId, cliente, tipoObrigacaoId, obrigacao, ordem]
+      properties:
+        id: { type: integer }
+        status:
+          type: string
+          enum: [pendente, feito, nao_aplica]
+        clienteId: { type: integer }
+        codigo: { type: ["integer", "null"] }
+        cliente: { type: string }
+        vencimento: { type: ["string", "null"] }
+        tipoObrigacaoId: { type: integer }
+        obrigacao: { type: string }
+        ordem: { type: integer }
+
+    StatusChecklistInput:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [pendente, feito, nao_aplica]
+
+    VencimentoInput:
+      type: object
+      properties:
+        vencimento: { type: ["string", "null"] }
+
+    Pagamento:
+      type: object
+      required: [id, status, clienteId, cliente]
+      properties:
+        id: { type: integer }
+        status:
+          type: string
+          enum: [pendente, pago, isento]
+        valor: { type: ["string", "null"] }
+        dataPagamento: { type: ["string", "null"] }
+        vencimento: { type: ["string", "null"] }
+        forma: { type: ["string", "null"] }
+        observacao: { type: ["string", "null"] }
+        clienteId: { type: integer }
+        codigo: { type: ["integer", "null"] }
+        cliente: { type: string }
+
+    PagamentoInput:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [pendente, pago, isento]
+        valor: { type: ["string", "null"] }
+        dataPagamento: { type: ["string", "null"] }
+        forma: { type: ["string", "null"] }
+        observacao: { type: ["string", "null"] }
+
+    ObrigacaoAtrasada:
+      type: object
+      required: [id, competenciaId, ano, mes, diasAtraso, clienteId, cliente, obrigacao]
+      properties:
+        id: { type: integer }
+        competenciaId: { type: integer }
+        ano: { type: integer }
+        mes: { type: integer }
+        vencimento: { type: ["string", "null"] }
+        diasAtraso: { type: integer }
+        clienteId: { type: integer }
+        codigo: { type: ["integer", "null"] }
+        cliente: { type: string }
+        obrigacao: { type: string }
+
+    Inadimplente:
+      type: object
+      required: [id, competenciaId, ano, mes, diasAtraso, clienteId, cliente]
+      properties:
+        id: { type: integer }
+        competenciaId: { type: integer }
+        ano: { type: integer }
+        mes: { type: integer }
+        valor: { type: ["string", "null"] }
+        vencimento: { type: ["string", "null"] }
+        diasAtraso: { type: integer }
+        clienteId: { type: integer }
+        codigo: { type: ["integer", "null"] }
+        cliente: { type: string }
+        whatsapp: { type: ["string", "null"] }
+        cobradoEm: { type: ["string", "null"] }
+
+    Pendencias:
+      type: object
+      required: [obrigacoes, inadimplentes]
+      properties:
+        obrigacoes:
+          type: array
+          items:
+            $ref: "#/components/schemas/ObrigacaoAtrasada"
+        inadimplentes:
+          type: array
+          items:
+            $ref: "#/components/schemas/Inadimplente"
+
+    CobrancaInput:
+      type: object
+      required: [pagamentoId]
+      properties:
+        pagamentoId: { type: integer }
+
+    Configuracao:
+      type: object
+      required: [chave, valor]
+      properties:
+        chave: { type: string }
+        valor: { type: string }
+
+    ConfiguracaoInput:
+      type: object
+      required: [valor]
+      properties:
+        valor: { type: string }

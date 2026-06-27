@@ -1,0 +1,1 @@
+- [ContaFácil stack](contafacil-stack.md) — pnpm workspace: Vite+React frontend (/), Express API (port 8080), Drizzle+PG db; db must be compiled before api-server typecheck
