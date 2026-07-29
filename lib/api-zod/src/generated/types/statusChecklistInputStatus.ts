@@ -11,6 +11,7 @@ export type StatusChecklistInputStatus = typeof StatusChecklistInputStatus[keyof
 
 export const StatusChecklistInputStatus = {
   pendente: 'pendente',
-  feito: 'feito',
+  emitido: 'emitido',
+  enviado: 'enviado',
   nao_aplica: 'nao_aplica',
 } as const;

@@ -59,7 +59,8 @@ export default function Painel() {
           >
             <p className="text-lg font-semibold">{rotuloCompetencia(comp.ano, comp.mes)}</p>
             <p className="mt-1 text-sm text-neutral-500">
-              {resumo.obrigacoes.feitos}/{resumo.obrigacoes.total} obrigações feitas ·{" "}
+              {resumo.obrigacoes.feitos}/{resumo.obrigacoes.total} obrigações enviadas ·{" "}
+              {resumo.obrigacoes.emitidos} emitidas ·{" "}
               {resumo.pagamentos.pagos}/{resumo.pagamentos.total} pagamentos recebidos
             </p>
           </Link>

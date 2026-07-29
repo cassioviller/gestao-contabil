@@ -33,6 +33,16 @@ test.describe("robustez da API", () => {
     expect(r.status()).toBe(400);
   });
 
+  test("PATCH em cliente inexistente → 404", async ({ request }) => {
+    const r = await request.patch("/api/clientes/999999", { data: { cnpj: "123" } });
+    expect(r.status()).toBe(404);
+  });
+
+  test("PATCH sem nenhum campo → 400", async ({ request }) => {
+    const r = await request.patch("/api/clientes/1", { data: {} });
+    expect(r.status()).toBe(400);
+  });
+
   test("rota inexistente → 404", async ({ request }) => {
     const r = await request.get("/api/nao-existe");
     expect(r.status()).toBe(404);

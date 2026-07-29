@@ -25,6 +25,10 @@ tags:
     description: Configurações do sistema
   - name: painel
     description: Painel de resumo
+  - name: processos
+    description: Processos avulsos por cliente (troca de titularidade, alteração de endereço…)
+  - name: credenciais
+    description: Senhas por sistema/obrigação de cada cliente
 
 paths:
   /healthz:
@@ -86,6 +90,29 @@ paths:
                 $ref: "#/components/schemas/Cliente"
 
   /clientes/{id}:
+    patch:
+      operationId: atualizarCliente
+      tags: [clientes]
+      summary: Atualiza campos avulsos de um cliente
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClientePatch"
+      responses:
+        "200":
+          description: Cliente atualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cliente"
     delete:
       operationId: removerCliente
       tags: [clientes]
@@ -146,6 +173,221 @@ paths:
       responses:
         "204":
           description: Removido
+
+  /credenciais:
+    get:
+      operationId: listarCredenciais
+      tags: [credenciais]
+      summary: Lista senhas de todos os clientes
+      responses:
+        "200":
+          description: Lista de credenciais
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Credencial"
+    post:
+      operationId: salvarCredencial
+      tags: [credenciais]
+      summary: Cria ou atualiza uma credencial
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CredencialInput"
+      responses:
+        "200":
+          description: Credencial salva
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Credencial"
+
+  /credenciais/{id}:
+    patch:
+      operationId: atualizarCredencial
+      tags: [credenciais]
+      summary: Atualiza campos avulsos de uma credencial
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CredencialPatch"
+      responses:
+        "200":
+          description: Credencial atualizada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Credencial"
+    delete:
+      operationId: removerCredencial
+      tags: [credenciais]
+      summary: Remove uma credencial
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Removida
+
+  /processos:
+    get:
+      operationId: listarProcessos
+      tags: [processos]
+      summary: Lista processos (opcionalmente filtrados)
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/StatusProcesso"
+        - name: clienteId
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: categoria
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/CategoriaProcesso"
+      responses:
+        "200":
+          description: Lista de processos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Processo"
+    post:
+      operationId: salvarProcesso
+      tags: [processos]
+      summary: Cria ou atualiza um processo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProcessoInput"
+      responses:
+        "200":
+          description: Processo salvo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Processo"
+
+  /processos/{id}:
+    get:
+      operationId: getProcesso
+      tags: [processos]
+      summary: Obtém um processo com suas etapas
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Processo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProcessoComEtapas"
+        "404":
+          description: Não encontrado
+    delete:
+      operationId: removerProcesso
+      tags: [processos]
+      summary: Remove um processo e suas etapas
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Removido
+
+  /processos/{id}/etapas:
+    post:
+      operationId: adicionarEtapa
+      tags: [processos]
+      summary: Adiciona uma etapa ao checklist do processo
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EtapaInput"
+      responses:
+        "200":
+          description: Etapa criada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProcessoEtapa"
+
+  /etapas/{id}:
+    patch:
+      operationId: atualizarEtapa
+      tags: [processos]
+      summary: Atualiza uma etapa (marcar feito, editar texto)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EtapaPatch"
+      responses:
+        "200":
+          description: Etapa atualizada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProcessoEtapa"
+    delete:
+      operationId: removerEtapa
+      tags: [processos]
+      summary: Remove uma etapa
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Removida
 
   /competencias:
     get:
@@ -347,7 +589,7 @@ paths:
     patch:
       operationId: marcarObrigacaoFeita
       tags: [pendencias]
-      summary: Marca obrigação pendente como feita
+      summary: Marca obrigação pendente como enviada (fim do ciclo)
       parameters:
         - name: id
           in: path
@@ -445,10 +687,12 @@ components:
       properties:
         obrigacoes:
           type: object
-          required: [total, feitos, pendentes]
+          required: [total, feitos, emitidos, pendentes]
           properties:
             total: { type: integer }
+            # `feitos` = enviados ao cliente, o fim do ciclo.
             feitos: { type: integer }
+            emitidos: { type: integer }
             pendentes: { type: integer }
         pagamentos:
           type: object
@@ -483,14 +727,23 @@ components:
         codigo: { type: ["integer", "null"] }
         razaoSocial: { type: string }
         cnpj: { type: ["string", "null"] }
+        cnaePrincipal: { type: ["string", "null"] }
+        regime: { $ref: "#/components/schemas/RegimeTributario" }
         inscricaoEstadual: { type: ["string", "null"] }
+        inscricaoMunicipal: { type: ["string", "null"] }
         formaEnvio: { type: ["string", "null"] }
         procuracao: { type: ["string", "null"] }
+        procuracaoVencimento: { type: ["string", "null"] }
+        socioNome: { type: ["string", "null"] }
+        socioCpf: { type: ["string", "null"] }
+        senhaGov: { type: ["string", "null"] }
         senhaNfse: { type: ["string", "null"] }
         observacao: { type: ["string", "null"] }
         valorHonorario: { type: ["string", "null"] }
         diaVencimentoHonorario: { type: ["integer", "null"] }
+        contatoNome: { type: ["string", "null"] }
         whatsapp: { type: ["string", "null"] }
+        email: { type: ["string", "null"] }
         ativo: { type: boolean }
         obrigacoes:
           type: array
@@ -504,28 +757,83 @@ components:
         codigo: { type: ["integer", "null"] }
         razaoSocial: { type: string }
         cnpj: { type: ["string", "null"] }
+        cnaePrincipal: { type: ["string", "null"] }
+        regime: { $ref: "#/components/schemas/RegimeTributario" }
         inscricaoEstadual: { type: ["string", "null"] }
+        inscricaoMunicipal: { type: ["string", "null"] }
         formaEnvio: { type: ["string", "null"] }
         procuracao: { type: ["string", "null"] }
+        procuracaoVencimento: { type: ["string", "null"] }
+        socioNome: { type: ["string", "null"] }
+        socioCpf: { type: ["string", "null"] }
+        senhaGov: { type: ["string", "null"] }
         senhaNfse: { type: ["string", "null"] }
         observacao: { type: ["string", "null"] }
         valorHonorario: { type: ["string", "null"] }
         diaVencimentoHonorario: { type: ["integer", "null"] }
+        contatoNome: { type: ["string", "null"] }
         whatsapp: { type: ["string", "null"] }
+        email: { type: ["string", "null"] }
         ativo: { type: boolean }
         obrigacoes:
           type: array
           items: { type: integer }
 
+    RegimeTributario:
+      type: ["string", "null"]
+      enum: [simples_nacional, mei, lucro_presumido, lucro_real, null]
+
+    # Edição célula-a-célula na tela de Dados cadastrais: todos os campos são
+    # opcionais e só o que vier no body é gravado (não mexe nas obrigações).
+    ClientePatch:
+      type: object
+      properties:
+        codigo: { type: ["integer", "null"] }
+        razaoSocial: { type: string }
+        cnpj: { type: ["string", "null"] }
+        cnaePrincipal: { type: ["string", "null"] }
+        regime: { $ref: "#/components/schemas/RegimeTributario" }
+        inscricaoEstadual: { type: ["string", "null"] }
+        inscricaoMunicipal: { type: ["string", "null"] }
+        formaEnvio: { type: ["string", "null"] }
+        procuracao: { type: ["string", "null"] }
+        procuracaoVencimento: { type: ["string", "null"] }
+        socioNome: { type: ["string", "null"] }
+        socioCpf: { type: ["string", "null"] }
+        senhaGov: { type: ["string", "null"] }
+        senhaNfse: { type: ["string", "null"] }
+        observacao: { type: ["string", "null"] }
+        valorHonorario: { type: ["string", "null"] }
+        diaVencimentoHonorario: { type: ["integer", "null"] }
+        contatoNome: { type: ["string", "null"] }
+        whatsapp: { type: ["string", "null"] }
+        email: { type: ["string", "null"] }
+        ativo: { type: boolean }
+
+    Periodicidade:
+      type: string
+      enum: [mensal, bimestral, trimestral, semestral, anual]
+
+    # Variante sem null, para usar dentro de listas.
+    RegimeValor:
+      type: string
+      enum: [simples_nacional, mei, lucro_presumido, lucro_real]
+
     TipoObrigacao:
       type: object
-      required: [id, nome, ordem, offsetMes, ativo]
+      required: [id, nome, ordem, offsetMes, periodicidade, ativo]
       properties:
         id: { type: integer }
         nome: { type: string }
         ordem: { type: integer }
         diaVencimento: { type: ["integer", "null"] }
         offsetMes: { type: integer }
+        periodicidade: { $ref: "#/components/schemas/Periodicidade" }
+        mesReferencia: { type: ["integer", "null"] }
+        # Lista vazia ou ausente = a obrigação vale para todos os regimes.
+        regimes:
+          type: ["array", "null"]
+          items: { $ref: "#/components/schemas/RegimeValor" }
         ativo: { type: boolean }
 
     TipoObrigacaoInput:
@@ -537,6 +845,129 @@ components:
         ordem: { type: integer }
         diaVencimento: { type: ["integer", "null"] }
         offsetMes: { type: integer }
+        periodicidade: { $ref: "#/components/schemas/Periodicidade" }
+        mesReferencia: { type: ["integer", "null"] }
+        # Lista vazia ou ausente = a obrigação vale para todos os regimes.
+        regimes:
+          type: ["array", "null"]
+          items: { $ref: "#/components/schemas/RegimeValor" }
+
+    Credencial:
+      type: object
+      required: [id, clienteId, clienteNome, rotulo]
+      properties:
+        id: { type: integer }
+        clienteId: { type: integer }
+        clienteNome: { type: string }
+        tipoObrigacaoId: { type: ["integer", "null"] }
+        rotulo: { type: string }
+        login: { type: ["string", "null"] }
+        senha: { type: ["string", "null"] }
+        observacao: { type: ["string", "null"] }
+
+    CredencialInput:
+      type: object
+      required: [clienteId, rotulo]
+      properties:
+        id: { type: ["integer", "null"] }
+        clienteId: { type: integer }
+        tipoObrigacaoId: { type: ["integer", "null"] }
+        rotulo: { type: string }
+        login: { type: ["string", "null"] }
+        senha: { type: ["string", "null"] }
+        observacao: { type: ["string", "null"] }
+
+    CredencialPatch:
+      type: object
+      properties:
+        tipoObrigacaoId: { type: ["integer", "null"] }
+        rotulo: { type: string }
+        login: { type: ["string", "null"] }
+        senha: { type: ["string", "null"] }
+        observacao: { type: ["string", "null"] }
+
+    CategoriaProcesso:
+      type: string
+      enum: [processo, pedido]
+
+    StatusProcesso:
+      type: string
+      enum: [aberto, em_andamento, concluido, cancelado]
+
+    Processo:
+      type: object
+      required: [id, clienteId, clienteNome, tipo, status, totalEtapas, etapasFeitas]
+      properties:
+        id: { type: integer }
+        clienteId: { type: integer }
+        clienteNome: { type: string }
+        tipo: { type: string }
+        categoria: { $ref: "#/components/schemas/CategoriaProcesso" }
+        titulo: { type: ["string", "null"] }
+        status: { $ref: "#/components/schemas/StatusProcesso" }
+        orgao: { type: ["string", "null"] }
+        protocolo: { type: ["string", "null"] }
+        abertoEm: { type: ["string", "null"] }
+        prazo: { type: ["string", "null"] }
+        concluidoEm: { type: ["string", "null"] }
+        observacao: { type: ["string", "null"] }
+        totalEtapas: { type: integer }
+        etapasFeitas: { type: integer }
+
+    ProcessoComEtapas:
+      allOf:
+        - $ref: "#/components/schemas/Processo"
+        - type: object
+          required: [etapas]
+          properties:
+            etapas:
+              type: array
+              items:
+                $ref: "#/components/schemas/ProcessoEtapa"
+
+    ProcessoInput:
+      type: object
+      required: [clienteId, tipo]
+      properties:
+        id: { type: ["integer", "null"] }
+        clienteId: { type: integer }
+        tipo: { type: string }
+        categoria: { $ref: "#/components/schemas/CategoriaProcesso" }
+        titulo: { type: ["string", "null"] }
+        status: { $ref: "#/components/schemas/StatusProcesso" }
+        orgao: { type: ["string", "null"] }
+        protocolo: { type: ["string", "null"] }
+        abertoEm: { type: ["string", "null"] }
+        prazo: { type: ["string", "null"] }
+        concluidoEm: { type: ["string", "null"] }
+        observacao: { type: ["string", "null"] }
+
+    ProcessoEtapa:
+      type: object
+      required: [id, processoId, descricao, feito, ordem]
+      properties:
+        id: { type: integer }
+        processoId: { type: integer }
+        descricao: { type: string }
+        feito: { type: boolean }
+        ordem: { type: integer }
+        concluidoEm: { type: ["string", "null"] }
+        observacao: { type: ["string", "null"] }
+
+    EtapaInput:
+      type: object
+      required: [descricao]
+      properties:
+        descricao: { type: string }
+        observacao: { type: ["string", "null"] }
+
+    EtapaPatch:
+      type: object
+      properties:
+        descricao: { type: string }
+        feito: { type: boolean }
+        ordem: { type: integer }
+        observacao: { type: ["string", "null"] }
 
     Competencia:
       type: object
@@ -564,6 +995,9 @@ components:
       properties:
         ano: { type: integer }
         mes: { type: integer }
+        # Para meses anteriores ao início do uso do sistema: gera só os
+        # honorários (pagamentos), sem o checklist de obrigações daquele mês.
+        somenteHonorarios: { type: boolean }
 
     ChecklistItem:
       type: object
@@ -572,7 +1006,7 @@ components:
         id: { type: integer }
         status:
           type: string
-          enum: [pendente, feito, nao_aplica]
+          enum: [pendente, emitido, enviado, nao_aplica]
         clienteId: { type: integer }
         codigo: { type: ["integer", "null"] }
         cliente: { type: string }
@@ -587,7 +1021,7 @@ components:
       properties:
         status:
           type: string
-          enum: [pendente, feito, nao_aplica]
+          enum: [pendente, emitido, enviado, nao_aplica]
 
     VencimentoInput:
       type: object

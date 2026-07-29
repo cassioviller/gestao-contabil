@@ -5,6 +5,7 @@
  * ContaFácil API — gestão contábil
  * OpenAPI spec version: 0.1.0
  */
+import type { RegimeTributario } from './regimeTributario';
 
 export interface Cliente {
   id: number;
@@ -14,11 +15,24 @@ export interface Cliente {
   /** @nullable */
   cnpj?: string | null;
   /** @nullable */
+  cnaePrincipal?: string | null;
+  regime?: RegimeTributario | null;
+  /** @nullable */
   inscricaoEstadual?: string | null;
+  /** @nullable */
+  inscricaoMunicipal?: string | null;
   /** @nullable */
   formaEnvio?: string | null;
   /** @nullable */
   procuracao?: string | null;
+  /** @nullable */
+  procuracaoVencimento?: string | null;
+  /** @nullable */
+  socioNome?: string | null;
+  /** @nullable */
+  socioCpf?: string | null;
+  /** @nullable */
+  senhaGov?: string | null;
   /** @nullable */
   senhaNfse?: string | null;
   /** @nullable */
@@ -28,7 +42,11 @@ export interface Cliente {
   /** @nullable */
   diaVencimentoHonorario?: number | null;
   /** @nullable */
+  contatoNome?: string | null;
+  /** @nullable */
   whatsapp?: string | null;
+  /** @nullable */
+  email?: string | null;
   ativo: boolean;
   obrigacoes: number[];
 }

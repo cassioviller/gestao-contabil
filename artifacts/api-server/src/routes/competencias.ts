@@ -24,7 +24,9 @@ async function resumoCompetencia(competenciaId: number) {
   const [obr] = await db
     .select({
       total: sql<number>`count(*)::int`,
-      feitos: sql<number>`count(*) filter (where ${checklistItens.status} = 'feito')::int`,
+      // "Feito" é a guia que chegou ao cliente; emitida ainda está em curso.
+      feitos: sql<number>`count(*) filter (where ${checklistItens.status} = 'enviado')::int`,
+      emitidos: sql<number>`count(*) filter (where ${checklistItens.status} = 'emitido')::int`,
       pendentes: sql<number>`count(*) filter (where ${checklistItens.status} = 'pendente')::int`,
     })
     .from(checklistItens)
@@ -42,6 +44,27 @@ async function resumoCompetencia(competenciaId: number) {
     .where(eq(pagamentos.competenciaId, competenciaId));
 
   return { obrigacoes: obr, pagamentos: pag };
+}
+
+const INTERVALO_MESES: Record<string, number> = {
+  mensal: 1,
+  bimestral: 2,
+  trimestral: 3,
+  semestral: 6,
+  anual: 12,
+};
+
+/**
+ * A obrigação vale neste mês? Mensal sempre vale. As demais caem nos meses em
+ * que a distância até o mês de referência é múltipla do intervalo — anual com
+ * referência 7 só em julho, trimestral com referência 3 em 3/6/9/12.
+ * Sem referência definida, o ciclo é ancorado em janeiro.
+ */
+function aplicaNoMes(periodicidade: string, mesReferencia: number | null, mes: number): boolean {
+  const intervalo = INTERVALO_MESES[periodicidade] ?? 1;
+  if (intervalo === 1) return true;
+  const ref = mesReferencia && mesReferencia >= 1 && mesReferencia <= 12 ? mesReferencia : 1;
+  return (((mes - ref) % intervalo) + intervalo) % intervalo === 0;
 }
 
 function calcularVencimento(ano: number, mes: number, dia: number | null, offsetMes: number): string | null {
@@ -66,7 +89,7 @@ router.get("/", async (req, res) => {
 
 // POST /api/competencias
 router.post("/", async (req, res) => {
-  const { ano, mes } = AbrirCompetenciaBody.parse(req.body);
+  const { ano, mes, somenteHonorarios = false } = AbrirCompetenciaBody.parse(req.body);
   if (mes < 1 || mes > 12) {
     throw new HttpError(400, "Mês inválido (use 1 a 12).");
   }
@@ -88,9 +111,19 @@ router.post("/", async (req, res) => {
     const vinculos = await db.select().from(clienteObrigacoes)
       .where(inArray(clienteObrigacoes.clienteId, ativosIds));
 
-    if (vinculos.length) {
+    // Meses anteriores ao início do uso do sistema entram só com os honorários:
+    // o checklist daqueles meses não faz sentido e só viraria ruído.
+    // Uma obrigação anual/trimestral só entra no mês em que de fato vence.
+    const doMes = somenteHonorarios
+      ? []
+      : vinculos.filter((v) => {
+          const tipo = tipoPorId.get(v.tipoObrigacaoId);
+          return tipo ? aplicaNoMes(tipo.periodicidade, tipo.mesReferencia, mes) : false;
+        });
+
+    if (doMes.length) {
       await db.insert(checklistItens).values(
-        vinculos.map((v) => {
+        doMes.map((v) => {
           const tipo = tipoPorId.get(v.tipoObrigacaoId);
           return {
             competenciaId: comp.id,

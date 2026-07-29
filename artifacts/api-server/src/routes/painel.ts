@@ -22,7 +22,8 @@ router.get("/", async (req, res) => {
   const [obr] = await db
     .select({
       total: sql<number>`count(*)::int`,
-      feitos: sql<number>`count(*) filter (where ${checklistItens.status} = 'feito')::int`,
+      feitos: sql<number>`count(*) filter (where ${checklistItens.status} = 'enviado')::int`,
+      emitidos: sql<number>`count(*) filter (where ${checklistItens.status} = 'emitido')::int`,
       pendentes: sql<number>`count(*) filter (where ${checklistItens.status} = 'pendente')::int`,
     })
     .from(checklistItens)

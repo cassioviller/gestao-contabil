@@ -12,7 +12,7 @@ import { rotuloCompetencia, formatarMoeda, formatarData } from "@/lib/formato";
 
 type Item = {
   id: number;
-  status: "pendente" | "feito" | "nao_aplica";
+  status: "pendente" | "emitido" | "enviado" | "nao_aplica";
   clienteId: number;
   codigo: number | null;
   cliente: string;
@@ -22,18 +22,24 @@ type Item = {
   ordem: number;
 };
 
+// Ciclo da guia: pendente → emitido → enviado → não se aplica → pendente.
 const PROXIMO: Record<Item["status"], Item["status"]> = {
-  pendente: "feito", feito: "nao_aplica", nao_aplica: "pendente",
+  pendente: "emitido", emitido: "enviado", enviado: "nao_aplica", nao_aplica: "pendente",
 };
 
 const ESTILO: Record<Item["status"], string> = {
   pendente: "bg-amber-100 text-amber-800 hover:bg-amber-200",
-  feito: "bg-green-500 text-white hover:bg-green-600",
+  emitido: "bg-blue-500 text-white hover:bg-blue-600",
+  enviado: "bg-green-500 text-white hover:bg-green-600",
   nao_aplica: "bg-neutral-200 text-neutral-400 dark:bg-neutral-800",
 };
 
 const SIMBOLO: Record<Item["status"], string> = {
-  pendente: "•", feito: "✓", nao_aplica: "–",
+  pendente: "•", emitido: "E", enviado: "✓", nao_aplica: "–",
+};
+
+const ROTULO: Record<Item["status"], string> = {
+  pendente: "Pendente", emitido: "Emitido", enviado: "Enviado", nao_aplica: "Não se aplica",
 };
 
 function CabecalhoCompetencia({ id }: { id: number }) {
@@ -48,8 +54,8 @@ function CabecalhoCompetencia({ id }: { id: number }) {
       <h1 className="mt-1 text-2xl font-bold">{rotuloCompetencia(comp.ano, comp.mes)}</h1>
       <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
-          { titulo: "Obrigações feitas", valor: `${o.feitos}/${o.total}`, sub: `${pct}%` },
-          { titulo: "Obrig. pendentes", valor: String(o.pendentes) },
+          { titulo: "Obrigações enviadas", valor: `${o.feitos}/${o.total}`, sub: `${pct}%` },
+          { titulo: "Emitidas / pendentes", valor: `${o.emitidos} / ${o.pendentes}` },
           { titulo: "Recebido", valor: formatarMoeda(p.recebido), sub: `${p.pagos} pagos` },
           { titulo: "A receber", valor: formatarMoeda(p.aReceber), sub: `${p.pendentes} pendentes` },
         ].map((m) => (
@@ -142,7 +148,18 @@ export default function CompetenciaChecklist({ params }: { params: { id: string 
               <input type="checkbox" checked={modoPrazos} onChange={(e) => setModoPrazos(e.target.checked)} />
               Ajustar prazos
             </label>
-            <span className="text-xs text-neutral-500">Clique numa célula: pendente → feito → não se aplica</span>
+            <span className="flex flex-wrap items-center gap-2 text-xs text-neutral-500">
+              Clique numa célula para avançar:
+              {(["pendente", "emitido", "enviado", "nao_aplica"] as const).map((s, i) => (
+                <span key={s} className="flex items-center gap-1">
+                  {i > 0 && <span className="text-neutral-400">→</span>}
+                  <span className={`inline-flex h-5 w-5 items-center justify-center rounded text-[11px] font-bold ${ESTILO[s]}`}>
+                    {SIMBOLO[s]}
+                  </span>
+                  <span>{ROTULO[s]}</span>
+                </span>
+              ))}
+            </span>
           </div>
           <div className="overflow-x-auto rounded-xl border border-black/10 dark:border-white/10">
             <table className="text-sm">
@@ -171,7 +188,11 @@ export default function CompetenciaChecklist({ params }: { params: { id: string 
                               className="rounded border border-black/15 bg-transparent px-1 py-0.5 text-xs dark:border-white/15" />
                           ) : (
                             <button onClick={() => clique(cel)}
-                              title={cel.vencimento ? `vence ${formatarData(cel.vencimento)}` : cel.status}
+                              aria-label={`${l.nome} — ${c.nome}: ${ROTULO[cel.status]}`}
+                              title={
+                                ROTULO[cel.status] +
+                                (cel.vencimento ? ` · vence ${formatarData(cel.vencimento)}` : "")
+                              }
                               className={`h-7 w-7 rounded-md text-sm font-bold ${ESTILO[cel.status]}`}>
                               {SIMBOLO[cel.status]}
                             </button>

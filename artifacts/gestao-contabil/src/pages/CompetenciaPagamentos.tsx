@@ -38,8 +38,8 @@ function CabecalhoCompetencia({ id }: { id: number }) {
       <h1 className="mt-1 text-2xl font-bold">{rotuloCompetencia(comp.ano, comp.mes)}</h1>
       <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
-          { titulo: "Obrigações feitas", valor: `${o.feitos}/${o.total}`, sub: `${pct}%` },
-          { titulo: "Obrig. pendentes", valor: String(o.pendentes) },
+          { titulo: "Obrigações enviadas", valor: `${o.feitos}/${o.total}`, sub: `${pct}%` },
+          { titulo: "Emitidas / pendentes", valor: `${o.emitidos} / ${o.pendentes}` },
           { titulo: "Recebido", valor: formatarMoeda(p.recebido), sub: `${p.pagos} pagos` },
           { titulo: "A receber", valor: formatarMoeda(p.aReceber), sub: `${p.pendentes} pendentes` },
         ].map((m) => (

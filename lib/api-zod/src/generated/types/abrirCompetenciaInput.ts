@@ -9,4 +9,5 @@
 export interface AbrirCompetenciaInput {
   ano: number;
   mes: number;
+  somenteHonorarios?: boolean;
 }

@@ -72,7 +72,7 @@ router.get("/", async (req, res) => {
 router.patch("/obrigacoes/:id/feito", async (req, res) => {
   const { id } = MarcarObrigacaoFeitaParams.parse(req.params);
   await db.update(checklistItens)
-    .set({ status: "feito", atualizadoEm: new Date() })
+    .set({ status: "enviado", atualizadoEm: new Date() })
     .where(eq(checklistItens.id, id));
   res.status(204).send();
 });

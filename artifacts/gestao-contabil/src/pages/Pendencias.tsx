@@ -119,7 +119,7 @@ export default function Pendencias() {
                   <td className="px-3 py-3">{formatarData(o.vencimento)}</td>
                   <td className="px-3 py-3 text-red-600">{o.diasAtraso} dia(s)</td>
                   <td className="px-3 py-3 text-right">
-                    <button onClick={() => handleMarcarFeito(o)} className="text-xs text-green-600 hover:underline">Marcar feito</button>
+                    <button onClick={() => handleMarcarFeito(o)} className="text-xs text-green-600 hover:underline">Marcar enviado</button>
                   </td>
                 </tr>
               ))}

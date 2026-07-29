@@ -6,6 +6,10 @@ import { test, expect, type Page } from "@playwright/test";
 const PAGINAS = [
   { rota: "/", heading: "Painel" },
   { rota: "/clientes", heading: "Clientes" },
+  { rota: "/cadastro", heading: "Dados cadastrais" },
+  { rota: "/senhas", heading: "Senhas" },
+  { rota: "/pedidos", heading: "Pedidos" },
+  { rota: "/processos", heading: "Processos" },
   { rota: "/competencias", heading: "Competências" },
   { rota: "/pendencias", heading: "Pendências" },
   { rota: "/tipos", heading: "Tipos de obrigação" },

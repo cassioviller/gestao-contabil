@@ -12,6 +12,7 @@ export interface HealthStatus {
 export type ResumoObrigacoes = {
   total: number;
   feitos: number;
+  emitidos: number;
   pendentes: number;
 };
 
@@ -44,6 +45,19 @@ export interface Painel {
   competenciaAtual: PainelCompetenciaAtual;
 }
 
+/**
+ * @nullable
+ */
+export type RegimeTributario = typeof RegimeTributario[keyof typeof RegimeTributario] | null;
+
+
+export const RegimeTributario = {
+  simples_nacional: 'simples_nacional',
+  mei: 'mei',
+  lucro_presumido: 'lucro_presumido',
+  lucro_real: 'lucro_real',
+} as const;
+
 export interface Cliente {
   id: number;
   /** @nullable */
@@ -52,11 +66,24 @@ export interface Cliente {
   /** @nullable */
   cnpj?: string | null;
   /** @nullable */
+  cnaePrincipal?: string | null;
+  regime?: RegimeTributario | null;
+  /** @nullable */
   inscricaoEstadual?: string | null;
+  /** @nullable */
+  inscricaoMunicipal?: string | null;
   /** @nullable */
   formaEnvio?: string | null;
   /** @nullable */
   procuracao?: string | null;
+  /** @nullable */
+  procuracaoVencimento?: string | null;
+  /** @nullable */
+  socioNome?: string | null;
+  /** @nullable */
+  socioCpf?: string | null;
+  /** @nullable */
+  senhaGov?: string | null;
   /** @nullable */
   senhaNfse?: string | null;
   /** @nullable */
@@ -66,7 +93,11 @@ export interface Cliente {
   /** @nullable */
   diaVencimentoHonorario?: number | null;
   /** @nullable */
+  contatoNome?: string | null;
+  /** @nullable */
   whatsapp?: string | null;
+  /** @nullable */
+  email?: string | null;
   ativo: boolean;
   obrigacoes: number[];
 }
@@ -80,11 +111,24 @@ export interface ClienteInput {
   /** @nullable */
   cnpj?: string | null;
   /** @nullable */
+  cnaePrincipal?: string | null;
+  regime?: RegimeTributario | null;
+  /** @nullable */
   inscricaoEstadual?: string | null;
+  /** @nullable */
+  inscricaoMunicipal?: string | null;
   /** @nullable */
   formaEnvio?: string | null;
   /** @nullable */
   procuracao?: string | null;
+  /** @nullable */
+  procuracaoVencimento?: string | null;
+  /** @nullable */
+  socioNome?: string | null;
+  /** @nullable */
+  socioCpf?: string | null;
+  /** @nullable */
+  senhaGov?: string | null;
   /** @nullable */
   senhaNfse?: string | null;
   /** @nullable */
@@ -94,10 +138,77 @@ export interface ClienteInput {
   /** @nullable */
   diaVencimentoHonorario?: number | null;
   /** @nullable */
+  contatoNome?: string | null;
+  /** @nullable */
   whatsapp?: string | null;
+  /** @nullable */
+  email?: string | null;
   ativo?: boolean;
   obrigacoes?: number[];
 }
+
+export interface ClientePatch {
+  /** @nullable */
+  codigo?: number | null;
+  razaoSocial?: string;
+  /** @nullable */
+  cnpj?: string | null;
+  /** @nullable */
+  cnaePrincipal?: string | null;
+  regime?: RegimeTributario | null;
+  /** @nullable */
+  inscricaoEstadual?: string | null;
+  /** @nullable */
+  inscricaoMunicipal?: string | null;
+  /** @nullable */
+  formaEnvio?: string | null;
+  /** @nullable */
+  procuracao?: string | null;
+  /** @nullable */
+  procuracaoVencimento?: string | null;
+  /** @nullable */
+  socioNome?: string | null;
+  /** @nullable */
+  socioCpf?: string | null;
+  /** @nullable */
+  senhaGov?: string | null;
+  /** @nullable */
+  senhaNfse?: string | null;
+  /** @nullable */
+  observacao?: string | null;
+  /** @nullable */
+  valorHonorario?: string | null;
+  /** @nullable */
+  diaVencimentoHonorario?: number | null;
+  /** @nullable */
+  contatoNome?: string | null;
+  /** @nullable */
+  whatsapp?: string | null;
+  /** @nullable */
+  email?: string | null;
+  ativo?: boolean;
+}
+
+export type Periodicidade = typeof Periodicidade[keyof typeof Periodicidade];
+
+
+export const Periodicidade = {
+  mensal: 'mensal',
+  bimestral: 'bimestral',
+  trimestral: 'trimestral',
+  semestral: 'semestral',
+  anual: 'anual',
+} as const;
+
+export type RegimeValor = typeof RegimeValor[keyof typeof RegimeValor];
+
+
+export const RegimeValor = {
+  simples_nacional: 'simples_nacional',
+  mei: 'mei',
+  lucro_presumido: 'lucro_presumido',
+  lucro_real: 'lucro_real',
+} as const;
 
 export interface TipoObrigacao {
   id: number;
@@ -106,6 +217,11 @@ export interface TipoObrigacao {
   /** @nullable */
   diaVencimento?: number | null;
   offsetMes: number;
+  periodicidade: Periodicidade;
+  /** @nullable */
+  mesReferencia?: number | null;
+  /** @nullable */
+  regimes?: RegimeValor[] | null;
   ativo: boolean;
 }
 
@@ -117,6 +233,149 @@ export interface TipoObrigacaoInput {
   /** @nullable */
   diaVencimento?: number | null;
   offsetMes?: number;
+  periodicidade?: Periodicidade;
+  /** @nullable */
+  mesReferencia?: number | null;
+  /** @nullable */
+  regimes?: RegimeValor[] | null;
+}
+
+export interface Credencial {
+  id: number;
+  clienteId: number;
+  clienteNome: string;
+  /** @nullable */
+  tipoObrigacaoId?: number | null;
+  rotulo: string;
+  /** @nullable */
+  login?: string | null;
+  /** @nullable */
+  senha?: string | null;
+  /** @nullable */
+  observacao?: string | null;
+}
+
+export interface CredencialInput {
+  /** @nullable */
+  id?: number | null;
+  clienteId: number;
+  /** @nullable */
+  tipoObrigacaoId?: number | null;
+  rotulo: string;
+  /** @nullable */
+  login?: string | null;
+  /** @nullable */
+  senha?: string | null;
+  /** @nullable */
+  observacao?: string | null;
+}
+
+export interface CredencialPatch {
+  /** @nullable */
+  tipoObrigacaoId?: number | null;
+  rotulo?: string;
+  /** @nullable */
+  login?: string | null;
+  /** @nullable */
+  senha?: string | null;
+  /** @nullable */
+  observacao?: string | null;
+}
+
+export type CategoriaProcesso = typeof CategoriaProcesso[keyof typeof CategoriaProcesso];
+
+
+export const CategoriaProcesso = {
+  processo: 'processo',
+  pedido: 'pedido',
+} as const;
+
+export type StatusProcesso = typeof StatusProcesso[keyof typeof StatusProcesso];
+
+
+export const StatusProcesso = {
+  aberto: 'aberto',
+  em_andamento: 'em_andamento',
+  concluido: 'concluido',
+  cancelado: 'cancelado',
+} as const;
+
+export interface Processo {
+  id: number;
+  clienteId: number;
+  clienteNome: string;
+  tipo: string;
+  categoria?: CategoriaProcesso;
+  /** @nullable */
+  titulo?: string | null;
+  status: StatusProcesso;
+  /** @nullable */
+  orgao?: string | null;
+  /** @nullable */
+  protocolo?: string | null;
+  /** @nullable */
+  abertoEm?: string | null;
+  /** @nullable */
+  prazo?: string | null;
+  /** @nullable */
+  concluidoEm?: string | null;
+  /** @nullable */
+  observacao?: string | null;
+  totalEtapas: number;
+  etapasFeitas: number;
+}
+
+export interface ProcessoEtapa {
+  id: number;
+  processoId: number;
+  descricao: string;
+  feito: boolean;
+  ordem: number;
+  /** @nullable */
+  concluidoEm?: string | null;
+  /** @nullable */
+  observacao?: string | null;
+}
+
+export type ProcessoComEtapas = Processo & {
+  etapas: ProcessoEtapa[];
+};
+
+export interface ProcessoInput {
+  /** @nullable */
+  id?: number | null;
+  clienteId: number;
+  tipo: string;
+  categoria?: CategoriaProcesso;
+  /** @nullable */
+  titulo?: string | null;
+  status?: StatusProcesso;
+  /** @nullable */
+  orgao?: string | null;
+  /** @nullable */
+  protocolo?: string | null;
+  /** @nullable */
+  abertoEm?: string | null;
+  /** @nullable */
+  prazo?: string | null;
+  /** @nullable */
+  concluidoEm?: string | null;
+  /** @nullable */
+  observacao?: string | null;
+}
+
+export interface EtapaInput {
+  descricao: string;
+  /** @nullable */
+  observacao?: string | null;
+}
+
+export interface EtapaPatch {
+  descricao?: string;
+  feito?: boolean;
+  ordem?: number;
+  /** @nullable */
+  observacao?: string | null;
 }
 
 export interface Competencia {
@@ -139,6 +398,7 @@ export interface CompetenciaComResumo {
 export interface AbrirCompetenciaInput {
   ano: number;
   mes: number;
+  somenteHonorarios?: boolean;
 }
 
 export type ChecklistItemStatus = typeof ChecklistItemStatus[keyof typeof ChecklistItemStatus];
@@ -146,7 +406,8 @@ export type ChecklistItemStatus = typeof ChecklistItemStatus[keyof typeof Checkl
 
 export const ChecklistItemStatus = {
   pendente: 'pendente',
-  feito: 'feito',
+  emitido: 'emitido',
+  enviado: 'enviado',
   nao_aplica: 'nao_aplica',
 } as const;
 
@@ -169,7 +430,8 @@ export type StatusChecklistInputStatus = typeof StatusChecklistInputStatus[keyof
 
 export const StatusChecklistInputStatus = {
   pendente: 'pendente',
-  feito: 'feito',
+  emitido: 'emitido',
+  enviado: 'enviado',
   nao_aplica: 'nao_aplica',
 } as const;
 
@@ -283,4 +545,10 @@ export interface Configuracao {
 export interface ConfiguracaoInput {
   valor: string;
 }
+
+export type ListarProcessosParams = {
+status?: StatusProcesso;
+clienteId?: number;
+categoria?: CategoriaProcesso;
+};
 

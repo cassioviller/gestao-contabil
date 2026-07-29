@@ -17,11 +17,12 @@ export default function Competencias() {
   const agora = new Date();
   const [ano, setAno] = useState(agora.getFullYear());
   const [mes, setMes] = useState(agora.getMonth() + 1);
+  const [somenteHonorarios, setSomenteHonorarios] = useState(false);
 
   async function handleAbrir() {
     setErro(null);
     try {
-      await abrirMutation.mutateAsync({ data: { ano, mes } });
+      await abrirMutation.mutateAsync({ data: { ano, mes, somenteHonorarios } });
       qc.invalidateQueries({ queryKey: getListarCompetenciasQueryKey() });
       setAberto(false);
     } catch (e: unknown) {
@@ -50,23 +51,34 @@ export default function Competencias() {
             <div className="flex flex-wrap items-end gap-3">
               <label className="flex flex-col gap-1 text-sm">
                 <span className="text-neutral-600 dark:text-neutral-400">Mês</span>
-                <select value={mes} onChange={(e) => setMes(Number(e.target.value))}
+                <select name="mes" value={mes} onChange={(e) => setMes(Number(e.target.value))}
                   className="rounded-lg border border-black/15 bg-transparent px-3 py-2 dark:border-white/15">
                   {MESES.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
                 </select>
               </label>
               <label className="flex flex-col gap-1 text-sm">
                 <span className="text-neutral-600 dark:text-neutral-400">Ano</span>
-                <input type="number" value={ano} onChange={(e) => setAno(Number(e.target.value))}
+                <input type="number" name="ano" value={ano} onChange={(e) => setAno(Number(e.target.value))}
                   className="w-24 rounded-lg border border-black/15 bg-transparent px-3 py-2 dark:border-white/15" />
               </label>
               <button onClick={handleAbrir} disabled={abrirMutation.isPending}
                 className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50">
-                {abrirMutation.isPending ? "Gerando..." : "Gerar checklist"}
+                {abrirMutation.isPending ? "Gerando..." : somenteHonorarios ? "Gerar honorários" : "Gerar checklist"}
               </button>
               <button onClick={() => { setAberto(false); setErro(null); }}
                 className="rounded-lg border border-black/15 px-4 py-2 text-sm dark:border-white/15">Cancelar</button>
             </div>
+            <label className="mt-3 flex items-start gap-2 text-sm">
+              <input type="checkbox" name="somenteHonorarios" checked={somenteHonorarios}
+                onChange={(e) => setSomenteHonorarios(e.target.checked)} className="mt-1" />
+              <span>
+                Somente honorários (não gerar checklist de obrigações)
+                <span className="block text-xs text-neutral-500">
+                  Para meses anteriores ao início do uso do sistema — registra o honorário em atraso sem
+                  encher o checklist de itens de um mês que você não vai acompanhar.
+                </span>
+              </span>
+            </label>
             {erro && <p className="mt-2 text-sm text-red-600">{erro}</p>}
           </div>
         )}
@@ -89,7 +101,9 @@ export default function Competencias() {
                 <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-black/10 dark:bg-white/10">
                   <div className="h-full bg-green-500" style={{ width: `${pct}%` }} />
                 </div>
-                <p className="mt-2 text-xs text-neutral-500">Obrigações: {o.feitos}/{o.total} feitas ({pct}%)</p>
+                <p className="mt-2 text-xs text-neutral-500">
+                  Obrigações: {o.feitos}/{o.total} enviadas ({pct}%) · {o.emitidos} emitidas · {o.pendentes} pendentes
+                </p>
                 <p className="text-xs text-neutral-500">Pagamentos: {p.pagos}/{p.total} pagos · {p.pendentes} pendentes</p>
               </Link>
             );

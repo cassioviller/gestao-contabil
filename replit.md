@@ -10,6 +10,8 @@ _Gestão de obrigações contábeis: o contador acompanha, mês a mês (competê
 - `pnpm --filter @workspace/gestao-contabil run e2e` — run the Playwright e2e suite (builds API + frontend, boots both, runs tests)
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
+- `pnpm --filter @workspace/db run seed-tipos` — repopula o catálogo padrão de tipos de obrigação (idempotente; rode depois de um `e2e`, que trunca o banco)
+- `pnpm --filter @workspace/db run import-clientes -- ./Pasta1.xlsx [--dry]` — importa o cadastro de empresas de uma planilha (colunas: Cód. | Razão Social | CNPJ | Inscr. Estadual | Envio). Pula CNPJ/código já existentes; `--dry` só mostra o que faria
 - Required env: `DATABASE_URL` — Postgres connection string
 
 ## Stack
@@ -26,8 +28,16 @@ _Gestão de obrigações contábeis: o contador acompanha, mês a mês (competê
 - DB schema (source of truth): `lib/db/src/schema/schema.ts`
 - API contract (source of truth, hand-written): `lib/api-spec/openapi.yaml` → Orval generates `lib/api-zod` (Zod schemas) + `lib/api-client-react` (React Query hooks)
 - API server: `artifacts/api-server/src` — `app.ts` (middlewares), `routes/*` (one file per resource), `middlewares/error-handler.ts`, `lib/http.ts` (`HttpError`)
+- A tela de Tipos é uma **grade com gravação em lote**: as edições ficam num rascunho local (`rascunhos` por id) e só vão ao banco no "Salvar alterações", um POST por obrigação alterada. Voltar um campo ao valor original remove o rascunho — o contador de pendências reflete diferenças reais, não toques.
+- `tipos_obrigacao.regimes` (array do enum `regime_tributario`, nulo = todos) restringe a obrigação a certos regimes. Isso filtra a lista de obrigações no cadastro do cliente, **não** a geração da competência: o vínculo explícito em `cliente_obrigacoes` prevalece. Obrigação já vinculada mas incompatível continua aparecendo marcada (com ⚠) — escondê-la faria o submit desvinculá-la sem querer.
+- `tipos_obrigacao.periodicidade` (mensal/bimestral/trimestral/semestral/anual) + `mesReferencia` decidem em que meses a obrigação entra no checklist: a competência só gera item quando `(mes - mesReferencia)` é múltiplo do intervalo. Sem isso uma obrigação anual apareceria nos 12 meses.
+- **Processos e Pedidos são a mesma tabela** (`processos.categoria`): mesma API, mesmo checklist, mesma tela (`Processos.tsx` recebe `categoria`; `Pedidos.tsx` é um wrapper). O vocabulário de cada aba vive em `TEXTOS` em `lib/processo.ts`.
+- Ciclo da guia no checklist (`status_item`): **pendente → emitido → enviado → não se aplica** (clique na célula avança). Só `enviado` conta como concluída nos resumos; `emitido` aparece num contador próprio.
+- Abrir competência aceita `somenteHonorarios: true` — gera só os pagamentos, sem checklist. É como se registram honorários de meses anteriores ao início do uso do sistema.
+- **Depois de mexer em rotas da API, o servidor precisa ser reiniciado.** Reconstruir o bundle não basta: o processo Node já carregou o antigo na memória e devolve 404 nas rotas novas.
+- Processos: tabelas `processos` + `processo_etapas`; rotas `routes/processos.ts` (`/api/processos`) e `routes/etapas.ts` (`/api/etapas/:id`). O detalhe faz atualização otimista no cache do React Query antes do PATCH — sem isso o checkbox (controlado) volta ao valor antigo até o refetch e o clique parece não funcionar.
 - Frontend: `artifacts/gestao-contabil/src` — `pages/*` (one per screen), `components/MenuLateral.tsx` (nav)
-- e2e tests: `artifacts/gestao-contabil/e2e/` (`journey` = full flow, `smoke` = per-page, `api` = validation), config in `playwright.config.ts`
+- e2e tests: `artifacts/gestao-contabil/e2e/` (`journey` = full flow, `smoke` = per-page, `api` = validation, `cadastro` = planilha editável, `processos` = processos + checklist), config in `playwright.config.ts`
 
 ## Architecture decisions
 
@@ -37,7 +47,7 @@ _Gestão de obrigações contábeis: o contador acompanha, mês a mês (competê
 
 ## Product
 
-Telas: **Painel** (dashboard), **Clientes** (cadastro + obrigações vinculadas), **Tipos de obrigação** (catálogo), **Competências** (abre o mês → gera checklist + pagamentos de todos os clientes ativos), **Checklist** (status por cliente × obrigação), **Pagamentos** (honorários do mês), **Pendências** (atrasados + cobrança via WhatsApp).
+Telas: **Painel** (dashboard), **Clientes** (cadastro + obrigações vinculadas), **Dados cadastrais** (`/cadastro` — planilha editável célula a célula com CNPJ, inscrições, sócio/CPF, senha gov.br, período da procuração, contato/WhatsApp/e-mail, senha do portal NFS-e; exporta CSV), **Tipos de obrigação** (catálogo), **Senhas** (`/senhas` — uma linha por empresa × sistema/obrigação, com login e senha; tabela `credenciais`), **Processos** (`/processos` — processos avulsos por cliente: troca de titularidade, alteração de endereço…; cada um com prazo, protocolo e um checklist de etapas montado à mão em `/processos/:id`), **Competências** (abre o mês → gera checklist + pagamentos de todos os clientes ativos), **Checklist** (status por cliente × obrigação), **Pagamentos** (honorários do mês), **Pendências** (atrasados + cobrança via WhatsApp).
 
 ## User preferences
 
@@ -47,7 +57,7 @@ Telas: **Painel** (dashboard), **Clientes** (cadastro + obrigações vinculadas)
 
 - `vite.config.ts` exige as envs `PORT` e `BASE_PATH` (lança erro se faltarem) — já setadas pelo `playwright.config.ts` na suíte e2e.
 - e2e usa o Chromium do Nix do Replit via `REPLIT_PLAYWRIGHT_CHROMIUM_EXECUTABLE` (o Chromium baixado pelo `playwright install` falta libs de sistema).
-- `e2e/global-setup.ts` **trunca o DB** (`DATABASE_URL`) antes da run — não apontar para um banco com dados reais.
+- `e2e/global-setup.ts` **trunca o DB** (`DATABASE_URL`) antes da run — não apontar para um banco com dados reais. Depois de rodar a suíte, `run seed-tipos` para repor o catálogo de obrigações.
 - A tela de Pagamentos serve o **build** (vite preview); rode `e2e` (que rebuilda) após editar o frontend, não só `playwright test`.
 
 ## Pointers

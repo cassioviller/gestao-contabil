@@ -29,6 +29,7 @@ export const GetPainelResponse = zod.object({
   "obrigacoes": zod.object({
   "total": zod.number(),
   "feitos": zod.number(),
+  "emitidos": zod.number(),
   "pendentes": zod.number()
 }),
   "pagamentos": zod.object({
@@ -51,14 +52,23 @@ export const ListarClientesResponseItem = zod.object({
   "codigo": zod.number().nullish(),
   "razaoSocial": zod.string(),
   "cnpj": zod.string().nullish(),
+  "cnaePrincipal": zod.string().nullish(),
+  "regime": zod.union([zod.literal('simples_nacional'),zod.literal('mei'),zod.literal('lucro_presumido'),zod.literal('lucro_real'),zod.literal(null)]).nullish(),
   "inscricaoEstadual": zod.string().nullish(),
+  "inscricaoMunicipal": zod.string().nullish(),
   "formaEnvio": zod.string().nullish(),
   "procuracao": zod.string().nullish(),
+  "procuracaoVencimento": zod.string().nullish(),
+  "socioNome": zod.string().nullish(),
+  "socioCpf": zod.string().nullish(),
+  "senhaGov": zod.string().nullish(),
   "senhaNfse": zod.string().nullish(),
   "observacao": zod.string().nullish(),
   "valorHonorario": zod.string().nullish(),
   "diaVencimentoHonorario": zod.number().nullish(),
+  "contatoNome": zod.string().nullish(),
   "whatsapp": zod.string().nullish(),
+  "email": zod.string().nullish(),
   "ativo": zod.boolean(),
   "obrigacoes": zod.array(zod.number())
 })
@@ -73,14 +83,23 @@ export const CriarClienteBody = zod.object({
   "codigo": zod.number().nullish(),
   "razaoSocial": zod.string(),
   "cnpj": zod.string().nullish(),
+  "cnaePrincipal": zod.string().nullish(),
+  "regime": zod.union([zod.literal('simples_nacional'),zod.literal('mei'),zod.literal('lucro_presumido'),zod.literal('lucro_real'),zod.literal(null)]).nullish(),
   "inscricaoEstadual": zod.string().nullish(),
+  "inscricaoMunicipal": zod.string().nullish(),
   "formaEnvio": zod.string().nullish(),
   "procuracao": zod.string().nullish(),
+  "procuracaoVencimento": zod.string().nullish(),
+  "socioNome": zod.string().nullish(),
+  "socioCpf": zod.string().nullish(),
+  "senhaGov": zod.string().nullish(),
   "senhaNfse": zod.string().nullish(),
   "observacao": zod.string().nullish(),
   "valorHonorario": zod.string().nullish(),
   "diaVencimentoHonorario": zod.number().nullish(),
+  "contatoNome": zod.string().nullish(),
   "whatsapp": zod.string().nullish(),
+  "email": zod.string().nullish(),
   "ativo": zod.boolean().optional(),
   "obrigacoes": zod.array(zod.number()).optional()
 })
@@ -90,14 +109,81 @@ export const CriarClienteResponse = zod.object({
   "codigo": zod.number().nullish(),
   "razaoSocial": zod.string(),
   "cnpj": zod.string().nullish(),
+  "cnaePrincipal": zod.string().nullish(),
+  "regime": zod.union([zod.literal('simples_nacional'),zod.literal('mei'),zod.literal('lucro_presumido'),zod.literal('lucro_real'),zod.literal(null)]).nullish(),
   "inscricaoEstadual": zod.string().nullish(),
+  "inscricaoMunicipal": zod.string().nullish(),
   "formaEnvio": zod.string().nullish(),
   "procuracao": zod.string().nullish(),
+  "procuracaoVencimento": zod.string().nullish(),
+  "socioNome": zod.string().nullish(),
+  "socioCpf": zod.string().nullish(),
+  "senhaGov": zod.string().nullish(),
   "senhaNfse": zod.string().nullish(),
   "observacao": zod.string().nullish(),
   "valorHonorario": zod.string().nullish(),
   "diaVencimentoHonorario": zod.number().nullish(),
+  "contatoNome": zod.string().nullish(),
   "whatsapp": zod.string().nullish(),
+  "email": zod.string().nullish(),
+  "ativo": zod.boolean(),
+  "obrigacoes": zod.array(zod.number())
+})
+
+
+/**
+ * @summary Atualiza campos avulsos de um cliente
+ */
+export const AtualizarClienteParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const AtualizarClienteBody = zod.object({
+  "codigo": zod.number().nullish(),
+  "razaoSocial": zod.string().optional(),
+  "cnpj": zod.string().nullish(),
+  "cnaePrincipal": zod.string().nullish(),
+  "regime": zod.union([zod.literal('simples_nacional'),zod.literal('mei'),zod.literal('lucro_presumido'),zod.literal('lucro_real'),zod.literal(null)]).nullish(),
+  "inscricaoEstadual": zod.string().nullish(),
+  "inscricaoMunicipal": zod.string().nullish(),
+  "formaEnvio": zod.string().nullish(),
+  "procuracao": zod.string().nullish(),
+  "procuracaoVencimento": zod.string().nullish(),
+  "socioNome": zod.string().nullish(),
+  "socioCpf": zod.string().nullish(),
+  "senhaGov": zod.string().nullish(),
+  "senhaNfse": zod.string().nullish(),
+  "observacao": zod.string().nullish(),
+  "valorHonorario": zod.string().nullish(),
+  "diaVencimentoHonorario": zod.number().nullish(),
+  "contatoNome": zod.string().nullish(),
+  "whatsapp": zod.string().nullish(),
+  "email": zod.string().nullish(),
+  "ativo": zod.boolean().optional()
+})
+
+export const AtualizarClienteResponse = zod.object({
+  "id": zod.number(),
+  "codigo": zod.number().nullish(),
+  "razaoSocial": zod.string(),
+  "cnpj": zod.string().nullish(),
+  "cnaePrincipal": zod.string().nullish(),
+  "regime": zod.union([zod.literal('simples_nacional'),zod.literal('mei'),zod.literal('lucro_presumido'),zod.literal('lucro_real'),zod.literal(null)]).nullish(),
+  "inscricaoEstadual": zod.string().nullish(),
+  "inscricaoMunicipal": zod.string().nullish(),
+  "formaEnvio": zod.string().nullish(),
+  "procuracao": zod.string().nullish(),
+  "procuracaoVencimento": zod.string().nullish(),
+  "socioNome": zod.string().nullish(),
+  "socioCpf": zod.string().nullish(),
+  "senhaGov": zod.string().nullish(),
+  "senhaNfse": zod.string().nullish(),
+  "observacao": zod.string().nullish(),
+  "valorHonorario": zod.string().nullish(),
+  "diaVencimentoHonorario": zod.number().nullish(),
+  "contatoNome": zod.string().nullish(),
+  "whatsapp": zod.string().nullish(),
+  "email": zod.string().nullish(),
   "ativo": zod.boolean(),
   "obrigacoes": zod.array(zod.number())
 })
@@ -122,6 +208,9 @@ export const ListarTiposResponseItem = zod.object({
   "ordem": zod.number(),
   "diaVencimento": zod.number().nullish(),
   "offsetMes": zod.number(),
+  "periodicidade": zod.enum(['mensal', 'bimestral', 'trimestral', 'semestral', 'anual']),
+  "mesReferencia": zod.number().nullish(),
+  "regimes": zod.array(zod.enum(['simples_nacional', 'mei', 'lucro_presumido', 'lucro_real'])).nullish(),
   "ativo": zod.boolean()
 })
 export const ListarTiposResponse = zod.array(ListarTiposResponseItem)
@@ -135,7 +224,10 @@ export const SalvarTipoBody = zod.object({
   "nome": zod.string(),
   "ordem": zod.number().optional(),
   "diaVencimento": zod.number().nullish(),
-  "offsetMes": zod.number().optional()
+  "offsetMes": zod.number().optional(),
+  "periodicidade": zod.enum(['mensal', 'bimestral', 'trimestral', 'semestral', 'anual']).optional(),
+  "mesReferencia": zod.number().nullish(),
+  "regimes": zod.array(zod.enum(['simples_nacional', 'mei', 'lucro_presumido', 'lucro_real'])).nullish()
 })
 
 export const SalvarTipoResponse = zod.object({
@@ -144,6 +236,9 @@ export const SalvarTipoResponse = zod.object({
   "ordem": zod.number(),
   "diaVencimento": zod.number().nullish(),
   "offsetMes": zod.number(),
+  "periodicidade": zod.enum(['mensal', 'bimestral', 'trimestral', 'semestral', 'anual']),
+  "mesReferencia": zod.number().nullish(),
+  "regimes": zod.array(zod.enum(['simples_nacional', 'mei', 'lucro_presumido', 'lucro_real'])).nullish(),
   "ativo": zod.boolean()
 })
 
@@ -159,6 +254,254 @@ export const RemoverTipoResponse = zod.void()
 
 
 /**
+ * @summary Lista senhas de todos os clientes
+ */
+export const ListarCredenciaisResponseItem = zod.object({
+  "id": zod.number(),
+  "clienteId": zod.number(),
+  "clienteNome": zod.string(),
+  "tipoObrigacaoId": zod.number().nullish(),
+  "rotulo": zod.string(),
+  "login": zod.string().nullish(),
+  "senha": zod.string().nullish(),
+  "observacao": zod.string().nullish()
+})
+export const ListarCredenciaisResponse = zod.array(ListarCredenciaisResponseItem)
+
+
+/**
+ * @summary Cria ou atualiza uma credencial
+ */
+export const SalvarCredencialBody = zod.object({
+  "id": zod.number().nullish(),
+  "clienteId": zod.number(),
+  "tipoObrigacaoId": zod.number().nullish(),
+  "rotulo": zod.string(),
+  "login": zod.string().nullish(),
+  "senha": zod.string().nullish(),
+  "observacao": zod.string().nullish()
+})
+
+export const SalvarCredencialResponse = zod.object({
+  "id": zod.number(),
+  "clienteId": zod.number(),
+  "clienteNome": zod.string(),
+  "tipoObrigacaoId": zod.number().nullish(),
+  "rotulo": zod.string(),
+  "login": zod.string().nullish(),
+  "senha": zod.string().nullish(),
+  "observacao": zod.string().nullish()
+})
+
+
+/**
+ * @summary Atualiza campos avulsos de uma credencial
+ */
+export const AtualizarCredencialParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const AtualizarCredencialBody = zod.object({
+  "tipoObrigacaoId": zod.number().nullish(),
+  "rotulo": zod.string().optional(),
+  "login": zod.string().nullish(),
+  "senha": zod.string().nullish(),
+  "observacao": zod.string().nullish()
+})
+
+export const AtualizarCredencialResponse = zod.object({
+  "id": zod.number(),
+  "clienteId": zod.number(),
+  "clienteNome": zod.string(),
+  "tipoObrigacaoId": zod.number().nullish(),
+  "rotulo": zod.string(),
+  "login": zod.string().nullish(),
+  "senha": zod.string().nullish(),
+  "observacao": zod.string().nullish()
+})
+
+
+/**
+ * @summary Remove uma credencial
+ */
+export const RemoverCredencialParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const RemoverCredencialResponse = zod.void()
+
+
+/**
+ * @summary Lista processos (opcionalmente filtrados)
+ */
+export const ListarProcessosQueryParams = zod.object({
+  "status": zod.enum(['aberto', 'em_andamento', 'concluido', 'cancelado']).optional(),
+  "clienteId": zod.coerce.number().optional(),
+  "categoria": zod.enum(['processo', 'pedido']).optional()
+})
+
+export const ListarProcessosResponseItem = zod.object({
+  "id": zod.number(),
+  "clienteId": zod.number(),
+  "clienteNome": zod.string(),
+  "tipo": zod.string(),
+  "categoria": zod.enum(['processo', 'pedido']).optional(),
+  "titulo": zod.string().nullish(),
+  "status": zod.enum(['aberto', 'em_andamento', 'concluido', 'cancelado']),
+  "orgao": zod.string().nullish(),
+  "protocolo": zod.string().nullish(),
+  "abertoEm": zod.string().nullish(),
+  "prazo": zod.string().nullish(),
+  "concluidoEm": zod.string().nullish(),
+  "observacao": zod.string().nullish(),
+  "totalEtapas": zod.number(),
+  "etapasFeitas": zod.number()
+})
+export const ListarProcessosResponse = zod.array(ListarProcessosResponseItem)
+
+
+/**
+ * @summary Cria ou atualiza um processo
+ */
+export const SalvarProcessoBody = zod.object({
+  "id": zod.number().nullish(),
+  "clienteId": zod.number(),
+  "tipo": zod.string(),
+  "categoria": zod.enum(['processo', 'pedido']).optional(),
+  "titulo": zod.string().nullish(),
+  "status": zod.enum(['aberto', 'em_andamento', 'concluido', 'cancelado']).optional(),
+  "orgao": zod.string().nullish(),
+  "protocolo": zod.string().nullish(),
+  "abertoEm": zod.string().nullish(),
+  "prazo": zod.string().nullish(),
+  "concluidoEm": zod.string().nullish(),
+  "observacao": zod.string().nullish()
+})
+
+export const SalvarProcessoResponse = zod.object({
+  "id": zod.number(),
+  "clienteId": zod.number(),
+  "clienteNome": zod.string(),
+  "tipo": zod.string(),
+  "categoria": zod.enum(['processo', 'pedido']).optional(),
+  "titulo": zod.string().nullish(),
+  "status": zod.enum(['aberto', 'em_andamento', 'concluido', 'cancelado']),
+  "orgao": zod.string().nullish(),
+  "protocolo": zod.string().nullish(),
+  "abertoEm": zod.string().nullish(),
+  "prazo": zod.string().nullish(),
+  "concluidoEm": zod.string().nullish(),
+  "observacao": zod.string().nullish(),
+  "totalEtapas": zod.number(),
+  "etapasFeitas": zod.number()
+})
+
+
+/**
+ * @summary Obtém um processo com suas etapas
+ */
+export const GetProcessoParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetProcessoResponse = zod.object({
+  "id": zod.number(),
+  "clienteId": zod.number(),
+  "clienteNome": zod.string(),
+  "tipo": zod.string(),
+  "categoria": zod.enum(['processo', 'pedido']).optional(),
+  "titulo": zod.string().nullish(),
+  "status": zod.enum(['aberto', 'em_andamento', 'concluido', 'cancelado']),
+  "orgao": zod.string().nullish(),
+  "protocolo": zod.string().nullish(),
+  "abertoEm": zod.string().nullish(),
+  "prazo": zod.string().nullish(),
+  "concluidoEm": zod.string().nullish(),
+  "observacao": zod.string().nullish(),
+  "totalEtapas": zod.number(),
+  "etapasFeitas": zod.number()
+}).and(zod.object({
+  "etapas": zod.array(zod.object({
+  "id": zod.number(),
+  "processoId": zod.number(),
+  "descricao": zod.string(),
+  "feito": zod.boolean(),
+  "ordem": zod.number(),
+  "concluidoEm": zod.string().nullish(),
+  "observacao": zod.string().nullish()
+}))
+}))
+
+
+/**
+ * @summary Remove um processo e suas etapas
+ */
+export const RemoverProcessoParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const RemoverProcessoResponse = zod.void()
+
+
+/**
+ * @summary Adiciona uma etapa ao checklist do processo
+ */
+export const AdicionarEtapaParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const AdicionarEtapaBody = zod.object({
+  "descricao": zod.string(),
+  "observacao": zod.string().nullish()
+})
+
+export const AdicionarEtapaResponse = zod.object({
+  "id": zod.number(),
+  "processoId": zod.number(),
+  "descricao": zod.string(),
+  "feito": zod.boolean(),
+  "ordem": zod.number(),
+  "concluidoEm": zod.string().nullish(),
+  "observacao": zod.string().nullish()
+})
+
+
+/**
+ * @summary Atualiza uma etapa (marcar feito, editar texto)
+ */
+export const AtualizarEtapaParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const AtualizarEtapaBody = zod.object({
+  "descricao": zod.string().optional(),
+  "feito": zod.boolean().optional(),
+  "ordem": zod.number().optional(),
+  "observacao": zod.string().nullish()
+})
+
+export const AtualizarEtapaResponse = zod.object({
+  "id": zod.number(),
+  "processoId": zod.number(),
+  "descricao": zod.string(),
+  "feito": zod.boolean(),
+  "ordem": zod.number(),
+  "concluidoEm": zod.string().nullish(),
+  "observacao": zod.string().nullish()
+})
+
+
+/**
+ * @summary Remove uma etapa
+ */
+export const RemoverEtapaParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const RemoverEtapaResponse = zod.void()
+
+
+/**
  * @summary Lista competências com resumo
  */
 export const ListarCompetenciasResponseItem = zod.object({
@@ -170,6 +513,7 @@ export const ListarCompetenciasResponseItem = zod.object({
   "obrigacoes": zod.object({
   "total": zod.number(),
   "feitos": zod.number(),
+  "emitidos": zod.number(),
   "pendentes": zod.number()
 }),
   "pagamentos": zod.object({
@@ -189,7 +533,8 @@ export const ListarCompetenciasResponse = zod.array(ListarCompetenciasResponseIt
  */
 export const AbrirCompetenciaBody = zod.object({
   "ano": zod.number(),
-  "mes": zod.number()
+  "mes": zod.number(),
+  "somenteHonorarios": zod.boolean().optional()
 })
 
 export const AbrirCompetenciaResponse = zod.object({
@@ -216,6 +561,7 @@ export const GetCompetenciaResponse = zod.object({
   "obrigacoes": zod.object({
   "total": zod.number(),
   "feitos": zod.number(),
+  "emitidos": zod.number(),
   "pendentes": zod.number()
 }),
   "pagamentos": zod.object({
@@ -248,7 +594,7 @@ export const ListarChecklistParams = zod.object({
 
 export const ListarChecklistResponseItem = zod.object({
   "id": zod.number(),
-  "status": zod.enum(['pendente', 'feito', 'nao_aplica']),
+  "status": zod.enum(['pendente', 'emitido', 'enviado', 'nao_aplica']),
   "clienteId": zod.number(),
   "codigo": zod.number().nullish(),
   "cliente": zod.string(),
@@ -290,12 +636,12 @@ export const AtualizarStatusChecklistParams = zod.object({
 })
 
 export const AtualizarStatusChecklistBody = zod.object({
-  "status": zod.enum(['pendente', 'feito', 'nao_aplica'])
+  "status": zod.enum(['pendente', 'emitido', 'enviado', 'nao_aplica'])
 })
 
 export const AtualizarStatusChecklistResponse = zod.object({
   "id": zod.number(),
-  "status": zod.enum(['pendente', 'feito', 'nao_aplica']),
+  "status": zod.enum(['pendente', 'emitido', 'enviado', 'nao_aplica']),
   "clienteId": zod.number(),
   "codigo": zod.number().nullish(),
   "cliente": zod.string(),
@@ -319,7 +665,7 @@ export const AtualizarVencimentoChecklistBody = zod.object({
 
 export const AtualizarVencimentoChecklistResponse = zod.object({
   "id": zod.number(),
-  "status": zod.enum(['pendente', 'feito', 'nao_aplica']),
+  "status": zod.enum(['pendente', 'emitido', 'enviado', 'nao_aplica']),
   "clienteId": zod.number(),
   "codigo": zod.number().nullish(),
   "cliente": zod.string(),
@@ -393,7 +739,7 @@ export const ListarPendenciasResponse = zod.object({
 
 
 /**
- * @summary Marca obrigação pendente como feita
+ * @summary Marca obrigação pendente como enviada (fim do ciclo)
  */
 export const MarcarObrigacaoFeitaParams = zod.object({
   "id": zod.coerce.number()

@@ -5,6 +5,8 @@
  * ContaFácil API — gestão contábil
  * OpenAPI spec version: 0.1.0
  */
+import type { Periodicidade } from './periodicidade';
+import type { RegimeValor } from './regimeValor';
 
 export interface TipoObrigacao {
   id: number;
@@ -13,5 +15,10 @@ export interface TipoObrigacao {
   /** @nullable */
   diaVencimento?: number | null;
   offsetMes: number;
+  periodicidade: Periodicidade;
+  /** @nullable */
+  mesReferencia?: number | null;
+  /** @nullable */
+  regimes?: RegimeValor[] | null;
   ativo: boolean;
 }

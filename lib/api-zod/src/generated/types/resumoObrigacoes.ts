@@ -9,5 +9,6 @@
 export type ResumoObrigacoes = {
   total: number;
   feitos: number;
+  emitidos: number;
   pendentes: number;
 };

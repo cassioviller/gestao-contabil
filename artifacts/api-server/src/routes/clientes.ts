@@ -5,7 +5,13 @@ import {
   clientes,
   clienteObrigacoes,
 } from "@workspace/db";
-import { CriarClienteBody, RemoverClienteParams } from "@workspace/api-zod";
+import {
+  AtualizarClienteBody,
+  AtualizarClienteParams,
+  CriarClienteBody,
+  RemoverClienteParams,
+} from "@workspace/api-zod";
+import { HttpError } from "../lib/http";
 
 const router = Router();
 
@@ -44,6 +50,34 @@ router.post("/", async (req, res) => {
     .from(clienteObrigacoes).where(eq(clienteObrigacoes.clienteId, clienteId));
 
   res.json({ ...c, obrigacoes: vinculos.map((v) => v.tipoObrigacaoId) });
+});
+
+// PATCH /api/clientes/:id — edição campo a campo (tela de Dados cadastrais).
+// Só grava as chaves presentes no body e não toca nas obrigações vinculadas.
+router.patch("/:id", async (req, res) => {
+  const { id } = AtualizarClienteParams.parse(req.params);
+  const body = AtualizarClienteBody.parse(req.body);
+
+  const campos = Object.fromEntries(
+    Object.entries(body).filter(([, v]) => v !== undefined)
+  );
+  if (Object.keys(campos).length === 0) {
+    throw new HttpError(400, "Nenhum campo para atualizar.");
+  }
+
+  const [atualizado] = await db
+    .update(clientes)
+    .set(campos)
+    .where(eq(clientes.id, id))
+    .returning();
+  if (!atualizado) throw new HttpError(404, "Cliente não encontrado.");
+
+  const vinculos = await db
+    .select({ tipoObrigacaoId: clienteObrigacoes.tipoObrigacaoId })
+    .from(clienteObrigacoes)
+    .where(eq(clienteObrigacoes.clienteId, id));
+
+  res.json({ ...atualizado, obrigacoes: vinculos.map((v) => v.tipoObrigacaoId) });
 });
 
 // DELETE /api/clientes/:id

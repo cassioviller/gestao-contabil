@@ -3,6 +3,10 @@ import { Link, useLocation } from "wouter";
 const itens = [
   { href: "/", rotulo: "Painel", icone: "📊" },
   { href: "/clientes", rotulo: "Clientes", icone: "👥" },
+  { href: "/cadastro", rotulo: "Dados cadastrais", icone: "🗂️" },
+  { href: "/senhas", rotulo: "Senhas", icone: "🔑" },
+  { href: "/pedidos", rotulo: "Pedidos", icone: "📥" },
+  { href: "/processos", rotulo: "Processos", icone: "📁" },
   { href: "/competencias", rotulo: "Competências", icone: "📅" },
   { href: "/pendencias", rotulo: "Pendências", icone: "⏰" },
   { href: "/tipos", rotulo: "Tipos de obrigação", icone: "🏷️" },

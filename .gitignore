@@ -48,6 +48,9 @@ Thumbs.db
 .cache/
 .local/
 
+# Planilhas de cadastro na raiz: contêm CNPJ/contatos reais, não versionar
+/*.xlsx
+
 # Playwright
 test-results/
 playwright-report/
