@@ -52,7 +52,7 @@ export default function Painel() {
 
       <div className="mt-8">
         <h2 className="mb-3 text-lg font-semibold">Mês atual</h2>
-        {comp && resumo ? (
+        {comp && resumo && comp.ano != null && comp.mes != null ? (
           <Link
             href={`/competencias/${comp.id}`}
             className="block rounded-xl border border-black/10 bg-white p-5 hover:border-blue-500 dark:border-white/10 dark:bg-neutral-950"

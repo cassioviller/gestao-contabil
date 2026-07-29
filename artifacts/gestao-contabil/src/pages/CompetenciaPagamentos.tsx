@@ -136,7 +136,13 @@ export default function CompetenciaPagamentos({ params }: { params: { id: string
                     </td>
                     <td className="px-3 py-2">
                       <input defaultValue={p.valor ?? ""}
-                        onBlur={(e) => { if ((e.target.value || "") !== (p.valor || "")) salvar(p, { valor: e.target.value || null }); }}
+                        onBlur={(e) => {
+                          const bruto = e.target.value;
+                          if ((bruto || "") !== (p.valor || "")) {
+                            const valor = bruto ? bruto.replace(/\./g, "").replace(",", ".") : null;
+                            salvar(p, { valor });
+                          }
+                        }}
                         placeholder="0,00"
                         className="w-24 rounded-md border border-black/15 bg-transparent px-2 py-1 dark:border-white/15" />
                       <span className="ml-1 text-xs text-neutral-400">{formatarMoeda(p.valor)}</span>

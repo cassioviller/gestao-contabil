@@ -2,6 +2,12 @@ import { Router } from "express";
 import { and, eq, sql } from "drizzle-orm";
 import { db } from "@workspace/db";
 import { checklistItens, clientes, cobrancas, competencias, pagamentos, tiposObrigacao } from "@workspace/db";
+import {
+  MarcarObrigacaoFeitaParams,
+  MarcarPagamentoPagoParams,
+  RegistrarCobrancaBody,
+} from "@workspace/api-zod";
+import { HttpError } from "../lib/http";
 
 const router = Router();
 
@@ -64,23 +70,27 @@ router.get("/", async (req, res) => {
 
 // PATCH /api/pendencias/obrigacoes/:id/feito
 router.patch("/obrigacoes/:id/feito", async (req, res) => {
+  const { id } = MarcarObrigacaoFeitaParams.parse(req.params);
   await db.update(checklistItens)
     .set({ status: "feito", atualizadoEm: new Date() })
-    .where(eq(checklistItens.id, Number(req.params.id)));
+    .where(eq(checklistItens.id, id));
   res.status(204).send();
 });
 
 // PATCH /api/pendencias/pagamentos/:id/pago
 router.patch("/pagamentos/:id/pago", async (req, res) => {
+  const { id } = MarcarPagamentoPagoParams.parse(req.params);
   await db.update(pagamentos)
     .set({ status: "pago", atualizadoEm: new Date() })
-    .where(eq(pagamentos.id, Number(req.params.id)));
+    .where(eq(pagamentos.id, id));
   res.status(204).send();
 });
 
 // POST /api/pendencias/cobrancas
 router.post("/cobrancas", async (req, res) => {
-  const { pagamentoId } = req.body;
+  const { pagamentoId } = RegistrarCobrancaBody.parse(req.body);
+  const [pg] = await db.select({ id: pagamentos.id }).from(pagamentos).where(eq(pagamentos.id, pagamentoId));
+  if (!pg) throw new HttpError(404, "Pagamento não encontrado.");
   await db.insert(cobrancas).values({ pagamentoId });
   res.status(204).send();
 });

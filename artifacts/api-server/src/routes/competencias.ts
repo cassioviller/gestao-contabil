@@ -9,6 +9,14 @@ import {
   pagamentos,
   tiposObrigacao,
 } from "@workspace/db";
+import {
+  AbrirCompetenciaBody,
+  GetCompetenciaParams,
+  RemoverCompetenciaParams,
+  ListarChecklistParams,
+  ListarPagamentosParams,
+} from "@workspace/api-zod";
+import { HttpError } from "../lib/http";
 
 const router = Router();
 
@@ -58,17 +66,15 @@ router.get("/", async (req, res) => {
 
 // POST /api/competencias
 router.post("/", async (req, res) => {
-  const { ano, mes } = req.body;
-  if (!ano || !mes || mes < 1 || mes > 12) {
-    res.status(400).json({ error: "Ano/mês inválidos." });
-    return;
+  const { ano, mes } = AbrirCompetenciaBody.parse(req.body);
+  if (mes < 1 || mes > 12) {
+    throw new HttpError(400, "Mês inválido (use 1 a 12).");
   }
 
   const existente = await db.select({ id: competencias.id }).from(competencias)
     .where(and(eq(competencias.ano, ano), eq(competencias.mes, mes)));
   if (existente.length) {
-    res.status(400).json({ error: "Esse mês já foi aberto." });
-    return;
+    throw new HttpError(400, "Esse mês já foi aberto.");
   }
 
   const [comp] = await db.insert(competencias).values({ ano, mes }).returning();
@@ -114,21 +120,23 @@ router.post("/", async (req, res) => {
 
 // GET /api/competencias/:id
 router.get("/:id", async (req, res) => {
-  const [comp] = await db.select().from(competencias).where(eq(competencias.id, Number(req.params.id)));
-  if (!comp) { res.status(404).json({ error: "Não encontrada" }); return; }
+  const { id } = GetCompetenciaParams.parse(req.params);
+  const [comp] = await db.select().from(competencias).where(eq(competencias.id, id));
+  if (!comp) throw new HttpError(404, "Competência não encontrada.");
   const resumo = await resumoCompetencia(comp.id);
   res.json({ ...comp, resumo });
 });
 
 // DELETE /api/competencias/:id
 router.delete("/:id", async (req, res) => {
-  await db.delete(competencias).where(eq(competencias.id, Number(req.params.id)));
+  const { id } = RemoverCompetenciaParams.parse(req.params);
+  await db.delete(competencias).where(eq(competencias.id, id));
   res.status(204).send();
 });
 
 // GET /api/competencias/:id/checklist
 router.get("/:id/checklist", async (req, res) => {
-  const id = Number(req.params.id);
+  const { id } = ListarChecklistParams.parse(req.params);
   const itens = await db
     .select({
       id: checklistItens.id,
@@ -152,7 +160,7 @@ router.get("/:id/checklist", async (req, res) => {
 
 // GET /api/competencias/:id/pagamentos
 router.get("/:id/pagamentos", async (req, res) => {
-  const id = Number(req.params.id);
+  const { id } = ListarPagamentosParams.parse(req.params);
   const pgs = await db
     .select({
       id: pagamentos.id,

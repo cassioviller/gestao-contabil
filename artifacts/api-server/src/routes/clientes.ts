@@ -1,11 +1,11 @@
 import { Router } from "express";
-import { and, asc, eq, inArray } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import { db } from "@workspace/db";
 import {
   clientes,
   clienteObrigacoes,
-  tiposObrigacao,
 } from "@workspace/db";
+import { CriarClienteBody, RemoverClienteParams } from "@workspace/api-zod";
 
 const router = Router();
 
@@ -21,11 +21,11 @@ router.get("/", async (req, res) => {
 
 // POST /api/clientes (criar ou editar)
 router.post("/", async (req, res) => {
-  const { id, obrigacoes = [], ...dados } = req.body;
+  const { id, obrigacoes = [], ...dados } = CriarClienteBody.parse(req.body);
 
   let clienteId: number;
   if (id) {
-    clienteId = Number(id);
+    clienteId = id;
     await db.update(clientes).set(dados).where(eq(clientes.id, clienteId));
   } else {
     const [novo] = await db.insert(clientes).values(dados).returning();
@@ -48,7 +48,8 @@ router.post("/", async (req, res) => {
 
 // DELETE /api/clientes/:id
 router.delete("/:id", async (req, res) => {
-  await db.delete(clientes).where(eq(clientes.id, Number(req.params.id)));
+  const { id } = RemoverClienteParams.parse(req.params);
+  await db.delete(clientes).where(eq(clientes.id, id));
   res.status(204).send();
 });
 

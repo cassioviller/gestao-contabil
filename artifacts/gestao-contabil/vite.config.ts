@@ -26,6 +26,14 @@ if (!basePath) {
   );
 }
 
+// When set (dev / e2e), proxy `/api` to the API server so the browser can reach
+// it on the same origin. Left undefined in production, where a reverse proxy
+// fronts both the static build and the API.
+const apiProxyTarget = process.env.API_PROXY_TARGET;
+const apiProxy = apiProxyTarget
+  ? { "/api": { target: apiProxyTarget, changeOrigin: true } }
+  : undefined;
+
 export default defineConfig({
   base: basePath,
   plugins: [
@@ -63,6 +71,7 @@ export default defineConfig({
     strictPort: true,
     host: "0.0.0.0",
     allowedHosts: true,
+    proxy: apiProxy,
     fs: {
       strict: true,
     },
@@ -71,5 +80,6 @@ export default defineConfig({
     port,
     host: "0.0.0.0",
     allowedHosts: true,
+    proxy: apiProxy,
   },
 });

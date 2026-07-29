@@ -1,13 +1,15 @@
 import { Router } from "express";
-import { asc, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db } from "@workspace/db";
 import { pagamentos, clientes } from "@workspace/db";
+import { AtualizarPagamentoParams, AtualizarPagamentoBody } from "@workspace/api-zod";
 
 const router = Router();
 
 // PATCH /api/pagamentos/:id
 router.patch("/:id", async (req, res) => {
-  const { status, valor, dataPagamento, forma, observacao } = req.body;
+  const { id } = AtualizarPagamentoParams.parse(req.params);
+  const { status, valor, dataPagamento, forma, observacao } = AtualizarPagamentoBody.parse(req.body);
   await db.update(pagamentos)
     .set({
       status: status ?? "pendente",
@@ -17,7 +19,7 @@ router.patch("/:id", async (req, res) => {
       observacao: observacao || null,
       atualizadoEm: new Date(),
     })
-    .where(eq(pagamentos.id, Number(req.params.id)));
+    .where(eq(pagamentos.id, id));
 
   const [p] = await db
     .select({
@@ -34,7 +36,7 @@ router.patch("/:id", async (req, res) => {
     })
     .from(pagamentos)
     .innerJoin(clientes, eq(clientes.id, pagamentos.clienteId))
-    .where(eq(pagamentos.id, Number(req.params.id)));
+    .where(eq(pagamentos.id, id));
 
   res.json(p);
 });
