@@ -6,6 +6,7 @@ import {
   useCriarCliente,
   useAtualizarCliente,
   useRemoverCliente,
+  useInativarCliente,
   getSegredosCliente,
 } from "@workspace/api-client-react";
 import { REGIMES, formatarNumeroBR, hojeBR, paraDecimalAPI, rotuloRegime } from "@/lib/formato";
@@ -123,6 +124,7 @@ export default function DadosCadastrais() {
   const criar = useCriarCliente();
   const atualizar = useAtualizarCliente();
   const remover = useRemoverCliente();
+  const inativar = useInativarCliente();
 
   const [busca, setBusca] = useState("");
   // Senhas reveladas nesta tela, por cliente. Cada revelação é um pedido à API
@@ -181,8 +183,23 @@ export default function DadosCadastrais() {
   }
 
   async function removerEmpresa(c: Cliente) {
-    if (!confirm(`Remover "${c.razaoSocial}"? Isso apaga também o histórico dela.`)) return;
-    await remover.mutateAsync({ id: c.id });
+    if (
+      !confirm(
+        `Remover "${c.razaoSocial}"? Quem já tem competência gerada não é apagado: é inativado, e o histórico fica.`,
+      )
+    )
+      return;
+    setErro(null);
+    try {
+      await remover.mutateAsync({ id: c.id });
+    } catch (e) {
+      if ((e as { status?: number }).status === 409) {
+        await inativar.mutateAsync({ id: c.id });
+      } else {
+        setErro(mensagemDeErro(e, "Não foi possível remover."));
+        return;
+      }
+    }
     invalidar();
   }
 

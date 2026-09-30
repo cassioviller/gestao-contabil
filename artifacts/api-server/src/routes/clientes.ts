@@ -7,6 +7,8 @@ import {
   AtualizarClienteParams,
   CriarClienteBody,
   GetSegredosClienteParams,
+  InativarClienteParams,
+  ReativarClienteParams,
   RemoverClienteParams,
 } from "@workspace/api-zod";
 import { HttpError } from "../lib/http";
@@ -203,23 +205,68 @@ router.get("/:id/segredos", exigirPapel("admin", "contador"), async (req, res) =
   res.json({ senhaGov: decifrar(c.senhaGov), senhaNfse: decifrar(c.senhaNfse) });
 });
 
-// DELETE /api/clientes/:id
-router.delete("/:id", async (req, res) => {
+// DELETE /api/clientes/:id — só admin, e só quem não tem competência gerada.
+// Com histórico, o caminho é inativar: apagar levaria junto checklist,
+// pagamentos e protocolos de meses já trabalhados.
+router.delete("/:id", exigirPapel("admin"), async (req, res) => {
   const contaId = contaDaRequisicao(req);
   const { id } = RemoverClienteParams.parse(req.params);
-  const apagados = await db
-    .delete(clientes)
-    .where(and(eq(clientes.id, id), eq(clientes.contaId, contaId)))
-    .returning({ id: clientes.id, razaoSocial: clientes.razaoSocial });
-  if (apagados.length) {
-    await auditar(req, {
-      acao: "excluir_cliente",
-      entidade: "cliente",
-      entidadeId: id,
-      de: apagados[0].razaoSocial,
-    });
+  const [c] = await db
+    .select({
+      razaoSocial: clientes.razaoSocial,
+      itens: sql<number>`(select count(*) from checklist_itens i where i.cliente_id = clientes.id)::int`,
+      pagamentos: sql<number>`(select count(*) from pagamentos p where p.cliente_id = clientes.id)::int`,
+    })
+    .from(clientes)
+    .where(and(eq(clientes.id, id), eq(clientes.contaId, contaId)));
+  if (!c) {
+    res.status(204).send();
+    return;
   }
+  if (c.itens + c.pagamentos > 0) {
+    throw new HttpError(
+      409,
+      "Este cliente já tem competências geradas. Inative em vez de excluir: o histórico fica guardado.",
+      { itens: c.itens, pagamentos: c.pagamentos },
+      "tem_historico",
+    );
+  }
+  await db.delete(clientes).where(and(eq(clientes.id, id), eq(clientes.contaId, contaId)));
+  await auditar(req, {
+    acao: "excluir_cliente",
+    entidade: "cliente",
+    entidadeId: id,
+    de: c.razaoSocial,
+  });
   res.status(204).send();
+});
+
+// POST /api/clientes/:id/inativar — sai das competências novas; o histórico fica.
+router.post("/:id/inativar", async (req, res) => {
+  const contaId = contaDaRequisicao(req);
+  const { id } = InativarClienteParams.parse(req.params);
+  const [c] = await db
+    .update(clientes)
+    .set({ ativo: false, inativadoEm: new Date() })
+    .where(and(eq(clientes.id, id), eq(clientes.contaId, contaId)))
+    .returning({ id: clientes.id });
+  if (!c) throw new HttpError(404, "Cliente não encontrado.");
+  await auditar(req, { acao: "inativar_cliente", entidade: "cliente", entidadeId: id });
+  res.json(await clienteComVinculos(contaId, id));
+});
+
+// POST /api/clientes/:id/reativar
+router.post("/:id/reativar", async (req, res) => {
+  const contaId = contaDaRequisicao(req);
+  const { id } = ReativarClienteParams.parse(req.params);
+  const [c] = await db
+    .update(clientes)
+    .set({ ativo: true, inativadoEm: null })
+    .where(and(eq(clientes.id, id), eq(clientes.contaId, contaId)))
+    .returning({ id: clientes.id });
+  if (!c) throw new HttpError(404, "Cliente não encontrado.");
+  await auditar(req, { acao: "reativar_cliente", entidade: "cliente", entidadeId: id });
+  res.json(await clienteComVinculos(contaId, id));
 });
 
 export default router;

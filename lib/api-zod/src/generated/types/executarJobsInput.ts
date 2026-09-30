@@ -12,4 +12,10 @@ export interface ExecutarJobsInput {
      * @maximum 300000
      */
   limiteMs?: number;
+  /**
+     * @maxItems 10
+     * @items.minLength 1
+     * @items.maxLength 60
+     */
+  agora?: string[];
 }

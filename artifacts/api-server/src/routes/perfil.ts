@@ -16,6 +16,9 @@ const campos = {
   telefone: contas.telefone,
   email: contas.email,
   endereco: contas.endereco,
+  chavePix: contas.chavePix,
+  aberturaAutomatica: contas.aberturaAutomatica,
+  diasParaCobrar: contas.diasParaCobrar,
 };
 
 // GET /api/perfil

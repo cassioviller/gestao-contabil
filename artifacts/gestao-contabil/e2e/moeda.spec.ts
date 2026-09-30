@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { apagarCliente } from "./apoio";
 
 // Regressão do bug mais caro do sistema: o honorário era exibido cru ("350.00")
 // e, ao salvar o formulário sem mexer nele, o parse pt-BR removia o ponto e
@@ -116,7 +117,7 @@ test("POST /clientes com id e sem obrigações mantém os vínculos", async ({ r
   ).json();
   expect(limpo.obrigacoes).toEqual([]);
 
-  await request.delete(`/api/clientes/${cliente.id}`);
+  await apagarCliente(request, cliente.id);
   await request.delete(`/api/tipos/${tipo.id}`);
 });
 
@@ -143,13 +144,13 @@ test("PATCH parcial no pagamento não zera os outros campos", async ({ request }
   expect(depois.vencimento).toBe(meu.vencimento);
 
   await request.delete(`/api/competencias/${comp.id}`);
-  await request.delete(`/api/clientes/${cliente.id}`);
+  await apagarCliente(request, cliente.id);
 });
 
 test.afterAll(async ({ playwright }) => {
   const api = await playwright.request.newContext({ baseURL: "http://localhost:5179" });
   for (const c of await (await api.get("/api/clientes")).json()) {
-    if ([EMPRESA, "Milhar LTDA"].includes(c.razaoSocial)) await api.delete(`/api/clientes/${c.id}`);
+    if ([EMPRESA, "Milhar LTDA"].includes(c.razaoSocial)) await apagarCliente(api, c.id);
   }
   await api.dispose();
 });

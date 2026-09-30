@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { apagarCliente } from "./apoio";
 
 // Obrigação pode ser restrita a certos regimes. No cadastro do cliente, as que
 // não são do regime dele saem da lista.
@@ -80,7 +81,7 @@ test("grade de Tipos mostra e edita a restrição de regime", async ({ page }) =
 test.afterAll(async ({ playwright }) => {
   const api = await playwright.request.newContext({ baseURL: "http://localhost:5179" });
   for (const c of await (await api.get("/api/clientes")).json()) {
-    if (c.razaoSocial === EMPRESA) await api.delete(`/api/clientes/${c.id}`);
+    if (c.razaoSocial === EMPRESA) await apagarCliente(api, c.id);
   }
   for (const t of await (await api.get("/api/tipos")).json()) {
     if ([SO_PRESUMIDO, TODOS].includes(t.nome)) await api.delete(`/api/tipos/${t.id}`);

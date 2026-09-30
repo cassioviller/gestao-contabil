@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { apagarCliente } from "./apoio";
 
 // Meses anteriores ao início do uso do sistema entram só com os honorários:
 // o checklist daqueles meses seria ruído. Cobre o caminho de registrar
@@ -51,7 +52,7 @@ test.afterAll(async ({ playwright }) => {
   const api = await playwright.request.newContext({ baseURL: "http://localhost:5179" });
   const clientes = await (await api.get("/api/clientes")).json();
   for (const c of clientes) {
-    if (c.razaoSocial === EMPRESA) await api.delete(`/api/clientes/${c.id}`);
+    if (c.razaoSocial === EMPRESA) await apagarCliente(api, c.id);
   }
   const comps = await (await api.get("/api/competencias")).json();
   for (const k of comps) {

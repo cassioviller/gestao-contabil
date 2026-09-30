@@ -9,6 +9,7 @@ import {
   useAtualizarVencimentoChecklist,
 } from "@workspace/api-client-react";
 import { rotuloCompetencia, formatarMoeda, formatarData } from "@/lib/formato";
+import ItemChecklistModal from "@/components/ItemChecklistModal";
 
 type Item = {
   id: number;
@@ -20,6 +21,9 @@ type Item = {
   tipoObrigacaoId: number;
   obrigacao: string;
   ordem: number;
+  anexos: number;
+  enviadoEm: string | null;
+  visualizadoEm: string | null;
 };
 
 // Ciclo da guia: pendente → emitido → enviado → não se aplica → pendente.
@@ -111,6 +115,10 @@ export default function CompetenciaChecklist({ params }: { params: { id: string 
   const [estado, setEstado] = useState<Item[]>([]);
   const [soPendentes, setSoPendentes] = useState(false);
   const [modoPrazos, setModoPrazos] = useState(false);
+  const [modoAnexos, setModoAnexos] = useState(false);
+  const [aberto, setAberto] = useState<{ item: Item; cliente: string; obrigacao: string } | null>(
+    null,
+  );
 
   const estadoAtual = estado.length > 0 ? estado : (itens as Item[]);
 
@@ -198,6 +206,14 @@ export default function CompetenciaChecklist({ params }: { params: { id: string 
               />
               Ajustar prazos
             </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={modoAnexos}
+                onChange={(e) => setModoAnexos(e.target.checked)}
+              />
+              Anexos e envio
+            </label>
             <span className="flex flex-wrap items-center gap-2 text-xs text-neutral-500">
               Clique numa célula para avançar:
               {(["pendente", "emitido", "enviado", "nao_aplica"] as const).map((s, i) => (
@@ -246,7 +262,27 @@ export default function CompetenciaChecklist({ params }: { params: { id: string 
                         );
                       return (
                         <td key={c.id} className="px-2 py-2 text-center">
-                          {modoPrazos ? (
+                          {modoAnexos ? (
+                            <button
+                              onClick={() =>
+                                setAberto({ item: cel, cliente: l.nome, obrigacao: c.nome })
+                              }
+                              aria-label={`${l.nome} — ${c.nome}: anexos e envio`}
+                              title={`${cel.anexos} anexo(s)${cel.enviadoEm ? " · enviada" : ""}${cel.visualizadoEm ? " · visualizada" : ""}`}
+                              className={`h-7 min-w-7 rounded-md px-1 text-xs font-medium ${
+                                cel.visualizadoEm
+                                  ? "bg-green-600 text-white"
+                                  : cel.enviadoEm
+                                    ? "bg-green-500/20 text-green-800 dark:text-green-300"
+                                    : cel.anexos
+                                      ? "bg-blue-500/20 text-blue-800 dark:text-blue-300"
+                                      : "bg-black/5 text-neutral-500 dark:bg-white/10"
+                              }`}
+                            >
+                              {cel.anexos ? `📎${cel.anexos}` : "📎"}
+                              {cel.enviadoEm ? " ✉" : ""}
+                            </button>
+                          ) : modoPrazos ? (
                             <input
                               type="date"
                               defaultValue={cel.vencimento ?? ""}
@@ -259,7 +295,9 @@ export default function CompetenciaChecklist({ params }: { params: { id: string 
                               aria-label={`${l.nome} — ${c.nome}: ${ROTULO[cel.status]}`}
                               title={
                                 ROTULO[cel.status] +
-                                (cel.vencimento ? ` · vence ${formatarData(cel.vencimento)}` : "")
+                                (cel.vencimento ? ` · vence ${formatarData(cel.vencimento)}` : "") +
+                                (cel.anexos ? ` · ${cel.anexos} anexo(s)` : "") +
+                                (cel.visualizadoEm ? " · visualizada pelo cliente" : "")
                               }
                               className={`h-7 w-7 rounded-md text-sm font-bold ${ESTILO[cel.status]}`}
                             >
@@ -280,6 +318,18 @@ export default function CompetenciaChecklist({ params }: { params: { id: string 
             </p>
           )}
         </div>
+      )}
+      {aberto && (
+        <ItemChecklistModal
+          item={aberto.item}
+          cliente={aberto.cliente}
+          obrigacao={aberto.obrigacao}
+          aoFechar={() => setAberto(null)}
+          aoMudar={() => {
+            setEstado([]);
+            qc.invalidateQueries({ queryKey: getListarChecklistQueryKey(id) });
+          }}
+        />
       )}
     </div>
   );

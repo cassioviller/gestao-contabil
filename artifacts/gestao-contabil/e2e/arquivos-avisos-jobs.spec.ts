@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { apagarCliente } from "./apoio";
 
 // Arquivos (registro → upload → download), avisos na fila e o worker de jobs
 // disparado pelo token de serviço. Sem R2 nem Resend, a suíte usa o disco
@@ -103,7 +104,7 @@ test.describe("arquivos", () => {
       },
     });
     expect(alheio.status()).toBe(404);
-    await request.delete(`/api/clientes/${clienteId}`);
+    await apagarCliente(request, clienteId);
   });
 });
 
@@ -175,14 +176,14 @@ test.describe("avisos e fila de jobs", () => {
     const recorrentes = jobs.filter((j: { tipo: string }) => j.tipo === "limpeza");
     expect(recorrentes.length).toBe(1);
 
-    await request.delete(`/api/clientes/${clienteId}`);
+    await apagarCliente(request, clienteId);
   });
 });
 
 test.afterAll(async ({ playwright }) => {
   const api = await playwright.request.newContext({ baseURL: "http://localhost:5179" });
   for (const c of await (await api.get("/api/clientes")).json()) {
-    if (c.razaoSocial === EMPRESA) await api.delete(`/api/clientes/${c.id}`);
+    if (c.razaoSocial === EMPRESA) await apagarCliente(api, c.id);
   }
   await api.dispose();
 });

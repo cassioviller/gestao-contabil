@@ -4,13 +4,15 @@ import { db } from "@workspace/db";
 import { pagamentos, clientes } from "@workspace/db";
 import { AtualizarPagamentoParams, AtualizarPagamentoBody } from "@workspace/api-zod";
 import { HttpError } from "../lib/http";
-import { contaDaRequisicao } from "../middlewares/autenticacao";
+import { auditar } from "../lib/auditoria";
+import { contaDaRequisicao, sessaoDaRequisicao } from "../middlewares/autenticacao";
 
 const router = Router();
 
 // PATCH /api/pagamentos/:id
 router.patch("/:id", async (req, res) => {
   const contaId = contaDaRequisicao(req);
+  const sessao = sessaoDaRequisicao(req);
   const { id } = AtualizarPagamentoParams.parse(req.params);
   const body = AtualizarPagamentoBody.parse(req.body);
 
@@ -25,10 +27,18 @@ router.patch("/:id", async (req, res) => {
 
   const [alterado] = await db
     .update(pagamentos)
-    .set({ ...mudancas, atualizadoEm: new Date() })
+    .set({ ...mudancas, atualizadoEm: new Date(), atualizadoPor: sessao.usuarioId })
     .where(and(eq(pagamentos.id, id), eq(pagamentos.contaId, contaId)))
-    .returning({ id: pagamentos.id });
+    .returning({ id: pagamentos.id, status: pagamentos.status });
   if (!alterado) throw new HttpError(404, "Pagamento não encontrado.");
+  if (mudancas.status !== undefined) {
+    await auditar(req, {
+      acao: "status_pagamento",
+      entidade: "pagamento",
+      entidadeId: id,
+      para: String(mudancas.status),
+    });
+  }
 
   const [p] = await db
     .select({

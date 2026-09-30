@@ -94,6 +94,22 @@ export const getPainelResponseCompetenciaAtualResumoPagamentosAReceberRegExp = n
 
 export const GetPainelResponse = zod.object({
   "clientesAtivos": zod.number(),
+  "alertas": zod.object({
+  "competenciaDoMesAberta": zod.boolean(),
+  "competenciaDoMesId": zod.number().nullable(),
+  "vencendo7Dias": zod.number(),
+  "emitidasNaoEnviadasVencidas": zod.number(),
+  "honorariosVencidos": zod.object({
+  "quantidade": zod.number(),
+  "total": zod.string()
+}),
+  "feriasVencendo": zod.number(),
+  "procuracoesVencendo30Dias": zod.number(),
+  "procuracoesVencidas": zod.number(),
+  "processosAtrasados": zod.number(),
+  "avisosFalhados": zod.number(),
+  "clientesSemObrigacoes": zod.number()
+}),
   "competenciaAtual": zod.object({
   "id": zod.number().optional(),
   "ano": zod.number().min(getPainelResponseCompetenciaAtualAnoMin).max(getPainelResponseCompetenciaAtualAnoMax).optional(),
@@ -152,6 +168,7 @@ export const ListarClientesResponseItem = zod.object({
   "whatsapp": zod.string().nullish(),
   "email": zod.string().nullish(),
   "ativo": zod.boolean(),
+  "inativadoEm": zod.string().datetime({"offset":true}).nullish(),
   "obrigacoes": zod.array(zod.number())
 })
 export const ListarClientesResponse = zod.array(ListarClientesResponseItem)
@@ -227,6 +244,7 @@ export const CriarClienteResponse = zod.object({
   "whatsapp": zod.string().nullish(),
   "email": zod.string().nullish(),
   "ativo": zod.boolean(),
+  "inativadoEm": zod.string().datetime({"offset":true}).nullish(),
   "obrigacoes": zod.array(zod.number())
 })
 
@@ -306,12 +324,13 @@ export const AtualizarClienteResponse = zod.object({
   "whatsapp": zod.string().nullish(),
   "email": zod.string().nullish(),
   "ativo": zod.boolean(),
+  "inativadoEm": zod.string().datetime({"offset":true}).nullish(),
   "obrigacoes": zod.array(zod.number())
 })
 
 
 /**
- * @summary Remove um cliente
+ * @summary Apaga um cliente sem histórico (só admin). Com competência gerada, use inativar
  */
 
 
@@ -321,6 +340,100 @@ export const RemoverClienteParams = zod.object({
 })
 
 export const RemoverClienteResponse = zod.void()
+
+
+/**
+ * @summary Inativa o cliente (sai das competências novas; o histórico fica)
+ */
+
+
+
+export const InativarClienteParams = zod.object({
+  "id": zod.coerce.number().min(1)
+})
+
+export const inativarClienteResponseCodigoMin = 0;
+
+export const inativarClienteResponseRazaoSocialMax = 200;
+
+export const inativarClienteResponseValorHonorarioRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+export const inativarClienteResponseDiaVencimentoHonorarioMax = 31;
+
+
+
+export const InativarClienteResponse = zod.object({
+  "id": zod.number(),
+  "codigo": zod.number().min(inativarClienteResponseCodigoMin).nullish(),
+  "razaoSocial": zod.string().min(1).max(inativarClienteResponseRazaoSocialMax),
+  "cnpj": zod.string().nullish(),
+  "cnaePrincipal": zod.string().nullish(),
+  "regime": zod.union([zod.literal('simples_nacional'),zod.literal('mei'),zod.literal('lucro_presumido'),zod.literal('lucro_real'),zod.literal(null)]).nullish(),
+  "inscricaoEstadual": zod.string().nullish(),
+  "inscricaoMunicipal": zod.string().nullish(),
+  "formaEnvio": zod.string().nullish(),
+  "procuracao": zod.string().nullish(),
+  "procuracaoVencimento": zod.string().date().nullish(),
+  "socioNome": zod.string().nullish(),
+  "socioCpf": zod.string().nullish(),
+  "temSenhaGov": zod.boolean(),
+  "temSenhaNfse": zod.boolean(),
+  "observacao": zod.string().nullish(),
+  "valorHonorario": zod.string().regex(inativarClienteResponseValorHonorarioRegExp).nullish(),
+  "diaVencimentoHonorario": zod.number().min(1).max(inativarClienteResponseDiaVencimentoHonorarioMax).nullish(),
+  "contatoNome": zod.string().nullish(),
+  "whatsapp": zod.string().nullish(),
+  "email": zod.string().nullish(),
+  "ativo": zod.boolean(),
+  "inativadoEm": zod.string().datetime({"offset":true}).nullish(),
+  "obrigacoes": zod.array(zod.number())
+})
+
+
+/**
+ * @summary Reativa um cliente inativado
+ */
+
+
+
+export const ReativarClienteParams = zod.object({
+  "id": zod.coerce.number().min(1)
+})
+
+export const reativarClienteResponseCodigoMin = 0;
+
+export const reativarClienteResponseRazaoSocialMax = 200;
+
+export const reativarClienteResponseValorHonorarioRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+export const reativarClienteResponseDiaVencimentoHonorarioMax = 31;
+
+
+
+export const ReativarClienteResponse = zod.object({
+  "id": zod.number(),
+  "codigo": zod.number().min(reativarClienteResponseCodigoMin).nullish(),
+  "razaoSocial": zod.string().min(1).max(reativarClienteResponseRazaoSocialMax),
+  "cnpj": zod.string().nullish(),
+  "cnaePrincipal": zod.string().nullish(),
+  "regime": zod.union([zod.literal('simples_nacional'),zod.literal('mei'),zod.literal('lucro_presumido'),zod.literal('lucro_real'),zod.literal(null)]).nullish(),
+  "inscricaoEstadual": zod.string().nullish(),
+  "inscricaoMunicipal": zod.string().nullish(),
+  "formaEnvio": zod.string().nullish(),
+  "procuracao": zod.string().nullish(),
+  "procuracaoVencimento": zod.string().date().nullish(),
+  "socioNome": zod.string().nullish(),
+  "socioCpf": zod.string().nullish(),
+  "temSenhaGov": zod.boolean(),
+  "temSenhaNfse": zod.boolean(),
+  "observacao": zod.string().nullish(),
+  "valorHonorario": zod.string().regex(reativarClienteResponseValorHonorarioRegExp).nullish(),
+  "diaVencimentoHonorario": zod.number().min(1).max(reativarClienteResponseDiaVencimentoHonorarioMax).nullish(),
+  "contatoNome": zod.string().nullish(),
+  "whatsapp": zod.string().nullish(),
+  "email": zod.string().nullish(),
+  "ativo": zod.boolean(),
+  "inativadoEm": zod.string().datetime({"offset":true}).nullish(),
+  "obrigacoes": zod.array(zod.number())
+})
 
 
 /**
@@ -1058,7 +1171,10 @@ export const ListarChecklistResponseItem = zod.object({
   "vencimento": zod.string().date().nullish(),
   "tipoObrigacaoId": zod.number(),
   "obrigacao": zod.string(),
-  "ordem": zod.number().min(listarChecklistResponseOrdemMin)
+  "ordem": zod.number().min(listarChecklistResponseOrdemMin),
+  "anexos": zod.number(),
+  "enviadoEm": zod.string().datetime({"offset":true}).nullable(),
+  "visualizadoEm": zod.string().datetime({"offset":true}).nullable()
 })
 export const ListarChecklistResponse = zod.array(ListarChecklistResponseItem)
 
@@ -1122,7 +1238,10 @@ export const AtualizarStatusChecklistResponse = zod.object({
   "vencimento": zod.string().date().nullish(),
   "tipoObrigacaoId": zod.number(),
   "obrigacao": zod.string(),
-  "ordem": zod.number().min(atualizarStatusChecklistResponseOrdemMin)
+  "ordem": zod.number().min(atualizarStatusChecklistResponseOrdemMin),
+  "anexos": zod.number(),
+  "enviadoEm": zod.string().datetime({"offset":true}).nullable(),
+  "visualizadoEm": zod.string().datetime({"offset":true}).nullable()
 })
 
 
@@ -1155,7 +1274,136 @@ export const AtualizarVencimentoChecklistResponse = zod.object({
   "vencimento": zod.string().date().nullish(),
   "tipoObrigacaoId": zod.number(),
   "obrigacao": zod.string(),
-  "ordem": zod.number().min(atualizarVencimentoChecklistResponseOrdemMin)
+  "ordem": zod.number().min(atualizarVencimentoChecklistResponseOrdemMin),
+  "anexos": zod.number(),
+  "enviadoEm": zod.string().datetime({"offset":true}).nullable(),
+  "visualizadoEm": zod.string().datetime({"offset":true}).nullable()
+})
+
+
+/**
+ * @summary Envia a guia anexada ao cliente com protocolo e marca o item como enviado
+ */
+
+
+
+export const EnviarGuiaParams = zod.object({
+  "id": zod.coerce.number().min(1)
+})
+
+export const enviarGuiaBodyMensagemMax = 2000;
+
+
+
+export const EnviarGuiaBody = zod.object({
+  "canal": zod.enum(['email', 'whatsapp', 'portal']),
+  "mensagem": zod.string().max(enviarGuiaBodyMensagemMax).nullish()
+})
+
+export const enviarGuiaResponseItemCodigoMin = 0;
+
+export const enviarGuiaResponseItemOrdemMin = 0;
+
+
+
+export const EnviarGuiaResponse = zod.object({
+  "item": zod.object({
+  "id": zod.number(),
+  "status": zod.enum(['pendente', 'emitido', 'enviado', 'nao_aplica']),
+  "clienteId": zod.number(),
+  "codigo": zod.number().min(enviarGuiaResponseItemCodigoMin).nullish(),
+  "cliente": zod.string(),
+  "vencimento": zod.string().date().nullish(),
+  "tipoObrigacaoId": zod.number(),
+  "obrigacao": zod.string(),
+  "ordem": zod.number().min(enviarGuiaResponseItemOrdemMin),
+  "anexos": zod.number(),
+  "enviadoEm": zod.string().datetime({"offset":true}).nullable(),
+  "visualizadoEm": zod.string().datetime({"offset":true}).nullable()
+}),
+  "protocolo": zod.object({
+  "id": zod.number(),
+  "canal": zod.enum(['email', 'whatsapp', 'portal']),
+  "link": zod.string().nullable(),
+  "enviadoEm": zod.string().datetime({"offset":true}),
+  "expiraEm": zod.string().datetime({"offset":true}),
+  "visualizadoEm": zod.string().datetime({"offset":true}).nullable(),
+  "cienteEm": zod.string().datetime({"offset":true}).nullable(),
+  "enviadoPor": zod.string().nullable()
+}),
+  "linkWhatsapp": zod.string().nullable()
+})
+
+
+/**
+ * @summary Protocolos de envio de um item (quem enviou, quando, se foi visualizado)
+ */
+
+
+
+export const ListarProtocolosItemParams = zod.object({
+  "id": zod.coerce.number().min(1)
+})
+
+export const ListarProtocolosItemResponseItem = zod.object({
+  "id": zod.number(),
+  "canal": zod.enum(['email', 'whatsapp', 'portal']),
+  "link": zod.string().nullable(),
+  "enviadoEm": zod.string().datetime({"offset":true}),
+  "expiraEm": zod.string().datetime({"offset":true}),
+  "visualizadoEm": zod.string().datetime({"offset":true}).nullable(),
+  "cienteEm": zod.string().datetime({"offset":true}).nullable(),
+  "enviadoPor": zod.string().nullable()
+})
+export const ListarProtocolosItemResponse = zod.array(ListarProtocolosItemResponseItem)
+
+
+/**
+ * @summary Link público da guia enviada; registra a visualização e entrega o arquivo
+ */
+export const abrirProtocoloPathTokenMin = 20;
+export const abrirProtocoloPathTokenMax = 100;
+
+
+
+export const AbrirProtocoloParams = zod.object({
+  "token": zod.coerce.string().min(abrirProtocoloPathTokenMin).max(abrirProtocoloPathTokenMax)
+})
+
+export const AbrirProtocoloResponse = zod.unknown()
+
+
+/**
+ * @summary Guias enviadas por colaborador e obrigações atrasadas por cliente
+ */
+export const getProdutividadeQueryMesesMax = 24;
+
+
+
+export const GetProdutividadeQueryParams = zod.object({
+  "meses": zod.coerce.number().min(1).max(getProdutividadeQueryMesesMax).optional()
+})
+
+export const GetProdutividadeResponse = zod.object({
+  "periodo": zod.object({
+  "de": zod.string().date(),
+  "ate": zod.string().date(),
+  "meses": zod.number()
+}),
+  "porUsuario": zod.array(zod.object({
+  "usuarioId": zod.number().nullable(),
+  "login": zod.string().nullable(),
+  "nome": zod.string().nullable(),
+  "enviados": zod.number(),
+  "atrasadosNoEnvio": zod.number(),
+  "tempoMedioHoras": zod.number().nullable()
+})),
+  "porCliente": zod.array(zod.object({
+  "clienteId": zod.number(),
+  "cliente": zod.string(),
+  "total": zod.number(),
+  "atrasadas": zod.number()
+}))
 })
 
 
@@ -1176,6 +1424,7 @@ export const AtualizarPagamentoBody = zod.object({
   "status": zod.enum(['pendente', 'pago', 'isento']).optional(),
   "valor": zod.string().regex(atualizarPagamentoBodyValorRegExp).nullish(),
   "dataPagamento": zod.string().date().nullish(),
+  "vencimento": zod.string().date().nullish(),
   "forma": zod.string().nullish(),
   "observacao": zod.string().nullish()
 })
@@ -1330,6 +1579,9 @@ export const SalvarConfiguracaoResponse = zod.object({
  */
 export const getPerfilResponseNomeMax = 200;
 
+export const getPerfilResponseDiasParaCobrarMin = 0;
+export const getPerfilResponseDiasParaCobrarMax = 90;
+
 
 
 export const GetPerfilResponse = zod.object({
@@ -1340,13 +1592,19 @@ export const GetPerfilResponse = zod.object({
   "crc": zod.string().nullish(),
   "telefone": zod.string().nullish(),
   "email": zod.string().nullish(),
-  "endereco": zod.string().nullish()
+  "endereco": zod.string().nullish(),
+  "chavePix": zod.string().nullish(),
+  "aberturaAutomatica": zod.boolean(),
+  "diasParaCobrar": zod.number().min(getPerfilResponseDiasParaCobrarMin).max(getPerfilResponseDiasParaCobrarMax)
 })
 
 
 /**
  * @summary Atualiza os dados do escritório
  */
+
+export const salvarPerfilBodyDiasParaCobrarMin = 0;
+export const salvarPerfilBodyDiasParaCobrarMax = 90;
 
 
 
@@ -1357,10 +1615,16 @@ export const SalvarPerfilBody = zod.object({
   "crc": zod.string().nullish(),
   "telefone": zod.string().nullish(),
   "email": zod.string().nullish(),
-  "endereco": zod.string().nullish()
+  "endereco": zod.string().nullish(),
+  "chavePix": zod.string().nullish(),
+  "aberturaAutomatica": zod.boolean().optional(),
+  "diasParaCobrar": zod.number().min(salvarPerfilBodyDiasParaCobrarMin).max(salvarPerfilBodyDiasParaCobrarMax).optional()
 })
 
 export const salvarPerfilResponseNomeMax = 200;
+
+export const salvarPerfilResponseDiasParaCobrarMin = 0;
+export const salvarPerfilResponseDiasParaCobrarMax = 90;
 
 
 
@@ -1372,7 +1636,10 @@ export const SalvarPerfilResponse = zod.object({
   "crc": zod.string().nullish(),
   "telefone": zod.string().nullish(),
   "email": zod.string().nullish(),
-  "endereco": zod.string().nullish()
+  "endereco": zod.string().nullish(),
+  "chavePix": zod.string().nullish(),
+  "aberturaAutomatica": zod.boolean(),
+  "diasParaCobrar": zod.number().min(salvarPerfilResponseDiasParaCobrarMin).max(salvarPerfilResponseDiasParaCobrarMax)
 })
 
 
@@ -2489,10 +2756,15 @@ export const ListarJobsResponse = zod.array(ListarJobsResponseItem)
 export const executarJobsBodyLimiteMsMin = 1000;
 export const executarJobsBodyLimiteMsMax = 300000;
 
+export const executarJobsBodyAgoraItemMax = 60;
+
+export const executarJobsBodyAgoraMax = 10;
+
 
 
 export const ExecutarJobsBody = zod.object({
-  "limiteMs": zod.number().min(executarJobsBodyLimiteMsMin).max(executarJobsBodyLimiteMsMax).optional()
+  "limiteMs": zod.number().min(executarJobsBodyLimiteMsMin).max(executarJobsBodyLimiteMsMax).optional(),
+  "agora": zod.array(zod.string().min(1).max(executarJobsBodyAgoraItemMax)).max(executarJobsBodyAgoraMax).optional()
 })
 
 export const ExecutarJobsResponse = zod.object({

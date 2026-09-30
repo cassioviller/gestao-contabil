@@ -17,6 +17,8 @@ export interface PagamentoInput {
   /** @nullable */
   dataPagamento?: string | null;
   /** @nullable */
+  vencimento?: string | null;
+  /** @nullable */
   forma?: string | null;
   /** @nullable */
   observacao?: string | null;

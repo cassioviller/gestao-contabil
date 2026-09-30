@@ -5,10 +5,12 @@
  * ContaFácil API — gestão contábil
  * OpenAPI spec version: 0.1.0
  */
+import type { Alertas } from './alertas';
 import type { PainelCompetenciaAtual } from './painelCompetenciaAtual';
 
 export interface Painel {
   clientesAtivos: number;
+  alertas: Alertas;
   /** @nullable */
   competenciaAtual: PainelCompetenciaAtual;
 }

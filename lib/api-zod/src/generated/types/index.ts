@@ -7,6 +7,8 @@
  */
 
 export * from './abrirCompetenciaInput';
+export * from './alertas';
+export * from './alertasHonorariosVencidos';
 export * from './arquivo';
 export * from './arquivoCriado';
 export * from './arquivoInput';
@@ -35,6 +37,8 @@ export * from './despesa';
 export * from './despesaInput';
 export * from './despesaPatch';
 export * from './entidadeArquivo';
+export * from './enviarGuiaInput';
+export * from './envioGuia';
 export * from './erro';
 export * from './erroIssuesItem';
 export * from './erroResponse';
@@ -48,6 +52,7 @@ export * from './fichaFuncionario';
 export * from './funcionario';
 export * from './funcionarioInput';
 export * from './funcionarioPatch';
+export * from './getProdutividadeParams';
 export * from './healthStatus';
 export * from './inadimplente';
 export * from './job';
@@ -83,6 +88,11 @@ export * from './processo';
 export * from './processoComEtapas';
 export * from './processoEtapa';
 export * from './processoInput';
+export * from './produtividade';
+export * from './produtividadePeriodo';
+export * from './produtividadePorClienteItem';
+export * from './produtividadePorUsuarioItem';
+export * from './protocolo';
 export * from './redefinirSenhaInput';
 export * from './regimeTributario';
 export * from './regimeValor';

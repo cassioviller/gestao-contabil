@@ -23,4 +23,9 @@ export interface ChecklistItem {
   obrigacao: string;
   /** @minimum 0 */
   ordem: number;
+  anexos: number;
+  /** @nullable */
+  enviadoEm: string | null;
+  /** @nullable */
+  visualizadoEm: string | null;
 }

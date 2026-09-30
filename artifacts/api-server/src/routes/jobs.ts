@@ -5,7 +5,7 @@ import { db, jobs } from "@workspace/db";
 import { ExecutarJobsBody, ListarJobsQueryParams } from "@workspace/api-zod";
 import { HttpError } from "../lib/http";
 import { exigirPapel } from "../middlewares/autenticacao";
-import { agendarRecorrentes, processarJobs } from "../servicos/jobs";
+import { agendarRecorrentes, enfileirar, processarJobs, tiposRegistrados } from "../servicos/jobs";
 
 /**
  * `POST /api/jobs/executar` é chamado por um agendador externo, sem sessão:
@@ -32,8 +32,15 @@ export const exigirTokenJobs: RequestHandler = (req, _res, next) => {
 };
 
 export const executarJobs: RequestHandler = async (req, res) => {
-  const { limiteMs } = ExecutarJobsBody.parse(req.body ?? {});
+  const { limiteMs, agora = [] } = ExecutarJobsBody.parse(req.body ?? {});
   await agendarRecorrentes();
+  // Rodar um recorrente fora da hora dele (sem chave: não colide com o do dia).
+  for (const tipo of agora) {
+    if (!tiposRegistrados().includes(tipo)) {
+      throw new HttpError(400, `Job desconhecido: ${tipo}.`, { tipos: tiposRegistrados() });
+    }
+    await enfileirar(db, { tipo, maxTentativas: 1 });
+  }
   const resultado = await processarJobs({ limiteMs });
   req.log?.info(resultado, "rodada de jobs");
   res.json(resultado);

@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { apagarCliente } from "./apoio";
 
 // A periodicidade decide em que meses a obrigação entra no checklist: uma anual
 // não pode aparecer nos outros onze meses.
@@ -81,7 +82,7 @@ test("tela de Tipos permite escolher periodicidade e filtra por ela", async ({ p
 test.afterAll(async ({ playwright }) => {
   const api = await playwright.request.newContext({ baseURL: "http://localhost:5179" });
   for (const c of await (await api.get("/api/clientes")).json()) {
-    if (c.razaoSocial === EMPRESA) await api.delete(`/api/clientes/${c.id}`);
+    if (c.razaoSocial === EMPRESA) await apagarCliente(api, c.id);
   }
   for (const k of await (await api.get("/api/competencias")).json()) {
     if (k.ano === 2095) await api.delete(`/api/competencias/${k.id}`);

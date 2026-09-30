@@ -60,5 +60,7 @@ export interface Cliente {
   /** @nullable */
   email?: string | null;
   ativo: boolean;
+  /** @nullable */
+  inativadoEm?: string | null;
   obrigacoes: number[];
 }

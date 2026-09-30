@@ -25,4 +25,12 @@ export interface Perfil {
   email?: string | null;
   /** @nullable */
   endereco?: string | null;
+  /** @nullable */
+  chavePix?: string | null;
+  aberturaAutomatica: boolean;
+  /**
+     * @minimum 0
+     * @maximum 90
+     */
+  diasParaCobrar: number;
 }

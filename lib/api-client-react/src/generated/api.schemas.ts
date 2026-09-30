@@ -205,6 +205,12 @@ export interface ExecutarJobsInput {
      * @maximum 300000
      */
   limiteMs?: number;
+  /**
+     * @maxItems 10
+     * @items.minLength 1
+     * @items.maxLength 60
+     */
+  agora?: string[];
 }
 
 export interface ResultadoJobs {
@@ -343,8 +349,29 @@ export type PainelCompetenciaAtual = {
   resumo?: Resumo;
 } | null;
 
+export type AlertasHonorariosVencidos = {
+  quantidade: number;
+  total: string;
+};
+
+export interface Alertas {
+  competenciaDoMesAberta: boolean;
+  /** @nullable */
+  competenciaDoMesId: number | null;
+  vencendo7Dias: number;
+  emitidasNaoEnviadasVencidas: number;
+  honorariosVencidos: AlertasHonorariosVencidos;
+  feriasVencendo: number;
+  procuracoesVencendo30Dias: number;
+  procuracoesVencidas: number;
+  processosAtrasados: number;
+  avisosFalhados: number;
+  clientesSemObrigacoes: number;
+}
+
 export interface Painel {
   clientesAtivos: number;
+  alertas: Alertas;
   /** @nullable */
   competenciaAtual: PainelCompetenciaAtual;
 }
@@ -415,6 +442,8 @@ export interface Cliente {
   /** @nullable */
   email?: string | null;
   ativo: boolean;
+  /** @nullable */
+  inativadoEm?: string | null;
   obrigacoes: number[];
 }
 
@@ -939,6 +968,74 @@ export interface ChecklistItem {
   obrigacao: string;
   /** @minimum 0 */
   ordem: number;
+  anexos: number;
+  /** @nullable */
+  enviadoEm: string | null;
+  /** @nullable */
+  visualizadoEm: string | null;
+}
+
+export interface EnviarGuiaInput {
+  canal: CanalAviso;
+  /**
+     * @maxLength 2000
+     * @nullable
+     */
+  mensagem?: string | null;
+}
+
+export interface Protocolo {
+  id: number;
+  canal: CanalAviso;
+  /** @nullable */
+  link: string | null;
+  enviadoEm: string;
+  expiraEm: string;
+  /** @nullable */
+  visualizadoEm: string | null;
+  /** @nullable */
+  cienteEm: string | null;
+  /** @nullable */
+  enviadoPor: string | null;
+}
+
+export interface EnvioGuia {
+  item: ChecklistItem;
+  protocolo: Protocolo;
+  /** @nullable */
+  linkWhatsapp: string | null;
+}
+
+export type ProdutividadePeriodo = {
+  de: string;
+  ate: string;
+  meses: number;
+};
+
+export type ProdutividadePorUsuarioItem = {
+  /** @nullable */
+  usuarioId: number | null;
+  /** @nullable */
+  login: string | null;
+  /** @nullable */
+  nome: string | null;
+  enviados: number;
+  atrasadosNoEnvio: number;
+  /** @nullable */
+  tempoMedioHoras: number | null;
+};
+
+export type ProdutividadePorClienteItem = {
+  clienteId: number;
+  cliente: string;
+  total: number;
+  atrasadas: number;
+};
+
+export interface Produtividade {
+  periodo: ProdutividadePeriodo;
+  porUsuario: ProdutividadePorUsuarioItem[];
+  porCliente: ProdutividadePorClienteItem[];
 }
 
 export type StatusChecklistInputStatus = typeof StatusChecklistInputStatus[keyof typeof StatusChecklistInputStatus];
@@ -1012,6 +1109,8 @@ export interface PagamentoInput {
   valor?: string | null;
   /** @nullable */
   dataPagamento?: string | null;
+  /** @nullable */
+  vencimento?: string | null;
   /** @nullable */
   forma?: string | null;
   /** @nullable */
@@ -1135,6 +1234,14 @@ export interface Perfil {
   email?: string | null;
   /** @nullable */
   endereco?: string | null;
+  /** @nullable */
+  chavePix?: string | null;
+  aberturaAutomatica: boolean;
+  /**
+     * @minimum 0
+     * @maximum 90
+     */
+  diasParaCobrar: number;
 }
 
 export interface PerfilInput {
@@ -1152,6 +1259,14 @@ export interface PerfilInput {
   email?: string | null;
   /** @nullable */
   endereco?: string | null;
+  /** @nullable */
+  chavePix?: string | null;
+  aberturaAutomatica?: boolean;
+  /**
+     * @minimum 0
+     * @maximum 90
+     */
+  diasParaCobrar?: number;
 }
 
 export interface Despesa {
@@ -1608,6 +1723,14 @@ export type ListarProcessosParams = {
 status?: StatusProcesso;
 clienteId?: number;
 categoria?: CategoriaProcesso;
+};
+
+export type GetProdutividadeParams = {
+/**
+ * @minimum 1
+ * @maximum 24
+ */
+meses?: number;
 };
 
 export type ListarDespesasParams = {

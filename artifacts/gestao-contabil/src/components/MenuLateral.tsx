@@ -13,6 +13,7 @@ const itens: { href: string; rotulo: string; icone: string; somenteAdmin?: boole
   { href: "/competencias", rotulo: "Competências", icone: "📅" },
   { href: "/atrasos", rotulo: "Guias em atraso", icone: "🚨" },
   { href: "/pendencias", rotulo: "Pendências", icone: "⏰" },
+  { href: "/produtividade", rotulo: "Produtividade", icone: "📈" },
   { href: "/tipos", rotulo: "Tipos de obrigação", icone: "🏷️" },
   { href: "/funcionarios", rotulo: "Funcionários", icone: "🧑‍💼" },
   { href: "/folha", rotulo: "Folha do mês", icone: "🧾" },

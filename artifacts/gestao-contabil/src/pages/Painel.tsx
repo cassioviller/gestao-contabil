@@ -50,6 +50,112 @@ export default function Painel() {
         )}
       </div>
 
+      {data?.alertas && (
+        <div className="mt-8">
+          <h2 className="mb-3 text-lg font-semibold">Alertas</h2>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {(
+              [
+                !data.alertas.competenciaDoMesAberta && {
+                  titulo: "Mês atual ainda não aberto",
+                  valor: "Abrir",
+                  href: "/competencias",
+                  cor: "border-amber-400 bg-amber-50 text-amber-800 dark:bg-amber-950/30 dark:text-amber-300",
+                },
+                {
+                  titulo: "Guias vencendo em 7 dias",
+                  valor: data.alertas.vencendo7Dias,
+                  href: data.alertas.competenciaDoMesId
+                    ? `/competencias/${data.alertas.competenciaDoMesId}`
+                    : "/competencias",
+                },
+                {
+                  titulo: "Emitidas, não enviadas e vencidas",
+                  valor: data.alertas.emitidasNaoEnviadasVencidas,
+                  href: "/pendencias",
+                },
+                {
+                  titulo: "Honorários vencidos",
+                  valor: data.alertas.honorariosVencidos.quantidade,
+                  sub: formatarMoeda(data.alertas.honorariosVencidos.total),
+                  href: "/pendencias",
+                },
+                {
+                  titulo: "Férias vencendo ou vencidas",
+                  valor: data.alertas.feriasVencendo,
+                  href: "/funcionarios",
+                },
+                {
+                  titulo: "Procurações vencendo em 30 dias",
+                  valor: data.alertas.procuracoesVencendo30Dias,
+                  href: "/cadastro",
+                },
+                {
+                  titulo: "Procurações vencidas",
+                  valor: data.alertas.procuracoesVencidas,
+                  href: "/cadastro",
+                },
+                {
+                  titulo: "Processos com prazo estourado",
+                  valor: data.alertas.processosAtrasados,
+                  href: "/processos",
+                },
+                {
+                  titulo: "Avisos que falharam",
+                  valor: data.alertas.avisosFalhados,
+                  href: "/pendencias",
+                },
+                {
+                  titulo: "Clientes ativos sem obrigações",
+                  valor: data.alertas.clientesSemObrigacoes,
+                  href: "/clientes",
+                },
+              ] as Array<
+                | false
+                | {
+                    titulo: string;
+                    valor: number | string;
+                    sub?: string;
+                    href: string;
+                    cor?: string;
+                  }
+              >
+            )
+              .filter(
+                (
+                  a,
+                ): a is {
+                  titulo: string;
+                  valor: number | string;
+                  sub?: string;
+                  href: string;
+                  cor?: string;
+                } => !!a,
+              )
+              .map((a) => {
+                const zerado = a.valor === 0;
+                return (
+                  <Link
+                    key={a.titulo}
+                    href={a.href}
+                    data-alerta={a.titulo}
+                    className={`rounded-xl border p-4 transition-colors hover:border-blue-500 ${
+                      a.cor ??
+                      (zerado
+                        ? "border-black/10 bg-white text-neutral-400 dark:border-white/10 dark:bg-neutral-950"
+                        : "border-red-300 bg-red-50 text-red-800 dark:border-red-900 dark:bg-red-950/30 dark:text-red-300")
+                    }`}
+                  >
+                    <p className="text-sm">{a.titulo}</p>
+                    <p className="mt-1 text-2xl font-bold">{a.valor}</p>
+                    {a.sub && <p className="text-xs">{a.sub}</p>}
+                  </Link>
+                );
+              })}
+          </div>
+        </div>
+      )}
+
       <div className="mt-8">
         <h2 className="mb-3 text-lg font-semibold">Mês atual</h2>
         {comp && resumo && comp.ano != null && comp.mes != null ? (

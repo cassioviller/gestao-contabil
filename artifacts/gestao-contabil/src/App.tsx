@@ -12,6 +12,7 @@ import Atrasos from "@/pages/Atrasos";
 import Perfil from "@/pages/Perfil";
 import Usuarios from "@/pages/Usuarios";
 import MinhaConta from "@/pages/MinhaConta";
+import Produtividade from "@/pages/Produtividade";
 import Despesas from "@/pages/Despesas";
 import Funcionarios from "@/pages/Funcionarios";
 import FuncionarioDetalhe from "@/pages/FuncionarioDetalhe";
@@ -66,6 +67,7 @@ function Router() {
           <Route path="/perfil" component={Perfil} />
           <Route path="/usuarios" component={Usuarios} />
           <Route path="/minha-conta" component={MinhaConta} />
+          <Route path="/produtividade" component={Produtividade} />
           <Route path="/processos/:id" component={ProcessoDetalhe} />
           {/* Forma com children: o Route do wouter passa props próprias ao
               `component`, que não casam com a prop `categoria`. */}

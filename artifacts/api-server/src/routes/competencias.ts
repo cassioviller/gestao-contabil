@@ -19,6 +19,7 @@ import {
 import { aplicaNoMes, calcularVencimento } from "@workspace/dominio";
 import { HttpError } from "../lib/http";
 import { contaDaRequisicao } from "../middlewares/autenticacao";
+import { camposChecklist } from "./checklist";
 
 const router = Router();
 
@@ -238,18 +239,7 @@ router.get("/:id/checklist", async (req, res) => {
   const contaId = contaDaRequisicao(req);
   const { id } = ListarChecklistParams.parse(req.params);
   const itens = await db
-    .select({
-      id: checklistItens.id,
-      status: checklistItens.status,
-      vencimento: checklistItens.vencimento,
-      observacao: checklistItens.observacao,
-      clienteId: clientes.id,
-      codigo: clientes.codigo,
-      cliente: clientes.razaoSocial,
-      tipoObrigacaoId: tiposObrigacao.id,
-      obrigacao: tiposObrigacao.nome,
-      ordem: tiposObrigacao.ordem,
-    })
+    .select(camposChecklist)
     .from(checklistItens)
     .innerJoin(clientes, eq(clientes.id, checklistItens.clienteId))
     .innerJoin(tiposObrigacao, eq(tiposObrigacao.id, checklistItens.tipoObrigacaoId))

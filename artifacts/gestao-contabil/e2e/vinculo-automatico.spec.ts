@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { apagarCliente } from "./apoio";
 
 // Ao definir o regime de um cliente, as obrigações do catálogo marcadas como
 // automáticas e compatíveis com o regime são vinculadas sozinhas. Nunca se
@@ -125,7 +126,7 @@ test.describe("vínculo automático por regime", () => {
 test.afterAll(async ({ playwright }) => {
   const api = await playwright.request.newContext({ baseURL: "http://localhost:5179" });
   for (const c of await (await api.get("/api/clientes")).json()) {
-    if ([EMPRESA, EXPLICITA].includes(c.razaoSocial)) await api.delete(`/api/clientes/${c.id}`);
+    if ([EMPRESA, EXPLICITA].includes(c.razaoSocial)) await apagarCliente(api, c.id);
   }
   for (const t of await (await api.get("/api/tipos")).json()) {
     if ([AUTO_SIMPLES, AUTO_GERAL, MANUAL, AUTO_PRESUMIDO, INATIVA].includes(t.nome)) {

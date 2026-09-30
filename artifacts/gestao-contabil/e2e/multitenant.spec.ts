@@ -1,4 +1,5 @@
 import { test, expect, request as apiRequest, type APIRequestContext } from "@playwright/test";
+import { apagarCliente } from "./apoio";
 import { CONTA_E2E, CONTA_VIZINHA } from "./global-setup";
 
 /**
@@ -85,7 +86,7 @@ test.describe("isolamento entre contas", () => {
     expect(encontrado, "o cliente sumiu depois do DELETE do vizinho").toBeTruthy();
     expect(encontrado.razaoSocial).toBe("EMPRESA SÓ MINHA");
 
-    await request.delete(`/api/clientes/${cliente.id}`);
+    await apagarCliente(request, cliente.id);
   });
 
   test("cada conta tem o seu catálogo de obrigações", async ({ request, baseURL }) => {

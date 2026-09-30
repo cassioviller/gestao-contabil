@@ -45,6 +45,8 @@ import type {
   Despesa,
   DespesaInput,
   DespesaPatch,
+  EnviarGuiaInput,
+  EnvioGuia,
   ErroResponse,
   EtapaInput,
   EtapaPatch,
@@ -55,6 +57,7 @@ import type {
   Funcionario,
   FuncionarioInput,
   FuncionarioPatch,
+  GetProdutividadeParams,
   HealthStatus,
   Job,
   LancamentoFolha,
@@ -80,6 +83,8 @@ import type {
   ProcessoComEtapas,
   ProcessoEtapa,
   ProcessoInput,
+  Produtividade,
+  Protocolo,
   RedefinirSenhaInput,
   ResultadoJobs,
   ResultadoSincronizacao,
@@ -863,7 +868,7 @@ export const getRemoverClienteUrl = (id: number,) => {
 }
 
 /**
- * @summary Remove um cliente
+ * @summary Apaga um cliente sem histórico (só admin). Com competência gerada, use inativar
  */
 export const removerCliente = async (id: number, options?: RequestInit): Promise<void> => {
 
@@ -879,7 +884,7 @@ export const removerCliente = async (id: number, options?: RequestInit): Promise
 
 
 
-export const getRemoverClienteMutationOptions = <TError = ErrorType<unknown>,
+export const getRemoverClienteMutationOptions = <TError = ErrorType<ErroResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removerCliente>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof removerCliente>>, TError,{id: number}, TContext> => {
 
@@ -908,12 +913,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type RemoverClienteMutationResult = NonNullable<Awaited<ReturnType<typeof removerCliente>>>
 
-    export type RemoverClienteMutationError = ErrorType<unknown>
+    export type RemoverClienteMutationError = ErrorType<ErroResponse>
 
     /**
- * @summary Remove um cliente
+ * @summary Apaga um cliente sem histórico (só admin). Com competência gerada, use inativar
  */
-export const useRemoverCliente = <TError = ErrorType<unknown>,
+export const useRemoverCliente = <TError = ErrorType<ErroResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removerCliente>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
  ): UseMutationResult<
         Awaited<ReturnType<typeof removerCliente>>,
@@ -922,6 +927,146 @@ export const useRemoverCliente = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getRemoverClienteMutationOptions(options));
+    }
+
+export const getInativarClienteUrl = (id: number,) => {
+
+
+
+
+  return `/api/clientes/${id}/inativar`
+}
+
+/**
+ * @summary Inativa o cliente (sai das competências novas; o histórico fica)
+ */
+export const inativarCliente = async (id: number, options?: RequestInit): Promise<Cliente> => {
+
+  return customFetch<Cliente>(getInativarClienteUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getInativarClienteMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof inativarCliente>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof inativarCliente>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['inativarCliente'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof inativarCliente>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  inativarCliente(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type InativarClienteMutationResult = NonNullable<Awaited<ReturnType<typeof inativarCliente>>>
+
+    export type InativarClienteMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Inativa o cliente (sai das competências novas; o histórico fica)
+ */
+export const useInativarCliente = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof inativarCliente>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof inativarCliente>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getInativarClienteMutationOptions(options));
+    }
+
+export const getReativarClienteUrl = (id: number,) => {
+
+
+
+
+  return `/api/clientes/${id}/reativar`
+}
+
+/**
+ * @summary Reativa um cliente inativado
+ */
+export const reativarCliente = async (id: number, options?: RequestInit): Promise<Cliente> => {
+
+  return customFetch<Cliente>(getReativarClienteUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getReativarClienteMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reativarCliente>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reativarCliente>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['reativarCliente'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reativarCliente>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  reativarCliente(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReativarClienteMutationResult = NonNullable<Awaited<ReturnType<typeof reativarCliente>>>
+
+    export type ReativarClienteMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Reativa um cliente inativado
+ */
+export const useReativarCliente = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reativarCliente>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof reativarCliente>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getReativarClienteMutationOptions(options));
     }
 
 export const getGetSegredosClienteUrl = (id: number,) => {
@@ -3121,6 +3266,315 @@ export const useAtualizarVencimentoChecklist = <TError = ErrorType<unknown>,
       > => {
       return useMutation(getAtualizarVencimentoChecklistMutationOptions(options));
     }
+
+export const getEnviarGuiaUrl = (id: number,) => {
+
+
+
+
+  return `/api/checklist/${id}/enviar`
+}
+
+/**
+ * @summary Envia a guia anexada ao cliente com protocolo e marca o item como enviado
+ */
+export const enviarGuia = async (id: number,
+    enviarGuiaInput: EnviarGuiaInput, options?: RequestInit): Promise<EnvioGuia> => {
+
+  return customFetch<EnvioGuia>(getEnviarGuiaUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(enviarGuiaInput)
+  }
+);}
+
+
+
+
+export const getEnviarGuiaMutationOptions = <TError = ErrorType<ErroResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof enviarGuia>>, TError,{id: number;data: BodyType<EnviarGuiaInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof enviarGuia>>, TError,{id: number;data: BodyType<EnviarGuiaInput>}, TContext> => {
+
+const mutationKey = ['enviarGuia'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof enviarGuia>>, {id: number;data: BodyType<EnviarGuiaInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  enviarGuia(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type EnviarGuiaMutationResult = NonNullable<Awaited<ReturnType<typeof enviarGuia>>>
+    export type EnviarGuiaMutationBody = BodyType<EnviarGuiaInput>
+    export type EnviarGuiaMutationError = ErrorType<ErroResponse>
+
+    /**
+ * @summary Envia a guia anexada ao cliente com protocolo e marca o item como enviado
+ */
+export const useEnviarGuia = <TError = ErrorType<ErroResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof enviarGuia>>, TError,{id: number;data: BodyType<EnviarGuiaInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof enviarGuia>>,
+        TError,
+        {id: number;data: BodyType<EnviarGuiaInput>},
+        TContext
+      > => {
+      return useMutation(getEnviarGuiaMutationOptions(options));
+    }
+
+export const getListarProtocolosItemUrl = (id: number,) => {
+
+
+
+
+  return `/api/checklist/${id}/protocolos`
+}
+
+/**
+ * @summary Protocolos de envio de um item (quem enviou, quando, se foi visualizado)
+ */
+export const listarProtocolosItem = async (id: number, options?: RequestInit): Promise<Protocolo[]> => {
+
+  return customFetch<Protocolo[]>(getListarProtocolosItemUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListarProtocolosItemQueryKey = (id: number,) => {
+    return [
+    `/api/checklist/${id}/protocolos`
+    ] as const;
+    }
+
+
+export const getListarProtocolosItemQueryOptions = <TData = Awaited<ReturnType<typeof listarProtocolosItem>>, TError = ErrorType<unknown>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listarProtocolosItem>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListarProtocolosItemQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listarProtocolosItem>>> = ({ signal }) => listarProtocolosItem(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listarProtocolosItem>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListarProtocolosItemQueryResult = NonNullable<Awaited<ReturnType<typeof listarProtocolosItem>>>
+export type ListarProtocolosItemQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Protocolos de envio de um item (quem enviou, quando, se foi visualizado)
+ */
+
+export function useListarProtocolosItem<TData = Awaited<ReturnType<typeof listarProtocolosItem>>, TError = ErrorType<unknown>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listarProtocolosItem>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListarProtocolosItemQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getAbrirProtocoloUrl = (token: string,) => {
+
+
+
+
+  return `/api/protocolo/${token}`
+}
+
+/**
+ * @summary Link público da guia enviada; registra a visualização e entrega o arquivo
+ */
+export const abrirProtocolo = async (token: string, options?: RequestInit): Promise<Blob> => {
+
+  return customFetch<Blob>(getAbrirProtocoloUrl(token),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getAbrirProtocoloQueryKey = (token: string,) => {
+    return [
+    `/api/protocolo/${token}`
+    ] as const;
+    }
+
+
+export const getAbrirProtocoloQueryOptions = <TData = Awaited<ReturnType<typeof abrirProtocolo>>, TError = ErrorType<void | ErroResponse>>(token: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof abrirProtocolo>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getAbrirProtocoloQueryKey(token);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof abrirProtocolo>>> = ({ signal }) => abrirProtocolo(token, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: token !== null && token !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof abrirProtocolo>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type AbrirProtocoloQueryResult = NonNullable<Awaited<ReturnType<typeof abrirProtocolo>>>
+export type AbrirProtocoloQueryError = ErrorType<void | ErroResponse>
+
+
+/**
+ * @summary Link público da guia enviada; registra a visualização e entrega o arquivo
+ */
+
+export function useAbrirProtocolo<TData = Awaited<ReturnType<typeof abrirProtocolo>>, TError = ErrorType<void | ErroResponse>>(
+ token: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof abrirProtocolo>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getAbrirProtocoloQueryOptions(token,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetProdutividadeUrl = (params?: GetProdutividadeParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/produtividade?${stringifiedParams}` : `/api/produtividade`
+}
+
+/**
+ * @summary Guias enviadas por colaborador e obrigações atrasadas por cliente
+ */
+export const getProdutividade = async (params?: GetProdutividadeParams, options?: RequestInit): Promise<Produtividade> => {
+
+  return customFetch<Produtividade>(getGetProdutividadeUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetProdutividadeQueryKey = (params?: GetProdutividadeParams,) => {
+    return [
+    `/api/produtividade`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetProdutividadeQueryOptions = <TData = Awaited<ReturnType<typeof getProdutividade>>, TError = ErrorType<unknown>>(params?: GetProdutividadeParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getProdutividade>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetProdutividadeQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getProdutividade>>> = ({ signal }) => getProdutividade(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getProdutividade>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetProdutividadeQueryResult = NonNullable<Awaited<ReturnType<typeof getProdutividade>>>
+export type GetProdutividadeQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Guias enviadas por colaborador e obrigações atrasadas por cliente
+ */
+
+export function useGetProdutividade<TData = Awaited<ReturnType<typeof getProdutividade>>, TError = ErrorType<unknown>>(
+ params?: GetProdutividadeParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getProdutividade>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetProdutividadeQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getAtualizarPagamentoUrl = (id: number,) => {
 

@@ -184,6 +184,8 @@ export async function agendarRecorrentes(): Promise<void> {
     tipo: "abrir-competencia",
     chave: `abrir-competencia:${hoje.slice(0, 7)}`,
   });
+  await enfileirar(db, { tipo: "vencimentos-d3", chave: `vencimentos-d3:${hoje}` });
+  await enfileirar(db, { tipo: "honorarios-vencidos", chave: `honorarios-vencidos:${hoje}` });
 }
 
 /** Laço interno para ambientes com processo permanente (Docker, dev). */

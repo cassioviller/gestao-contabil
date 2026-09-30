@@ -41,6 +41,8 @@ tags:
     description: Avisos enviados ao cliente (e-mail, WhatsApp, portal)
   - name: jobs
     description: Fila de tarefas em segundo plano
+  - name: produtividade
+    description: Produtividade por colaborador e atrasos por cliente
 
 paths:
   /auth/entrar:
@@ -200,7 +202,7 @@ paths:
     delete:
       operationId: removerCliente
       tags: [clientes]
-      summary: Remove um cliente
+      summary: Apaga um cliente sem histórico (só admin). Com competência gerada, use inativar
       parameters:
         - name: id
           in: path
@@ -211,6 +213,48 @@ paths:
       responses:
         "204":
           description: Removido
+        "409":
+          $ref: "#/components/responses/Erro"
+
+  /clientes/{id}/inativar:
+    post:
+      operationId: inativarCliente
+      tags: [clientes]
+      summary: Inativa o cliente (sai das competências novas; o histórico fica)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        "200":
+          description: Cliente inativado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cliente"
+
+  /clientes/{id}/reativar:
+    post:
+      operationId: reativarCliente
+      tags: [clientes]
+      summary: Reativa um cliente inativado
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        "200":
+          description: Cliente reativado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cliente"
 
   /clientes/{id}/segredos:
     get:
@@ -812,6 +856,106 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ChecklistItem"
+
+  /checklist/{id}/enviar:
+    post:
+      operationId: enviarGuia
+      tags: [checklist]
+      summary: Envia a guia anexada ao cliente com protocolo e marca o item como enviado
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EnviarGuiaInput"
+      responses:
+        "200":
+          description: Guia enviada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnvioGuia"
+        "400":
+          $ref: "#/components/responses/Erro"
+
+  /checklist/{id}/protocolos:
+    get:
+      operationId: listarProtocolosItem
+      tags: [checklist]
+      summary: Protocolos de envio de um item (quem enviou, quando, se foi visualizado)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        "200":
+          description: Protocolos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Protocolo"
+
+  /protocolo/{token}:
+    get:
+      operationId: abrirProtocolo
+      tags: [arquivos]
+      summary: Link público da guia enviada; registra a visualização e entrega o arquivo
+      security: []
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 20
+            maxLength: 100
+      responses:
+        "200":
+          description: O arquivo
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        "302":
+          description: Redireciona para a URL assinada do armazenamento
+        "404":
+          $ref: "#/components/responses/Erro"
+        "410":
+          $ref: "#/components/responses/Erro"
+
+  /produtividade:
+    get:
+      operationId: getProdutividade
+      tags: [produtividade]
+      summary: Guias enviadas por colaborador e obrigações atrasadas por cliente
+      parameters:
+        - name: meses
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 24
+      responses:
+        "200":
+          description: Produtividade do período
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Produtividade"
 
   /pagamentos/{id}:
     patch:
@@ -1869,6 +2013,12 @@ components:
       type: object
       properties:
         limiteMs: { type: integer, minimum: 1000, maximum: 300000 }
+        # Tipos recorrentes para rodar agora, fora da chave diária (ex.: depois
+        # de corrigir um cadastro): `vencimentos-d3`, `honorarios-vencidos`, `limpeza`.
+        agora:
+          type: array
+          maxItems: 10
+          items: { type: string, minLength: 1, maxLength: 60 }
 
     ResultadoJobs:
       type: object
@@ -1977,10 +2127,12 @@ components:
 
     Painel:
       type: object
-      required: [clientesAtivos, competenciaAtual]
+      required: [clientesAtivos, competenciaAtual, alertas]
       properties:
         clientesAtivos:
           type: integer
+        alertas:
+          $ref: "#/components/schemas/Alertas"
         competenciaAtual:
           type: ["object", "null"]
           properties:
@@ -2017,6 +2169,7 @@ components:
         whatsapp: { type: ["string", "null"] }
         email: { type: ["string", "null"] }
         ativo: { type: boolean }
+        inativadoEm: { type: ["string", "null"], format: date-time }
         obrigacoes:
           type: array
           items: { type: integer }
@@ -2339,7 +2492,7 @@ components:
 
     ChecklistItem:
       type: object
-      required: [id, status, clienteId, cliente, tipoObrigacaoId, obrigacao, ordem]
+      required: [id, status, clienteId, cliente, tipoObrigacaoId, obrigacao, ordem, anexos, enviadoEm, visualizadoEm]
       properties:
         id: { type: integer }
         status:
@@ -2352,6 +2505,99 @@ components:
         tipoObrigacaoId: { type: integer }
         obrigacao: { type: string }
         ordem: { type: integer, minimum: 0 }
+        # Guias anexadas (confirmadas) e o último envio com protocolo.
+        anexos: { type: integer }
+        enviadoEm: { type: ["string", "null"], format: date-time }
+        visualizadoEm: { type: ["string", "null"], format: date-time }
+
+    EnviarGuiaInput:
+      type: object
+      required: [canal]
+      properties:
+        canal: { $ref: "#/components/schemas/CanalAviso" }
+        # Texto livre que vai antes do aviso padrão.
+        mensagem: { type: ["string", "null"], maxLength: 2000 }
+
+    Protocolo:
+      type: object
+      required: [id, canal, link, enviadoEm, expiraEm, visualizadoEm, cienteEm, enviadoPor]
+      properties:
+        id: { type: integer }
+        canal: { $ref: "#/components/schemas/CanalAviso" }
+        # O token só existe em claro na resposta do envio; depois, só o hash.
+        link: { type: ["string", "null"] }
+        enviadoEm: { type: string, format: date-time }
+        expiraEm: { type: string, format: date-time }
+        visualizadoEm: { type: ["string", "null"], format: date-time }
+        cienteEm: { type: ["string", "null"], format: date-time }
+        enviadoPor: { type: ["string", "null"] }
+
+    EnvioGuia:
+      type: object
+      required: [item, protocolo, linkWhatsapp]
+      properties:
+        item: { $ref: "#/components/schemas/ChecklistItem" }
+        protocolo: { $ref: "#/components/schemas/Protocolo" }
+        # Para mandar à mão pelo wa.me quando a conta não tem a API do WhatsApp.
+        linkWhatsapp: { type: ["string", "null"] }
+
+    Alertas:
+      type: object
+      required:
+        [competenciaDoMesAberta, competenciaDoMesId, vencendo7Dias, emitidasNaoEnviadasVencidas,
+         honorariosVencidos, feriasVencendo, procuracoesVencendo30Dias, procuracoesVencidas,
+         processosAtrasados, avisosFalhados, clientesSemObrigacoes]
+      properties:
+        competenciaDoMesAberta: { type: boolean }
+        competenciaDoMesId: { type: ["integer", "null"] }
+        vencendo7Dias: { type: integer }
+        emitidasNaoEnviadasVencidas: { type: integer }
+        honorariosVencidos:
+          type: object
+          required: [quantidade, total]
+          properties:
+            quantidade: { type: integer }
+            total: { type: string }
+        feriasVencendo: { type: integer }
+        procuracoesVencendo30Dias: { type: integer }
+        procuracoesVencidas: { type: integer }
+        processosAtrasados: { type: integer }
+        avisosFalhados: { type: integer }
+        clientesSemObrigacoes: { type: integer }
+
+    Produtividade:
+      type: object
+      required: [periodo, porUsuario, porCliente]
+      properties:
+        periodo:
+          type: object
+          required: [de, ate, meses]
+          properties:
+            de: { type: string, format: date }
+            ate: { type: string, format: date }
+            meses: { type: integer }
+        porUsuario:
+          type: array
+          items:
+            type: object
+            required: [usuarioId, login, nome, enviados, atrasadosNoEnvio, tempoMedioHoras]
+            properties:
+              usuarioId: { type: ["integer", "null"] }
+              login: { type: ["string", "null"] }
+              nome: { type: ["string", "null"] }
+              enviados: { type: integer }
+              atrasadosNoEnvio: { type: integer }
+              tempoMedioHoras: { type: ["number", "null"] }
+        porCliente:
+          type: array
+          items:
+            type: object
+            required: [clienteId, cliente, total, atrasadas]
+            properties:
+              clienteId: { type: integer }
+              cliente: { type: string }
+              total: { type: integer }
+              atrasadas: { type: integer }
 
     StatusChecklistInput:
       type: object
@@ -2391,6 +2637,7 @@ components:
           enum: [pendente, pago, isento]
         valor: { type: ["string", "null"], pattern: '^-?\d+(\.\d{1,2})?$' }
         dataPagamento: { type: ["string", "null"], format: date }
+        vencimento: { type: ["string", "null"], format: date }
         forma: { type: ["string", "null"] }
         observacao: { type: ["string", "null"] }
 
@@ -2470,7 +2717,7 @@ components:
 
     Perfil:
       type: object
-      required: [id, nome]
+      required: [id, nome, aberturaAutomatica, diasParaCobrar]
       properties:
         id: { type: integer }
         nome: { type: string, minLength: 1, maxLength: 200 }
@@ -2480,6 +2727,11 @@ components:
         telefone: { type: ["string", "null"] }
         email: { type: ["string", "null"] }
         endereco: { type: ["string", "null"] }
+        chavePix: { type: ["string", "null"] }
+        # Abre o mês sozinho no dia 1 (job abrir-competencia).
+        aberturaAutomatica: { type: boolean }
+        # Dias depois do vencimento para o aviso de honorário em aberto.
+        diasParaCobrar: { type: integer, minimum: 0, maximum: 90 }
 
     PerfilInput:
       type: object
@@ -2492,6 +2744,9 @@ components:
         telefone: { type: ["string", "null"] }
         email: { type: ["string", "null"] }
         endereco: { type: ["string", "null"] }
+        chavePix: { type: ["string", "null"] }
+        aberturaAutomatica: { type: boolean }
+        diasParaCobrar: { type: integer, minimum: 0, maximum: 90 }
 
     Despesa:
       type: object

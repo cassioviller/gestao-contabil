@@ -5,8 +5,11 @@ import {
   getListarClientesQueryKey,
   useCriarCliente,
   useRemoverCliente,
+  useInativarCliente,
   useListarTipos,
 } from "@workspace/api-client-react";
+import { FORMAS_ENVIO } from "@workspace/dominio";
+import { mensagemDeErro } from "@/lib/erros";
 import {
   formatarMoeda,
   formatarNumeroBR,
@@ -133,6 +136,7 @@ function FormularioCliente({
   const qc = useQueryClient();
   const criarMutation = useCriarCliente();
   const removerMutation = useRemoverCliente();
+  const inativarMutation = useInativarCliente();
   const ehNovo = cliente.id === 0;
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -167,8 +171,22 @@ function FormularioCliente({
   }
 
   async function handleRemover() {
-    if (!confirm("Remover este cliente? Isso apaga seu histórico.")) return;
-    await removerMutation.mutateAsync({ id: cliente.id });
+    if (
+      !confirm(
+        "Remover este cliente? Quem já tem competência gerada não é apagado: é inativado, e o histórico fica guardado.",
+      )
+    )
+      return;
+    try {
+      await removerMutation.mutateAsync({ id: cliente.id });
+    } catch (e) {
+      if ((e as { status?: number }).status === 409) {
+        await inativarMutation.mutateAsync({ id: cliente.id });
+      } else {
+        alert(mensagemDeErro(e, "Não foi possível remover."));
+        return;
+      }
+    }
     qc.invalidateQueries({ queryKey: getListarClientesQueryKey() });
     aoFechar();
   }
@@ -234,7 +252,23 @@ function FormularioCliente({
             name="inscricaoEstadual"
             defaultValue={cliente.inscricaoEstadual ?? ""}
           />
-          <Campo label="Forma de envio" name="formaEnvio" defaultValue={cliente.formaEnvio ?? ""} />
+          <label className="flex flex-col gap-1 text-sm">
+            <span className="text-neutral-600 dark:text-neutral-400">Forma de envio das guias</span>
+            <select
+              name="formaEnvio"
+              defaultValue={cliente.formaEnvio ?? ""}
+              className="rounded-lg border border-black/15 bg-neutral-900 px-3 py-2 text-white dark:border-white/15"
+            >
+              <option value="" className="bg-neutral-900 text-white">
+                Não definida
+              </option>
+              {FORMAS_ENVIO.map((f) => (
+                <option key={f.valor} value={f.valor} className="bg-neutral-900 text-white">
+                  {f.rotulo}
+                </option>
+              ))}
+            </select>
+          </label>
           <Campo label="Procuração" name="procuracao" defaultValue={cliente.procuracao ?? ""} />
           <Campo
             label="Honorário mensal (R$)"
