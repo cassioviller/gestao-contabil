@@ -1,10 +1,27 @@
 import { Switch, Route, Router as WouterRouter } from "wouter";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {
+  MutationCache,
+  QueryCache,
+  QueryClient,
+  QueryClientProvider,
+  type Query,
+} from "@tanstack/react-query";
+import {
+  getGetSessaoAtualQueryKey,
+  useGetSessaoAtual,
+} from "@workspace/api-client-react";
 import MenuLateral from "@/components/MenuLateral";
+import Login from "@/pages/Login";
 import Painel from "@/pages/Painel";
 import Clientes from "@/pages/Clientes";
 import DadosCadastrais from "@/pages/DadosCadastrais";
 import Senhas from "@/pages/Senhas";
+import Atrasos from "@/pages/Atrasos";
+import Perfil from "@/pages/Perfil";
+import Despesas from "@/pages/Despesas";
+import Funcionarios from "@/pages/Funcionarios";
+import FuncionarioDetalhe from "@/pages/FuncionarioDetalhe";
+import Folha from "@/pages/Folha";
 import Processos from "@/pages/Processos";
 import Pedidos from "@/pages/Pedidos";
 import ProcessoDetalhe from "@/pages/ProcessoDetalhe";
@@ -15,13 +32,34 @@ import CompetenciaPagamentos from "@/pages/CompetenciaPagamentos";
 import Pendencias from "@/pages/Pendencias";
 import NotFound from "@/pages/not-found";
 
-const queryClient = new QueryClient({
+const CHAVE_SESSAO = getGetSessaoAtualQueryKey();
+
+type QualquerQuery = Query<unknown, unknown, unknown, readonly unknown[]>;
+
+function ehSessao(query?: QualquerQuery): boolean {
+  return query?.queryKey?.[0] === CHAVE_SESSAO[0];
+}
+
+/**
+ * Qualquer 401 (sessão expirou, ou alguém saiu em outra aba) revalida a sessão,
+ * que falha e devolve a tela de login — em vez de deixar a tela travada num erro
+ * sem explicação. O próprio pedido de sessão fica de fora do gatilho, senão o
+ * 401 dele se realimentaria em laço.
+ */
+function aoFalhar(erro: unknown, query?: QualquerQuery): void {
+  if ((erro as { status?: number })?.status !== 401 || ehSessao(query)) return;
+  queryClient.invalidateQueries({ queryKey: CHAVE_SESSAO });
+}
+
+const queryClient: QueryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 1,
       staleTime: 5000,
     },
   },
+  queryCache: new QueryCache({ onError: aoFalhar }),
+  mutationCache: new MutationCache({ onError: (erro) => aoFalhar(erro) }),
 });
 
 function Router() {
@@ -34,6 +72,12 @@ function Router() {
           <Route path="/clientes" component={Clientes} />
           <Route path="/cadastro" component={DadosCadastrais} />
           <Route path="/senhas" component={Senhas} />
+          <Route path="/atrasos" component={Atrasos} />
+          <Route path="/despesas" component={Despesas} />
+          <Route path="/funcionarios/:id" component={FuncionarioDetalhe} />
+          <Route path="/funcionarios" component={Funcionarios} />
+          <Route path="/folha" component={Folha} />
+          <Route path="/perfil" component={Perfil} />
           <Route path="/processos/:id" component={ProcessoDetalhe} />
           {/* Forma com children: o Route do wouter passa props próprias ao
               `component`, que não casam com a prop `categoria`. */}
@@ -52,11 +96,33 @@ function Router() {
   );
 }
 
+/**
+ * Porta de entrada do app. Sem sessão não monta nenhuma tela: as páginas
+ * disparam consultas já no primeiro render e todas voltariam 401.
+ */
+function Autenticado() {
+  // `retry: false` para o 401 virar tela de login na hora, sem a espera das
+  // tentativas repetidas.
+  const { data, isPending } = useGetSessaoAtual({
+    query: { queryKey: CHAVE_SESSAO, retry: false, staleTime: Infinity },
+  });
+
+  if (isPending) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <p className="text-sm text-neutral-500">Carregando...</p>
+      </div>
+    );
+  }
+
+  return data ? <Router /> : <Login />;
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-        <Router />
+        <Autenticado />
       </WouterRouter>
     </QueryClientProvider>
   );

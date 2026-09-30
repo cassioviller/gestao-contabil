@@ -151,17 +151,19 @@ export default function DadosCadastrais() {
       .some((v) => (v ?? "").toLowerCase().includes(t));
   });
 
-  const celula = "border-r border-black/10 p-0 dark:border-white/10";
+  const celula = "border-r border-black/10 p-0";
   const entrada =
-    "h-9 w-full bg-transparent px-2 text-sm outline-none focus:bg-blue-50 focus:ring-2 focus:ring-inset focus:ring-blue-500 dark:focus:bg-blue-950/40";
-  const fixa = "bg-white dark:bg-neutral-950";
-  // Selects precisam de fundo próprio: com `bg-transparent` o navegador desenha a
-  // lista suspensa em branco e o texto claro some.
+    "h-9 w-full bg-transparent px-2 text-sm outline-none focus:bg-blue-50 focus:ring-2 focus:ring-inset focus:ring-blue-500";
+  const fixa = "bg-white";
+  // Fundo explícito no select: com `bg-transparent` o navegador desenha a lista
+  // suspensa com a cor herdada e o texto pode sumir.
   const selecao =
-    "h-9 w-full bg-neutral-900 px-2 text-sm text-white outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500";
+    "h-9 w-full bg-white px-2 text-sm text-black outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500";
 
   return (
-    <div>
+    // Esta tela é sempre clara, independente do tema. O `-m-8 p-8` anula o
+    // padding do <main> para o branco cobrir a área toda, sem moldura escura.
+    <div data-tela="cadastro" className="-m-8 min-h-screen bg-white p-8 text-black">
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold">Dados cadastrais</h1>
@@ -173,13 +175,13 @@ export default function DadosCadastrais() {
           {salvo && <span className="text-xs text-green-600">✓ salvo</span>}
           <button
             onClick={() => setRevelarSenhas((v) => !v)}
-            className="rounded-lg border border-black/15 px-3 py-2 text-sm dark:border-white/15"
+            className="rounded-lg border border-black/15 px-3 py-2 text-sm"
           >
             {revelarSenhas ? "🙈 Ocultar senhas" : "👁 Mostrar senhas"}
           </button>
           <button
             onClick={() => baixarCsv(filtrados)}
-            className="rounded-lg border border-black/15 px-3 py-2 text-sm dark:border-white/15"
+            className="rounded-lg border border-black/15 px-3 py-2 text-sm"
           >
             ⬇ Exportar Excel (.csv)
           </button>
@@ -196,20 +198,20 @@ export default function DadosCadastrais() {
         value={busca}
         onChange={(e) => setBusca(e.target.value)}
         placeholder="Buscar por empresa, CNPJ, sócio, contato ou e-mail…"
-        className="mb-4 w-full rounded-lg border border-black/15 bg-transparent px-3 py-2 text-sm dark:border-white/15 sm:w-96"
+        className="mb-4 w-full rounded-lg border border-black/15 bg-transparent px-3 py-2 text-sm sm:w-96"
       />
 
       {isLoading ? (
         <p className="text-sm text-neutral-500">Carregando...</p>
       ) : (
-        <div className="max-h-[calc(100vh-16rem)] overflow-auto rounded-xl border border-black/10 dark:border-white/10">
+        <div className="max-h-[calc(100vh-16rem)] overflow-auto rounded-xl border border-black/10">
           <table className="border-collapse text-left text-sm">
             <thead className="sticky top-0 z-30">
-              <tr className="bg-neutral-100 dark:bg-neutral-900">
-                <th className={`sticky left-0 z-40 w-16 bg-neutral-100 px-2 py-2 font-medium dark:bg-neutral-900 ${celula}`}>
+              <tr className="border-b-2 border-black/20 bg-white">
+                <th className={`sticky left-0 z-40 w-16 bg-white px-2 py-2 font-medium ${celula}`}>
                   Cód.
                 </th>
-                <th className={`sticky left-16 z-40 w-64 bg-neutral-100 px-2 py-2 font-medium dark:bg-neutral-900 ${celula}`}>
+                <th className={`sticky left-16 z-40 w-64 bg-white px-2 py-2 font-medium ${celula}`}>
                   Empresa
                 </th>
                 {COLUNAS.map((col) => (
@@ -221,11 +223,11 @@ export default function DadosCadastrais() {
                 <th className="w-10" />
               </tr>
             </thead>
-            <tbody className="divide-y divide-black/10 dark:divide-white/10">
+            <tbody className="divide-y divide-black/10">
               {filtrados.map((c) => {
                 const vencida = !!c.procuracaoVencimento && c.procuracaoVencimento < HOJE;
                 return (
-                  <tr key={c.id} className={c.ativo ? "" : "bg-black/[0.03] dark:bg-white/[0.03]"}>
+                  <tr key={c.id} className={c.ativo ? "" : "bg-black/[0.03]"}>
                     <td className={`sticky left-0 z-20 w-16 ${fixa} ${celula}`}>
                       <input
                         type="number"
@@ -265,11 +267,11 @@ export default function DadosCadastrais() {
                               onChange={(e) => salvarCampo(c.id, col.campo, e.target.value || null)}
                               className={selecao}
                             >
-                              <option value="" className="bg-neutral-900 text-white">
+                              <option value="" className="bg-white text-black">
                                 —
                               </option>
                               {col.opcoes.map((o) => (
-                                <option key={o.valor} value={o.valor} className="bg-neutral-900 text-white">
+                                <option key={o.valor} value={o.valor} className="bg-white text-black">
                                   {o.rotulo}
                                 </option>
                               ))}

@@ -5,11 +5,15 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./schema": "./src/schema/index.ts"
+    "./schema": "./src/schema/index.ts",
+    "./senha": "./src/senha.ts"
   },
   "scripts": {
     "push": "drizzle-kit push --config ./drizzle.config.ts",
-    "seed-tipos": "node ./scripts/seed-tipos.mjs",
+    "seed-tipos": "node ./scripts/seed-tipos.ts",
+    "criar-conta": "node ./scripts/criar-conta.ts",
+    "migrar-multitenant": "node ./scripts/migrar-multitenant.ts",
+    "exportar-seed": "node ./scripts/exportar-seed.ts",
     "import-clientes": "node ./scripts/import-clientes-xlsx.mjs",
     "push-force": "drizzle-kit push --force --config ./drizzle.config.ts"
   },

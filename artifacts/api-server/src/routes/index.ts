@@ -1,4 +1,6 @@
 import { Router, type IRouter } from "express";
+import { exigirSessao } from "../middlewares/autenticacao";
+import authRouter from "./auth";
 import healthRouter from "./health";
 import clientesRouter from "./clientes";
 import tiposRouter from "./tipos";
@@ -11,10 +13,24 @@ import painelRouter from "./painel";
 import processosRouter from "./processos";
 import etapasRouter from "./etapas";
 import credenciaisRouter from "./credenciais";
+import debitosRouter from "./debitos";
+import perfilRouter from "./perfil";
+import despesasRouter from "./despesas";
+import funcionariosRouter from "./funcionarios";
+import folhaRouter from "./folha";
+import feriasRouter from "./ferias";
 
 const router: IRouter = Router();
 
+// Antes da porta: só o health check (o deploy o consulta sem cookie) e o
+// próprio login.
 router.use(healthRouter);
+router.use("/auth", authRouter);
+
+// A porta. Tudo o que vem depois só roda com sessão válida e enxerga apenas a
+// conta dela — rota nova nasce protegida por estar abaixo desta linha.
+router.use(exigirSessao);
+
 router.use("/painel", painelRouter);
 router.use("/clientes", clientesRouter);
 router.use("/tipos", tiposRouter);
@@ -26,5 +42,11 @@ router.use("/configuracoes", configuracoesRouter);
 router.use("/processos", processosRouter);
 router.use("/etapas", etapasRouter);
 router.use("/credenciais", credenciaisRouter);
+router.use("/debitos", debitosRouter);
+router.use("/perfil", perfilRouter);
+router.use("/despesas", despesasRouter);
+router.use("/funcionarios", funcionariosRouter);
+router.use("/folha", folhaRouter);
+router.use("/ferias", feriasRouter);
 
 export default router;

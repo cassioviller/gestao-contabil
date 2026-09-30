@@ -29,8 +29,57 @@ tags:
     description: Processos avulsos por cliente (troca de titularidade, alteração de endereço…)
   - name: credenciais
     description: Senhas por sistema/obrigação de cada cliente
+  - name: debitos
+    description: Guias do cliente em atraso com o fisco
+  - name: auth
+    description: Login e sessão do escritório
 
 paths:
+  /auth/entrar:
+    post:
+      operationId: entrar
+      tags: [auth]
+      summary: Abre uma sessão com login e senha
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Credenciais"
+      responses:
+        "200":
+          description: Sessão aberta
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessaoAtual"
+        "401":
+          description: Login ou senha inválidos
+
+  /auth/sair:
+    post:
+      operationId: sair
+      tags: [auth]
+      summary: Encerra a sessão atual
+      responses:
+        "204":
+          description: Sessão encerrada
+
+  /auth/eu:
+    get:
+      operationId: getSessaoAtual
+      tags: [auth]
+      summary: Quem está logado e em qual conta
+      responses:
+        "200":
+          description: Sessão atual
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessaoAtual"
+        "401":
+          description: Sem sessão
+
   /healthz:
     get:
       operationId: healthCheck
@@ -173,6 +222,87 @@ paths:
       responses:
         "204":
           description: Removido
+
+  /debitos:
+    get:
+      operationId: listarDebitos
+      tags: [debitos]
+      summary: Lista guias em atraso
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/StatusDebito"
+        - name: clienteId
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Lista de débitos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Debito"
+    post:
+      operationId: salvarDebito
+      tags: [debitos]
+      summary: Cria ou atualiza uma guia em atraso
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DebitoInput"
+      responses:
+        "200":
+          description: Débito salvo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Debito"
+
+  /debitos/{id}:
+    patch:
+      operationId: atualizarDebito
+      tags: [debitos]
+      summary: Atualiza campos avulsos de uma guia em atraso
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DebitoPatch"
+      responses:
+        "200":
+          description: Débito atualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Debito"
+    delete:
+      operationId: removerDebito
+      tags: [debitos]
+      summary: Remove uma guia em atraso
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Removida
 
   /credenciais:
     get:
@@ -672,6 +802,406 @@ paths:
               schema:
                 $ref: "#/components/schemas/Configuracao"
 
+  /perfil:
+    get:
+      operationId: getPerfil
+      tags: [perfil]
+      summary: Dados do escritório logado
+      responses:
+        "200":
+          description: Perfil do escritório
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Perfil"
+    put:
+      operationId: salvarPerfil
+      tags: [perfil]
+      summary: Atualiza os dados do escritório
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PerfilInput"
+      responses:
+        "200":
+          description: Perfil salvo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Perfil"
+
+  /despesas:
+    get:
+      operationId: listarDespesas
+      tags: [despesas]
+      summary: Lista gastos do escritório e dos clientes
+      parameters:
+        - name: escopo
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/EscopoRegistro"
+        - name: clienteId
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: ano
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: mes
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Lista de despesas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Despesa"
+    post:
+      operationId: salvarDespesa
+      tags: [despesas]
+      summary: Cria ou atualiza um gasto
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DespesaInput"
+      responses:
+        "200":
+          description: Despesa salva
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Despesa"
+
+  /despesas/{id}:
+    patch:
+      operationId: atualizarDespesa
+      tags: [despesas]
+      summary: Atualiza campos avulsos de um gasto
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DespesaPatch"
+      responses:
+        "200":
+          description: Despesa atualizada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Despesa"
+    delete:
+      operationId: removerDespesa
+      tags: [despesas]
+      summary: Remove um gasto
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Removida
+
+  /funcionarios:
+    get:
+      operationId: listarFuncionarios
+      tags: [funcionarios]
+      summary: Lista funcionários do escritório e dos clientes
+      parameters:
+        - name: escopo
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/EscopoRegistro"
+        - name: clienteId
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: situacao
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/SituacaoFuncionario"
+      responses:
+        "200":
+          description: Lista de funcionários
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Funcionario"
+    post:
+      operationId: salvarFuncionario
+      tags: [funcionarios]
+      summary: Cria ou atualiza um funcionário
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FuncionarioInput"
+      responses:
+        "200":
+          description: Funcionário salvo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Funcionario"
+
+  /funcionarios/{id}:
+    get:
+      operationId: getFuncionario
+      tags: [funcionarios]
+      summary: Ficha do funcionário com folha e férias
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Ficha do funcionário
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FichaFuncionario"
+    patch:
+      operationId: atualizarFuncionario
+      tags: [funcionarios]
+      summary: Atualiza campos avulsos de um funcionário
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FuncionarioPatch"
+      responses:
+        "200":
+          description: Funcionário atualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Funcionario"
+    delete:
+      operationId: removerFuncionario
+      tags: [funcionarios]
+      summary: Remove um funcionário
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Removido
+
+  /folha:
+    get:
+      operationId: listarFolha
+      tags: [folha]
+      summary: Lançamentos de folha de um mês
+      parameters:
+        - name: ano
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: mes
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: escopo
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/EscopoRegistro"
+        - name: clienteId
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Lançamentos do mês
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LancamentoFolha"
+    post:
+      operationId: salvarLancamentoFolha
+      tags: [folha]
+      summary: Cria ou atualiza um lançamento de folha
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LancamentoFolhaInput"
+      responses:
+        "200":
+          description: Lançamento salvo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LancamentoFolha"
+
+  /folha/{id}:
+    patch:
+      operationId: atualizarLancamentoFolha
+      tags: [folha]
+      summary: Atualiza campos avulsos de um lançamento
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LancamentoFolhaPatch"
+      responses:
+        "200":
+          description: Lançamento atualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LancamentoFolha"
+    delete:
+      operationId: removerLancamentoFolha
+      tags: [folha]
+      summary: Remove um lançamento de folha
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Removido
+
+  /ferias:
+    get:
+      operationId: listarFerias
+      tags: [ferias]
+      summary: Períodos de férias, com aviso de vencimento
+      parameters:
+        - name: escopo
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/EscopoRegistro"
+        - name: clienteId
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: funcionarioId
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Períodos de férias
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PeriodoFerias"
+    post:
+      operationId: salvarFerias
+      tags: [ferias]
+      summary: Cria ou atualiza um período de férias
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FeriasInput"
+      responses:
+        "200":
+          description: Período salvo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PeriodoFerias"
+
+  /ferias/{id}:
+    patch:
+      operationId: atualizarFerias
+      tags: [ferias]
+      summary: Atualiza campos avulsos de um período de férias
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FeriasPatch"
+      responses:
+        "200":
+          description: Período atualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PeriodoFerias"
+    delete:
+      operationId: removerFerias
+      tags: [ferias]
+      summary: Remove um período de férias
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Removido
 components:
   schemas:
     HealthStatus:
@@ -680,6 +1210,28 @@ components:
       properties:
         status:
           type: string
+
+    Credenciais:
+      type: object
+      required: [login, senha]
+      properties:
+        login:
+          type: string
+          minLength: 1
+        senha:
+          type: string
+          minLength: 1
+
+    # Quem está logado. `conta` é o escritório dono dos dados — todo o resto da
+    # API responde só o que pertence a ela.
+    SessaoAtual:
+      type: object
+      required: [contaId, conta, login, nome]
+      properties:
+        contaId: { type: integer }
+        conta: { type: string }
+        login: { type: string }
+        nome: { type: ["string", "null"] }
 
     Resumo:
       type: object
@@ -851,6 +1403,50 @@ components:
         regimes:
           type: ["array", "null"]
           items: { $ref: "#/components/schemas/RegimeValor" }
+
+    StatusDebito:
+      type: string
+      enum: [em_aberto, parcelado, pago]
+
+    Debito:
+      type: object
+      required: [id, clienteId, clienteNome, rotulo, status]
+      properties:
+        id: { type: integer }
+        clienteId: { type: integer }
+        clienteNome: { type: string }
+        tipoObrigacaoId: { type: ["integer", "null"] }
+        rotulo: { type: string }
+        competenciaRef: { type: ["string", "null"] }
+        vencimento: { type: ["string", "null"] }
+        valor: { type: ["string", "null"] }
+        status: { $ref: "#/components/schemas/StatusDebito" }
+        observacao: { type: ["string", "null"] }
+
+    DebitoInput:
+      type: object
+      required: [clienteId, rotulo]
+      properties:
+        id: { type: ["integer", "null"] }
+        clienteId: { type: integer }
+        tipoObrigacaoId: { type: ["integer", "null"] }
+        rotulo: { type: string }
+        competenciaRef: { type: ["string", "null"] }
+        vencimento: { type: ["string", "null"] }
+        valor: { type: ["string", "null"] }
+        status: { $ref: "#/components/schemas/StatusDebito" }
+        observacao: { type: ["string", "null"] }
+
+    DebitoPatch:
+      type: object
+      properties:
+        tipoObrigacaoId: { type: ["integer", "null"] }
+        rotulo: { type: string }
+        competenciaRef: { type: ["string", "null"] }
+        vencimento: { type: ["string", "null"] }
+        valor: { type: ["string", "null"] }
+        status: { $ref: "#/components/schemas/StatusDebito" }
+        observacao: { type: ["string", "null"] }
 
     Credencial:
       type: object
@@ -1119,3 +1715,270 @@ components:
       required: [valor]
       properties:
         valor: { type: string }
+
+    # Filtro dos registros que existem para o escritório e para os clientes:
+    # `escritorio` = só os sem cliente, `clientes` = só os com cliente.
+    EscopoRegistro:
+      type: string
+      enum: [todos, escritorio, clientes]
+
+    Perfil:
+      type: object
+      required: [id, nome]
+      properties:
+        id: { type: integer }
+        nome: { type: string }
+        cnpj: { type: ["string", "null"] }
+        responsavel: { type: ["string", "null"] }
+        crc: { type: ["string", "null"] }
+        telefone: { type: ["string", "null"] }
+        email: { type: ["string", "null"] }
+        endereco: { type: ["string", "null"] }
+
+    PerfilInput:
+      type: object
+      required: [nome]
+      properties:
+        nome: { type: string, minLength: 1 }
+        cnpj: { type: ["string", "null"] }
+        responsavel: { type: ["string", "null"] }
+        crc: { type: ["string", "null"] }
+        telefone: { type: ["string", "null"] }
+        email: { type: ["string", "null"] }
+        endereco: { type: ["string", "null"] }
+
+    Despesa:
+      type: object
+      required: [id, data, categoria, descricao, valor, pago]
+      properties:
+        id: { type: integer }
+        clienteId: { type: ["integer", "null"] }
+        clienteNome: { type: ["string", "null"] }
+        data: { type: string }
+        categoria: { type: string }
+        descricao: { type: string }
+        valor: { type: string }
+        vencimento: { type: ["string", "null"] }
+        formaPagamento: { type: ["string", "null"] }
+        pago: { type: boolean }
+        observacao: { type: ["string", "null"] }
+
+    DespesaInput:
+      type: object
+      required: [data, categoria, descricao, valor]
+      properties:
+        id: { type: ["integer", "null"] }
+        clienteId: { type: ["integer", "null"] }
+        data: { type: string }
+        categoria: { type: string, minLength: 1 }
+        descricao: { type: string, minLength: 1 }
+        valor: { type: string }
+        vencimento: { type: ["string", "null"] }
+        formaPagamento: { type: ["string", "null"] }
+        pago: { type: boolean }
+        observacao: { type: ["string", "null"] }
+
+    DespesaPatch:
+      type: object
+      properties:
+        clienteId: { type: ["integer", "null"] }
+        data: { type: string }
+        categoria: { type: string }
+        descricao: { type: string }
+        valor: { type: string }
+        vencimento: { type: ["string", "null"] }
+        formaPagamento: { type: ["string", "null"] }
+        pago: { type: boolean }
+        observacao: { type: ["string", "null"] }
+
+    SituacaoFuncionario:
+      type: string
+      enum: [ativo, ferias, afastado, demitido]
+
+    Funcionario:
+      type: object
+      required: [id, nome, situacao]
+      properties:
+        id: { type: integer }
+        clienteId: { type: ["integer", "null"] }
+        clienteNome: { type: ["string", "null"] }
+        nome: { type: string }
+        cpf: { type: ["string", "null"] }
+        rg: { type: ["string", "null"] }
+        pis: { type: ["string", "null"] }
+        ctps: { type: ["string", "null"] }
+        nascimento: { type: ["string", "null"] }
+        cargo: { type: ["string", "null"] }
+        admissao: { type: ["string", "null"] }
+        demissao: { type: ["string", "null"] }
+        salario: { type: ["string", "null"] }
+        situacao: { $ref: "#/components/schemas/SituacaoFuncionario" }
+        telefone: { type: ["string", "null"] }
+        email: { type: ["string", "null"] }
+        endereco: { type: ["string", "null"] }
+        observacao: { type: ["string", "null"] }
+
+    FuncionarioInput:
+      type: object
+      required: [nome]
+      properties:
+        id: { type: ["integer", "null"] }
+        clienteId: { type: ["integer", "null"] }
+        nome: { type: string, minLength: 1 }
+        cpf: { type: ["string", "null"] }
+        rg: { type: ["string", "null"] }
+        pis: { type: ["string", "null"] }
+        ctps: { type: ["string", "null"] }
+        nascimento: { type: ["string", "null"] }
+        cargo: { type: ["string", "null"] }
+        admissao: { type: ["string", "null"] }
+        demissao: { type: ["string", "null"] }
+        salario: { type: ["string", "null"] }
+        situacao: { $ref: "#/components/schemas/SituacaoFuncionario" }
+        telefone: { type: ["string", "null"] }
+        email: { type: ["string", "null"] }
+        endereco: { type: ["string", "null"] }
+        observacao: { type: ["string", "null"] }
+
+    FuncionarioPatch:
+      type: object
+      properties:
+        clienteId: { type: ["integer", "null"] }
+        nome: { type: string }
+        cpf: { type: ["string", "null"] }
+        rg: { type: ["string", "null"] }
+        pis: { type: ["string", "null"] }
+        ctps: { type: ["string", "null"] }
+        nascimento: { type: ["string", "null"] }
+        cargo: { type: ["string", "null"] }
+        admissao: { type: ["string", "null"] }
+        demissao: { type: ["string", "null"] }
+        salario: { type: ["string", "null"] }
+        situacao: { $ref: "#/components/schemas/SituacaoFuncionario" }
+        telefone: { type: ["string", "null"] }
+        email: { type: ["string", "null"] }
+        endereco: { type: ["string", "null"] }
+        observacao: { type: ["string", "null"] }
+
+    TipoFolha:
+      type: string
+      enum: [mensal, ferias, decimo_terceiro]
+
+    LancamentoFolha:
+      type: object
+      required: [id, funcionarioId, funcionarioNome, ano, mes, tipo, pago]
+      properties:
+        id: { type: integer }
+        funcionarioId: { type: integer }
+        funcionarioNome: { type: string }
+        clienteId: { type: ["integer", "null"] }
+        clienteNome: { type: ["string", "null"] }
+        ano: { type: integer }
+        mes: { type: integer }
+        tipo: { $ref: "#/components/schemas/TipoFolha" }
+        salarioBase: { type: ["string", "null"] }
+        proventos: { type: ["string", "null"] }
+        descontos: { type: ["string", "null"] }
+        inss: { type: ["string", "null"] }
+        fgts: { type: ["string", "null"] }
+        irrf: { type: ["string", "null"] }
+        liquido: { type: ["string", "null"] }
+        pago: { type: boolean }
+        pagoEm: { type: ["string", "null"] }
+        observacao: { type: ["string", "null"] }
+
+    LancamentoFolhaInput:
+      type: object
+      required: [funcionarioId, ano, mes]
+      properties:
+        id: { type: ["integer", "null"] }
+        funcionarioId: { type: integer }
+        ano: { type: integer }
+        mes: { type: integer, minimum: 1, maximum: 12 }
+        tipo: { $ref: "#/components/schemas/TipoFolha" }
+        salarioBase: { type: ["string", "null"] }
+        proventos: { type: ["string", "null"] }
+        descontos: { type: ["string", "null"] }
+        inss: { type: ["string", "null"] }
+        fgts: { type: ["string", "null"] }
+        irrf: { type: ["string", "null"] }
+        liquido: { type: ["string", "null"] }
+        pago: { type: boolean }
+        pagoEm: { type: ["string", "null"] }
+        observacao: { type: ["string", "null"] }
+
+    LancamentoFolhaPatch:
+      type: object
+      properties:
+        salarioBase: { type: ["string", "null"] }
+        proventos: { type: ["string", "null"] }
+        descontos: { type: ["string", "null"] }
+        inss: { type: ["string", "null"] }
+        fgts: { type: ["string", "null"] }
+        irrf: { type: ["string", "null"] }
+        liquido: { type: ["string", "null"] }
+        pago: { type: boolean }
+        pagoEm: { type: ["string", "null"] }
+        observacao: { type: ["string", "null"] }
+
+    PeriodoFerias:
+      type: object
+      required: [id, funcionarioId, funcionarioNome, aquisitivoInicio, aquisitivoFim, limiteGozo, vencendo, diasVendidos]
+      properties:
+        id: { type: integer }
+        funcionarioId: { type: integer }
+        funcionarioNome: { type: string }
+        clienteId: { type: ["integer", "null"] }
+        clienteNome: { type: ["string", "null"] }
+        aquisitivoInicio: { type: string }
+        aquisitivoFim: { type: string }
+        gozoInicio: { type: ["string", "null"] }
+        gozoFim: { type: ["string", "null"] }
+        # Calculado pela API: um ano depois do fim do aquisitivo, o prazo legal
+        # para conceder as férias.
+        limiteGozo: { type: string }
+        # true quando o período ainda não foi gozado e o limite está a 90 dias
+        # ou já passou.
+        vencendo: { type: boolean }
+        diasVendidos: { type: integer }
+        valor: { type: ["string", "null"] }
+        observacao: { type: ["string", "null"] }
+
+    FeriasInput:
+      type: object
+      required: [funcionarioId, aquisitivoInicio, aquisitivoFim]
+      properties:
+        id: { type: ["integer", "null"] }
+        funcionarioId: { type: integer }
+        aquisitivoInicio: { type: string }
+        aquisitivoFim: { type: string }
+        gozoInicio: { type: ["string", "null"] }
+        gozoFim: { type: ["string", "null"] }
+        diasVendidos: { type: integer, minimum: 0, maximum: 10 }
+        valor: { type: ["string", "null"] }
+        observacao: { type: ["string", "null"] }
+
+    FeriasPatch:
+      type: object
+      properties:
+        aquisitivoInicio: { type: string }
+        aquisitivoFim: { type: string }
+        gozoInicio: { type: ["string", "null"] }
+        gozoFim: { type: ["string", "null"] }
+        diasVendidos: { type: integer, minimum: 0, maximum: 10 }
+        valor: { type: ["string", "null"] }
+        observacao: { type: ["string", "null"] }
+
+    FichaFuncionario:
+      type: object
+      required: [funcionario, folha, ferias]
+      properties:
+        funcionario: { $ref: "#/components/schemas/Funcionario" }
+        folha:
+          type: array
+          items:
+            $ref: "#/components/schemas/LancamentoFolha"
+        ferias:
+          type: array
+          items:
+            $ref: "#/components/schemas/PeriodoFerias"

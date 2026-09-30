@@ -55,6 +55,48 @@ test("edita células da planilha e os valores persistem após reload", async ({ 
   await expect(recarregada.locator('input[name="procuracaoVencimento"]')).toHaveClass(/text-red-600/);
 });
 
+test("a planilha é sempre clara: fundo branco e letra preta, mesmo no tema escuro", async ({
+  browser,
+}) => {
+  // Tema escuro forçado: é nele que um resquício de estilo escuro apareceria.
+  const ctx = await browser.newContext({ colorScheme: "dark" });
+  const page = await ctx.newPage();
+  await page.goto("/cadastro");
+
+  const BRANCO = "rgb(255, 255, 255)";
+  const PRETO = "rgb(0, 0, 0)";
+
+  const raiz = page.locator('[data-tela="cadastro"]');
+  const cores = await raiz.evaluate((el) => {
+    const s = getComputedStyle(el);
+    return { fundo: s.backgroundColor, texto: s.color };
+  });
+  expect(cores.fundo).toBe(BRANCO);
+  expect(cores.texto).toBe(PRETO);
+
+  // Cabeçalho da tabela e células herdam o mesmo par.
+  const th = page.getByRole("columnheader", { name: "CNPJ", exact: true });
+  expect(await th.evaluate((el) => getComputedStyle(el).color)).toBe(PRETO);
+
+  const celula = page.locator('input[name="cnpj"]').first();
+  if (await celula.count()) {
+    expect(await celula.evaluate((el) => getComputedStyle(el).color)).toBe(PRETO);
+  }
+
+  // O select de regime não pode voltar a ser texto claro sobre fundo claro.
+  const select = page.locator('select[name="regime"]').first();
+  if (await select.count()) {
+    const c = await select.evaluate((el) => {
+      const s = getComputedStyle(el);
+      return { fundo: s.backgroundColor, texto: s.color };
+    });
+    expect(c.fundo).toBe(BRANCO);
+    expect(c.texto).toBe(PRETO);
+  }
+
+  await ctx.close();
+});
+
 test("regime tributário oferece as quatro opções e só aceita valor da lista", async ({
   page,
   request,
@@ -73,8 +115,8 @@ test("regime tributário oferece as quatro opções e só aceita valor da lista"
       return { fundo: s.backgroundColor, texto: s.color };
     });
   expect(cores.fundo).not.toBe("rgba(0, 0, 0, 0)"); // não pode ser transparente
-  expect(cores.fundo).toBe("oklch(0.205 0 0)"); // neutral-900
-  expect(cores.texto).toMatch(/rgb\(255, 255, 255\)|oklch\(1 0 0\)/); // branco
+  expect(cores.fundo).toBe("rgb(255, 255, 255)"); // branco
+  expect(cores.texto).toBe("rgb(0, 0, 0)"); // preto
 
   const criado = await request.post("/api/clientes", { data: { razaoSocial: "Regime LTDA" } });
   const { id } = await criado.json();

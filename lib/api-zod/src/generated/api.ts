@@ -9,6 +9,43 @@ import * as zod from 'zod';
 
 
 /**
+ * @summary Abre uma sessão com login e senha
+ */
+
+
+
+
+export const EntrarBody = zod.object({
+  "login": zod.string().min(1),
+  "senha": zod.string().min(1)
+})
+
+export const EntrarResponse = zod.object({
+  "contaId": zod.number(),
+  "conta": zod.string(),
+  "login": zod.string(),
+  "nome": zod.string().nullable()
+})
+
+
+/**
+ * @summary Encerra a sessão atual
+ */
+export const SairResponse = zod.void()
+
+
+/**
+ * @summary Quem está logado e em qual conta
+ */
+export const GetSessaoAtualResponse = zod.object({
+  "contaId": zod.number(),
+  "conta": zod.string(),
+  "login": zod.string(),
+  "nome": zod.string().nullable()
+})
+
+
+/**
  * @summary Health check
  */
 export const HealthCheckResponse = zod.object({
@@ -251,6 +288,99 @@ export const RemoverTipoParams = zod.object({
 })
 
 export const RemoverTipoResponse = zod.void()
+
+
+/**
+ * @summary Lista guias em atraso
+ */
+export const ListarDebitosQueryParams = zod.object({
+  "status": zod.enum(['em_aberto', 'parcelado', 'pago']).optional(),
+  "clienteId": zod.coerce.number().optional()
+})
+
+export const ListarDebitosResponseItem = zod.object({
+  "id": zod.number(),
+  "clienteId": zod.number(),
+  "clienteNome": zod.string(),
+  "tipoObrigacaoId": zod.number().nullish(),
+  "rotulo": zod.string(),
+  "competenciaRef": zod.string().nullish(),
+  "vencimento": zod.string().nullish(),
+  "valor": zod.string().nullish(),
+  "status": zod.enum(['em_aberto', 'parcelado', 'pago']),
+  "observacao": zod.string().nullish()
+})
+export const ListarDebitosResponse = zod.array(ListarDebitosResponseItem)
+
+
+/**
+ * @summary Cria ou atualiza uma guia em atraso
+ */
+export const SalvarDebitoBody = zod.object({
+  "id": zod.number().nullish(),
+  "clienteId": zod.number(),
+  "tipoObrigacaoId": zod.number().nullish(),
+  "rotulo": zod.string(),
+  "competenciaRef": zod.string().nullish(),
+  "vencimento": zod.string().nullish(),
+  "valor": zod.string().nullish(),
+  "status": zod.enum(['em_aberto', 'parcelado', 'pago']).optional(),
+  "observacao": zod.string().nullish()
+})
+
+export const SalvarDebitoResponse = zod.object({
+  "id": zod.number(),
+  "clienteId": zod.number(),
+  "clienteNome": zod.string(),
+  "tipoObrigacaoId": zod.number().nullish(),
+  "rotulo": zod.string(),
+  "competenciaRef": zod.string().nullish(),
+  "vencimento": zod.string().nullish(),
+  "valor": zod.string().nullish(),
+  "status": zod.enum(['em_aberto', 'parcelado', 'pago']),
+  "observacao": zod.string().nullish()
+})
+
+
+/**
+ * @summary Atualiza campos avulsos de uma guia em atraso
+ */
+export const AtualizarDebitoParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const AtualizarDebitoBody = zod.object({
+  "tipoObrigacaoId": zod.number().nullish(),
+  "rotulo": zod.string().optional(),
+  "competenciaRef": zod.string().nullish(),
+  "vencimento": zod.string().nullish(),
+  "valor": zod.string().nullish(),
+  "status": zod.enum(['em_aberto', 'parcelado', 'pago']).optional(),
+  "observacao": zod.string().nullish()
+})
+
+export const AtualizarDebitoResponse = zod.object({
+  "id": zod.number(),
+  "clienteId": zod.number(),
+  "clienteNome": zod.string(),
+  "tipoObrigacaoId": zod.number().nullish(),
+  "rotulo": zod.string(),
+  "competenciaRef": zod.string().nullish(),
+  "vencimento": zod.string().nullish(),
+  "valor": zod.string().nullish(),
+  "status": zod.enum(['em_aberto', 'parcelado', 'pago']),
+  "observacao": zod.string().nullish()
+})
+
+
+/**
+ * @summary Remove uma guia em atraso
+ */
+export const RemoverDebitoParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const RemoverDebitoResponse = zod.void()
 
 
 /**
@@ -796,5 +926,606 @@ export const SalvarConfiguracaoResponse = zod.object({
   "chave": zod.string(),
   "valor": zod.string()
 })
+
+
+/**
+ * @summary Dados do escritório logado
+ */
+export const GetPerfilResponse = zod.object({
+  "id": zod.number(),
+  "nome": zod.string(),
+  "cnpj": zod.string().nullish(),
+  "responsavel": zod.string().nullish(),
+  "crc": zod.string().nullish(),
+  "telefone": zod.string().nullish(),
+  "email": zod.string().nullish(),
+  "endereco": zod.string().nullish()
+})
+
+
+/**
+ * @summary Atualiza os dados do escritório
+ */
+
+
+
+export const SalvarPerfilBody = zod.object({
+  "nome": zod.string().min(1),
+  "cnpj": zod.string().nullish(),
+  "responsavel": zod.string().nullish(),
+  "crc": zod.string().nullish(),
+  "telefone": zod.string().nullish(),
+  "email": zod.string().nullish(),
+  "endereco": zod.string().nullish()
+})
+
+export const SalvarPerfilResponse = zod.object({
+  "id": zod.number(),
+  "nome": zod.string(),
+  "cnpj": zod.string().nullish(),
+  "responsavel": zod.string().nullish(),
+  "crc": zod.string().nullish(),
+  "telefone": zod.string().nullish(),
+  "email": zod.string().nullish(),
+  "endereco": zod.string().nullish()
+})
+
+
+/**
+ * @summary Lista gastos do escritório e dos clientes
+ */
+export const ListarDespesasQueryParams = zod.object({
+  "escopo": zod.enum(['todos', 'escritorio', 'clientes']).optional(),
+  "clienteId": zod.coerce.number().optional(),
+  "ano": zod.coerce.number().optional(),
+  "mes": zod.coerce.number().optional()
+})
+
+export const ListarDespesasResponseItem = zod.object({
+  "id": zod.number(),
+  "clienteId": zod.number().nullish(),
+  "clienteNome": zod.string().nullish(),
+  "data": zod.string(),
+  "categoria": zod.string(),
+  "descricao": zod.string(),
+  "valor": zod.string(),
+  "vencimento": zod.string().nullish(),
+  "formaPagamento": zod.string().nullish(),
+  "pago": zod.boolean(),
+  "observacao": zod.string().nullish()
+})
+export const ListarDespesasResponse = zod.array(ListarDespesasResponseItem)
+
+
+/**
+ * @summary Cria ou atualiza um gasto
+ */
+
+
+
+
+export const SalvarDespesaBody = zod.object({
+  "id": zod.number().nullish(),
+  "clienteId": zod.number().nullish(),
+  "data": zod.string(),
+  "categoria": zod.string().min(1),
+  "descricao": zod.string().min(1),
+  "valor": zod.string(),
+  "vencimento": zod.string().nullish(),
+  "formaPagamento": zod.string().nullish(),
+  "pago": zod.boolean().optional(),
+  "observacao": zod.string().nullish()
+})
+
+export const SalvarDespesaResponse = zod.object({
+  "id": zod.number(),
+  "clienteId": zod.number().nullish(),
+  "clienteNome": zod.string().nullish(),
+  "data": zod.string(),
+  "categoria": zod.string(),
+  "descricao": zod.string(),
+  "valor": zod.string(),
+  "vencimento": zod.string().nullish(),
+  "formaPagamento": zod.string().nullish(),
+  "pago": zod.boolean(),
+  "observacao": zod.string().nullish()
+})
+
+
+/**
+ * @summary Atualiza campos avulsos de um gasto
+ */
+export const AtualizarDespesaParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const AtualizarDespesaBody = zod.object({
+  "clienteId": zod.number().nullish(),
+  "data": zod.string().optional(),
+  "categoria": zod.string().optional(),
+  "descricao": zod.string().optional(),
+  "valor": zod.string().optional(),
+  "vencimento": zod.string().nullish(),
+  "formaPagamento": zod.string().nullish(),
+  "pago": zod.boolean().optional(),
+  "observacao": zod.string().nullish()
+})
+
+export const AtualizarDespesaResponse = zod.object({
+  "id": zod.number(),
+  "clienteId": zod.number().nullish(),
+  "clienteNome": zod.string().nullish(),
+  "data": zod.string(),
+  "categoria": zod.string(),
+  "descricao": zod.string(),
+  "valor": zod.string(),
+  "vencimento": zod.string().nullish(),
+  "formaPagamento": zod.string().nullish(),
+  "pago": zod.boolean(),
+  "observacao": zod.string().nullish()
+})
+
+
+/**
+ * @summary Remove um gasto
+ */
+export const RemoverDespesaParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const RemoverDespesaResponse = zod.void()
+
+
+/**
+ * @summary Lista funcionários do escritório e dos clientes
+ */
+export const ListarFuncionariosQueryParams = zod.object({
+  "escopo": zod.enum(['todos', 'escritorio', 'clientes']).optional(),
+  "clienteId": zod.coerce.number().optional(),
+  "situacao": zod.enum(['ativo', 'ferias', 'afastado', 'demitido']).optional()
+})
+
+export const ListarFuncionariosResponseItem = zod.object({
+  "id": zod.number(),
+  "clienteId": zod.number().nullish(),
+  "clienteNome": zod.string().nullish(),
+  "nome": zod.string(),
+  "cpf": zod.string().nullish(),
+  "rg": zod.string().nullish(),
+  "pis": zod.string().nullish(),
+  "ctps": zod.string().nullish(),
+  "nascimento": zod.string().nullish(),
+  "cargo": zod.string().nullish(),
+  "admissao": zod.string().nullish(),
+  "demissao": zod.string().nullish(),
+  "salario": zod.string().nullish(),
+  "situacao": zod.enum(['ativo', 'ferias', 'afastado', 'demitido']),
+  "telefone": zod.string().nullish(),
+  "email": zod.string().nullish(),
+  "endereco": zod.string().nullish(),
+  "observacao": zod.string().nullish()
+})
+export const ListarFuncionariosResponse = zod.array(ListarFuncionariosResponseItem)
+
+
+/**
+ * @summary Cria ou atualiza um funcionário
+ */
+
+
+
+export const SalvarFuncionarioBody = zod.object({
+  "id": zod.number().nullish(),
+  "clienteId": zod.number().nullish(),
+  "nome": zod.string().min(1),
+  "cpf": zod.string().nullish(),
+  "rg": zod.string().nullish(),
+  "pis": zod.string().nullish(),
+  "ctps": zod.string().nullish(),
+  "nascimento": zod.string().nullish(),
+  "cargo": zod.string().nullish(),
+  "admissao": zod.string().nullish(),
+  "demissao": zod.string().nullish(),
+  "salario": zod.string().nullish(),
+  "situacao": zod.enum(['ativo', 'ferias', 'afastado', 'demitido']).optional(),
+  "telefone": zod.string().nullish(),
+  "email": zod.string().nullish(),
+  "endereco": zod.string().nullish(),
+  "observacao": zod.string().nullish()
+})
+
+export const SalvarFuncionarioResponse = zod.object({
+  "id": zod.number(),
+  "clienteId": zod.number().nullish(),
+  "clienteNome": zod.string().nullish(),
+  "nome": zod.string(),
+  "cpf": zod.string().nullish(),
+  "rg": zod.string().nullish(),
+  "pis": zod.string().nullish(),
+  "ctps": zod.string().nullish(),
+  "nascimento": zod.string().nullish(),
+  "cargo": zod.string().nullish(),
+  "admissao": zod.string().nullish(),
+  "demissao": zod.string().nullish(),
+  "salario": zod.string().nullish(),
+  "situacao": zod.enum(['ativo', 'ferias', 'afastado', 'demitido']),
+  "telefone": zod.string().nullish(),
+  "email": zod.string().nullish(),
+  "endereco": zod.string().nullish(),
+  "observacao": zod.string().nullish()
+})
+
+
+/**
+ * @summary Ficha do funcionário com folha e férias
+ */
+export const GetFuncionarioParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetFuncionarioResponse = zod.object({
+  "funcionario": zod.object({
+  "id": zod.number(),
+  "clienteId": zod.number().nullish(),
+  "clienteNome": zod.string().nullish(),
+  "nome": zod.string(),
+  "cpf": zod.string().nullish(),
+  "rg": zod.string().nullish(),
+  "pis": zod.string().nullish(),
+  "ctps": zod.string().nullish(),
+  "nascimento": zod.string().nullish(),
+  "cargo": zod.string().nullish(),
+  "admissao": zod.string().nullish(),
+  "demissao": zod.string().nullish(),
+  "salario": zod.string().nullish(),
+  "situacao": zod.enum(['ativo', 'ferias', 'afastado', 'demitido']),
+  "telefone": zod.string().nullish(),
+  "email": zod.string().nullish(),
+  "endereco": zod.string().nullish(),
+  "observacao": zod.string().nullish()
+}),
+  "folha": zod.array(zod.object({
+  "id": zod.number(),
+  "funcionarioId": zod.number(),
+  "funcionarioNome": zod.string(),
+  "clienteId": zod.number().nullish(),
+  "clienteNome": zod.string().nullish(),
+  "ano": zod.number(),
+  "mes": zod.number(),
+  "tipo": zod.enum(['mensal', 'ferias', 'decimo_terceiro']),
+  "salarioBase": zod.string().nullish(),
+  "proventos": zod.string().nullish(),
+  "descontos": zod.string().nullish(),
+  "inss": zod.string().nullish(),
+  "fgts": zod.string().nullish(),
+  "irrf": zod.string().nullish(),
+  "liquido": zod.string().nullish(),
+  "pago": zod.boolean(),
+  "pagoEm": zod.string().nullish(),
+  "observacao": zod.string().nullish()
+})),
+  "ferias": zod.array(zod.object({
+  "id": zod.number(),
+  "funcionarioId": zod.number(),
+  "funcionarioNome": zod.string(),
+  "clienteId": zod.number().nullish(),
+  "clienteNome": zod.string().nullish(),
+  "aquisitivoInicio": zod.string(),
+  "aquisitivoFim": zod.string(),
+  "gozoInicio": zod.string().nullish(),
+  "gozoFim": zod.string().nullish(),
+  "limiteGozo": zod.string(),
+  "vencendo": zod.boolean(),
+  "diasVendidos": zod.number(),
+  "valor": zod.string().nullish(),
+  "observacao": zod.string().nullish()
+}))
+})
+
+
+/**
+ * @summary Atualiza campos avulsos de um funcionário
+ */
+export const AtualizarFuncionarioParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const AtualizarFuncionarioBody = zod.object({
+  "clienteId": zod.number().nullish(),
+  "nome": zod.string().optional(),
+  "cpf": zod.string().nullish(),
+  "rg": zod.string().nullish(),
+  "pis": zod.string().nullish(),
+  "ctps": zod.string().nullish(),
+  "nascimento": zod.string().nullish(),
+  "cargo": zod.string().nullish(),
+  "admissao": zod.string().nullish(),
+  "demissao": zod.string().nullish(),
+  "salario": zod.string().nullish(),
+  "situacao": zod.enum(['ativo', 'ferias', 'afastado', 'demitido']).optional(),
+  "telefone": zod.string().nullish(),
+  "email": zod.string().nullish(),
+  "endereco": zod.string().nullish(),
+  "observacao": zod.string().nullish()
+})
+
+export const AtualizarFuncionarioResponse = zod.object({
+  "id": zod.number(),
+  "clienteId": zod.number().nullish(),
+  "clienteNome": zod.string().nullish(),
+  "nome": zod.string(),
+  "cpf": zod.string().nullish(),
+  "rg": zod.string().nullish(),
+  "pis": zod.string().nullish(),
+  "ctps": zod.string().nullish(),
+  "nascimento": zod.string().nullish(),
+  "cargo": zod.string().nullish(),
+  "admissao": zod.string().nullish(),
+  "demissao": zod.string().nullish(),
+  "salario": zod.string().nullish(),
+  "situacao": zod.enum(['ativo', 'ferias', 'afastado', 'demitido']),
+  "telefone": zod.string().nullish(),
+  "email": zod.string().nullish(),
+  "endereco": zod.string().nullish(),
+  "observacao": zod.string().nullish()
+})
+
+
+/**
+ * @summary Remove um funcionário
+ */
+export const RemoverFuncionarioParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const RemoverFuncionarioResponse = zod.void()
+
+
+/**
+ * @summary Lançamentos de folha de um mês
+ */
+export const ListarFolhaQueryParams = zod.object({
+  "ano": zod.coerce.number(),
+  "mes": zod.coerce.number(),
+  "escopo": zod.enum(['todos', 'escritorio', 'clientes']).optional(),
+  "clienteId": zod.coerce.number().optional()
+})
+
+export const ListarFolhaResponseItem = zod.object({
+  "id": zod.number(),
+  "funcionarioId": zod.number(),
+  "funcionarioNome": zod.string(),
+  "clienteId": zod.number().nullish(),
+  "clienteNome": zod.string().nullish(),
+  "ano": zod.number(),
+  "mes": zod.number(),
+  "tipo": zod.enum(['mensal', 'ferias', 'decimo_terceiro']),
+  "salarioBase": zod.string().nullish(),
+  "proventos": zod.string().nullish(),
+  "descontos": zod.string().nullish(),
+  "inss": zod.string().nullish(),
+  "fgts": zod.string().nullish(),
+  "irrf": zod.string().nullish(),
+  "liquido": zod.string().nullish(),
+  "pago": zod.boolean(),
+  "pagoEm": zod.string().nullish(),
+  "observacao": zod.string().nullish()
+})
+export const ListarFolhaResponse = zod.array(ListarFolhaResponseItem)
+
+
+/**
+ * @summary Cria ou atualiza um lançamento de folha
+ */
+export const salvarLancamentoFolhaBodyMesMax = 12;
+
+
+
+export const SalvarLancamentoFolhaBody = zod.object({
+  "id": zod.number().nullish(),
+  "funcionarioId": zod.number(),
+  "ano": zod.number(),
+  "mes": zod.number().min(1).max(salvarLancamentoFolhaBodyMesMax),
+  "tipo": zod.enum(['mensal', 'ferias', 'decimo_terceiro']).optional(),
+  "salarioBase": zod.string().nullish(),
+  "proventos": zod.string().nullish(),
+  "descontos": zod.string().nullish(),
+  "inss": zod.string().nullish(),
+  "fgts": zod.string().nullish(),
+  "irrf": zod.string().nullish(),
+  "liquido": zod.string().nullish(),
+  "pago": zod.boolean().optional(),
+  "pagoEm": zod.string().nullish(),
+  "observacao": zod.string().nullish()
+})
+
+export const SalvarLancamentoFolhaResponse = zod.object({
+  "id": zod.number(),
+  "funcionarioId": zod.number(),
+  "funcionarioNome": zod.string(),
+  "clienteId": zod.number().nullish(),
+  "clienteNome": zod.string().nullish(),
+  "ano": zod.number(),
+  "mes": zod.number(),
+  "tipo": zod.enum(['mensal', 'ferias', 'decimo_terceiro']),
+  "salarioBase": zod.string().nullish(),
+  "proventos": zod.string().nullish(),
+  "descontos": zod.string().nullish(),
+  "inss": zod.string().nullish(),
+  "fgts": zod.string().nullish(),
+  "irrf": zod.string().nullish(),
+  "liquido": zod.string().nullish(),
+  "pago": zod.boolean(),
+  "pagoEm": zod.string().nullish(),
+  "observacao": zod.string().nullish()
+})
+
+
+/**
+ * @summary Atualiza campos avulsos de um lançamento
+ */
+export const AtualizarLancamentoFolhaParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const AtualizarLancamentoFolhaBody = zod.object({
+  "salarioBase": zod.string().nullish(),
+  "proventos": zod.string().nullish(),
+  "descontos": zod.string().nullish(),
+  "inss": zod.string().nullish(),
+  "fgts": zod.string().nullish(),
+  "irrf": zod.string().nullish(),
+  "liquido": zod.string().nullish(),
+  "pago": zod.boolean().optional(),
+  "pagoEm": zod.string().nullish(),
+  "observacao": zod.string().nullish()
+})
+
+export const AtualizarLancamentoFolhaResponse = zod.object({
+  "id": zod.number(),
+  "funcionarioId": zod.number(),
+  "funcionarioNome": zod.string(),
+  "clienteId": zod.number().nullish(),
+  "clienteNome": zod.string().nullish(),
+  "ano": zod.number(),
+  "mes": zod.number(),
+  "tipo": zod.enum(['mensal', 'ferias', 'decimo_terceiro']),
+  "salarioBase": zod.string().nullish(),
+  "proventos": zod.string().nullish(),
+  "descontos": zod.string().nullish(),
+  "inss": zod.string().nullish(),
+  "fgts": zod.string().nullish(),
+  "irrf": zod.string().nullish(),
+  "liquido": zod.string().nullish(),
+  "pago": zod.boolean(),
+  "pagoEm": zod.string().nullish(),
+  "observacao": zod.string().nullish()
+})
+
+
+/**
+ * @summary Remove um lançamento de folha
+ */
+export const RemoverLancamentoFolhaParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const RemoverLancamentoFolhaResponse = zod.void()
+
+
+/**
+ * @summary Períodos de férias, com aviso de vencimento
+ */
+export const ListarFeriasQueryParams = zod.object({
+  "escopo": zod.enum(['todos', 'escritorio', 'clientes']).optional(),
+  "clienteId": zod.coerce.number().optional(),
+  "funcionarioId": zod.coerce.number().optional()
+})
+
+export const ListarFeriasResponseItem = zod.object({
+  "id": zod.number(),
+  "funcionarioId": zod.number(),
+  "funcionarioNome": zod.string(),
+  "clienteId": zod.number().nullish(),
+  "clienteNome": zod.string().nullish(),
+  "aquisitivoInicio": zod.string(),
+  "aquisitivoFim": zod.string(),
+  "gozoInicio": zod.string().nullish(),
+  "gozoFim": zod.string().nullish(),
+  "limiteGozo": zod.string(),
+  "vencendo": zod.boolean(),
+  "diasVendidos": zod.number(),
+  "valor": zod.string().nullish(),
+  "observacao": zod.string().nullish()
+})
+export const ListarFeriasResponse = zod.array(ListarFeriasResponseItem)
+
+
+/**
+ * @summary Cria ou atualiza um período de férias
+ */
+export const salvarFeriasBodyDiasVendidosMin = 0;
+export const salvarFeriasBodyDiasVendidosMax = 10;
+
+
+
+export const SalvarFeriasBody = zod.object({
+  "id": zod.number().nullish(),
+  "funcionarioId": zod.number(),
+  "aquisitivoInicio": zod.string(),
+  "aquisitivoFim": zod.string(),
+  "gozoInicio": zod.string().nullish(),
+  "gozoFim": zod.string().nullish(),
+  "diasVendidos": zod.number().min(salvarFeriasBodyDiasVendidosMin).max(salvarFeriasBodyDiasVendidosMax).optional(),
+  "valor": zod.string().nullish(),
+  "observacao": zod.string().nullish()
+})
+
+export const SalvarFeriasResponse = zod.object({
+  "id": zod.number(),
+  "funcionarioId": zod.number(),
+  "funcionarioNome": zod.string(),
+  "clienteId": zod.number().nullish(),
+  "clienteNome": zod.string().nullish(),
+  "aquisitivoInicio": zod.string(),
+  "aquisitivoFim": zod.string(),
+  "gozoInicio": zod.string().nullish(),
+  "gozoFim": zod.string().nullish(),
+  "limiteGozo": zod.string(),
+  "vencendo": zod.boolean(),
+  "diasVendidos": zod.number(),
+  "valor": zod.string().nullish(),
+  "observacao": zod.string().nullish()
+})
+
+
+/**
+ * @summary Atualiza campos avulsos de um período de férias
+ */
+export const AtualizarFeriasParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const atualizarFeriasBodyDiasVendidosMin = 0;
+export const atualizarFeriasBodyDiasVendidosMax = 10;
+
+
+
+export const AtualizarFeriasBody = zod.object({
+  "aquisitivoInicio": zod.string().optional(),
+  "aquisitivoFim": zod.string().optional(),
+  "gozoInicio": zod.string().nullish(),
+  "gozoFim": zod.string().nullish(),
+  "diasVendidos": zod.number().min(atualizarFeriasBodyDiasVendidosMin).max(atualizarFeriasBodyDiasVendidosMax).optional(),
+  "valor": zod.string().nullish(),
+  "observacao": zod.string().nullish()
+})
+
+export const AtualizarFeriasResponse = zod.object({
+  "id": zod.number(),
+  "funcionarioId": zod.number(),
+  "funcionarioNome": zod.string(),
+  "clienteId": zod.number().nullish(),
+  "clienteNome": zod.string().nullish(),
+  "aquisitivoInicio": zod.string(),
+  "aquisitivoFim": zod.string(),
+  "gozoInicio": zod.string().nullish(),
+  "gozoFim": zod.string().nullish(),
+  "limiteGozo": zod.string(),
+  "vencendo": zod.boolean(),
+  "diasVendidos": zod.number(),
+  "valor": zod.string().nullish(),
+  "observacao": zod.string().nullish()
+})
+
+
+/**
+ * @summary Remove um período de férias
+ */
+export const RemoverFeriasParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const RemoverFeriasResponse = zod.void()
 
 

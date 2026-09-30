@@ -9,6 +9,21 @@ export interface HealthStatus {
   status: string;
 }
 
+export interface Credenciais {
+  /** @minLength 1 */
+  login: string;
+  /** @minLength 1 */
+  senha: string;
+}
+
+export interface SessaoAtual {
+  contaId: number;
+  conta: string;
+  login: string;
+  /** @nullable */
+  nome: string | null;
+}
+
 export type ResumoObrigacoes = {
   total: number;
   feitos: number;
@@ -238,6 +253,66 @@ export interface TipoObrigacaoInput {
   mesReferencia?: number | null;
   /** @nullable */
   regimes?: RegimeValor[] | null;
+}
+
+export type StatusDebito = typeof StatusDebito[keyof typeof StatusDebito];
+
+
+export const StatusDebito = {
+  em_aberto: 'em_aberto',
+  parcelado: 'parcelado',
+  pago: 'pago',
+} as const;
+
+export interface Debito {
+  id: number;
+  clienteId: number;
+  clienteNome: string;
+  /** @nullable */
+  tipoObrigacaoId?: number | null;
+  rotulo: string;
+  /** @nullable */
+  competenciaRef?: string | null;
+  /** @nullable */
+  vencimento?: string | null;
+  /** @nullable */
+  valor?: string | null;
+  status: StatusDebito;
+  /** @nullable */
+  observacao?: string | null;
+}
+
+export interface DebitoInput {
+  /** @nullable */
+  id?: number | null;
+  clienteId: number;
+  /** @nullable */
+  tipoObrigacaoId?: number | null;
+  rotulo: string;
+  /** @nullable */
+  competenciaRef?: string | null;
+  /** @nullable */
+  vencimento?: string | null;
+  /** @nullable */
+  valor?: string | null;
+  status?: StatusDebito;
+  /** @nullable */
+  observacao?: string | null;
+}
+
+export interface DebitoPatch {
+  /** @nullable */
+  tipoObrigacaoId?: number | null;
+  rotulo?: string;
+  /** @nullable */
+  competenciaRef?: string | null;
+  /** @nullable */
+  vencimento?: string | null;
+  /** @nullable */
+  valor?: string | null;
+  status?: StatusDebito;
+  /** @nullable */
+  observacao?: string | null;
 }
 
 export interface Credencial {
@@ -546,9 +621,416 @@ export interface ConfiguracaoInput {
   valor: string;
 }
 
+export type EscopoRegistro = typeof EscopoRegistro[keyof typeof EscopoRegistro];
+
+
+export const EscopoRegistro = {
+  todos: 'todos',
+  escritorio: 'escritorio',
+  clientes: 'clientes',
+} as const;
+
+export interface Perfil {
+  id: number;
+  nome: string;
+  /** @nullable */
+  cnpj?: string | null;
+  /** @nullable */
+  responsavel?: string | null;
+  /** @nullable */
+  crc?: string | null;
+  /** @nullable */
+  telefone?: string | null;
+  /** @nullable */
+  email?: string | null;
+  /** @nullable */
+  endereco?: string | null;
+}
+
+export interface PerfilInput {
+  /** @minLength 1 */
+  nome: string;
+  /** @nullable */
+  cnpj?: string | null;
+  /** @nullable */
+  responsavel?: string | null;
+  /** @nullable */
+  crc?: string | null;
+  /** @nullable */
+  telefone?: string | null;
+  /** @nullable */
+  email?: string | null;
+  /** @nullable */
+  endereco?: string | null;
+}
+
+export interface Despesa {
+  id: number;
+  /** @nullable */
+  clienteId?: number | null;
+  /** @nullable */
+  clienteNome?: string | null;
+  data: string;
+  categoria: string;
+  descricao: string;
+  valor: string;
+  /** @nullable */
+  vencimento?: string | null;
+  /** @nullable */
+  formaPagamento?: string | null;
+  pago: boolean;
+  /** @nullable */
+  observacao?: string | null;
+}
+
+export interface DespesaInput {
+  /** @nullable */
+  id?: number | null;
+  /** @nullable */
+  clienteId?: number | null;
+  data: string;
+  /** @minLength 1 */
+  categoria: string;
+  /** @minLength 1 */
+  descricao: string;
+  valor: string;
+  /** @nullable */
+  vencimento?: string | null;
+  /** @nullable */
+  formaPagamento?: string | null;
+  pago?: boolean;
+  /** @nullable */
+  observacao?: string | null;
+}
+
+export interface DespesaPatch {
+  /** @nullable */
+  clienteId?: number | null;
+  data?: string;
+  categoria?: string;
+  descricao?: string;
+  valor?: string;
+  /** @nullable */
+  vencimento?: string | null;
+  /** @nullable */
+  formaPagamento?: string | null;
+  pago?: boolean;
+  /** @nullable */
+  observacao?: string | null;
+}
+
+export type SituacaoFuncionario = typeof SituacaoFuncionario[keyof typeof SituacaoFuncionario];
+
+
+export const SituacaoFuncionario = {
+  ativo: 'ativo',
+  ferias: 'ferias',
+  afastado: 'afastado',
+  demitido: 'demitido',
+} as const;
+
+export interface Funcionario {
+  id: number;
+  /** @nullable */
+  clienteId?: number | null;
+  /** @nullable */
+  clienteNome?: string | null;
+  nome: string;
+  /** @nullable */
+  cpf?: string | null;
+  /** @nullable */
+  rg?: string | null;
+  /** @nullable */
+  pis?: string | null;
+  /** @nullable */
+  ctps?: string | null;
+  /** @nullable */
+  nascimento?: string | null;
+  /** @nullable */
+  cargo?: string | null;
+  /** @nullable */
+  admissao?: string | null;
+  /** @nullable */
+  demissao?: string | null;
+  /** @nullable */
+  salario?: string | null;
+  situacao: SituacaoFuncionario;
+  /** @nullable */
+  telefone?: string | null;
+  /** @nullable */
+  email?: string | null;
+  /** @nullable */
+  endereco?: string | null;
+  /** @nullable */
+  observacao?: string | null;
+}
+
+export interface FuncionarioInput {
+  /** @nullable */
+  id?: number | null;
+  /** @nullable */
+  clienteId?: number | null;
+  /** @minLength 1 */
+  nome: string;
+  /** @nullable */
+  cpf?: string | null;
+  /** @nullable */
+  rg?: string | null;
+  /** @nullable */
+  pis?: string | null;
+  /** @nullable */
+  ctps?: string | null;
+  /** @nullable */
+  nascimento?: string | null;
+  /** @nullable */
+  cargo?: string | null;
+  /** @nullable */
+  admissao?: string | null;
+  /** @nullable */
+  demissao?: string | null;
+  /** @nullable */
+  salario?: string | null;
+  situacao?: SituacaoFuncionario;
+  /** @nullable */
+  telefone?: string | null;
+  /** @nullable */
+  email?: string | null;
+  /** @nullable */
+  endereco?: string | null;
+  /** @nullable */
+  observacao?: string | null;
+}
+
+export interface FuncionarioPatch {
+  /** @nullable */
+  clienteId?: number | null;
+  nome?: string;
+  /** @nullable */
+  cpf?: string | null;
+  /** @nullable */
+  rg?: string | null;
+  /** @nullable */
+  pis?: string | null;
+  /** @nullable */
+  ctps?: string | null;
+  /** @nullable */
+  nascimento?: string | null;
+  /** @nullable */
+  cargo?: string | null;
+  /** @nullable */
+  admissao?: string | null;
+  /** @nullable */
+  demissao?: string | null;
+  /** @nullable */
+  salario?: string | null;
+  situacao?: SituacaoFuncionario;
+  /** @nullable */
+  telefone?: string | null;
+  /** @nullable */
+  email?: string | null;
+  /** @nullable */
+  endereco?: string | null;
+  /** @nullable */
+  observacao?: string | null;
+}
+
+export type TipoFolha = typeof TipoFolha[keyof typeof TipoFolha];
+
+
+export const TipoFolha = {
+  mensal: 'mensal',
+  ferias: 'ferias',
+  decimo_terceiro: 'decimo_terceiro',
+} as const;
+
+export interface LancamentoFolha {
+  id: number;
+  funcionarioId: number;
+  funcionarioNome: string;
+  /** @nullable */
+  clienteId?: number | null;
+  /** @nullable */
+  clienteNome?: string | null;
+  ano: number;
+  mes: number;
+  tipo: TipoFolha;
+  /** @nullable */
+  salarioBase?: string | null;
+  /** @nullable */
+  proventos?: string | null;
+  /** @nullable */
+  descontos?: string | null;
+  /** @nullable */
+  inss?: string | null;
+  /** @nullable */
+  fgts?: string | null;
+  /** @nullable */
+  irrf?: string | null;
+  /** @nullable */
+  liquido?: string | null;
+  pago: boolean;
+  /** @nullable */
+  pagoEm?: string | null;
+  /** @nullable */
+  observacao?: string | null;
+}
+
+export interface LancamentoFolhaInput {
+  /** @nullable */
+  id?: number | null;
+  funcionarioId: number;
+  ano: number;
+  /**
+     * @minimum 1
+     * @maximum 12
+     */
+  mes: number;
+  tipo?: TipoFolha;
+  /** @nullable */
+  salarioBase?: string | null;
+  /** @nullable */
+  proventos?: string | null;
+  /** @nullable */
+  descontos?: string | null;
+  /** @nullable */
+  inss?: string | null;
+  /** @nullable */
+  fgts?: string | null;
+  /** @nullable */
+  irrf?: string | null;
+  /** @nullable */
+  liquido?: string | null;
+  pago?: boolean;
+  /** @nullable */
+  pagoEm?: string | null;
+  /** @nullable */
+  observacao?: string | null;
+}
+
+export interface LancamentoFolhaPatch {
+  /** @nullable */
+  salarioBase?: string | null;
+  /** @nullable */
+  proventos?: string | null;
+  /** @nullable */
+  descontos?: string | null;
+  /** @nullable */
+  inss?: string | null;
+  /** @nullable */
+  fgts?: string | null;
+  /** @nullable */
+  irrf?: string | null;
+  /** @nullable */
+  liquido?: string | null;
+  pago?: boolean;
+  /** @nullable */
+  pagoEm?: string | null;
+  /** @nullable */
+  observacao?: string | null;
+}
+
+export interface PeriodoFerias {
+  id: number;
+  funcionarioId: number;
+  funcionarioNome: string;
+  /** @nullable */
+  clienteId?: number | null;
+  /** @nullable */
+  clienteNome?: string | null;
+  aquisitivoInicio: string;
+  aquisitivoFim: string;
+  /** @nullable */
+  gozoInicio?: string | null;
+  /** @nullable */
+  gozoFim?: string | null;
+  limiteGozo: string;
+  vencendo: boolean;
+  diasVendidos: number;
+  /** @nullable */
+  valor?: string | null;
+  /** @nullable */
+  observacao?: string | null;
+}
+
+export interface FeriasInput {
+  /** @nullable */
+  id?: number | null;
+  funcionarioId: number;
+  aquisitivoInicio: string;
+  aquisitivoFim: string;
+  /** @nullable */
+  gozoInicio?: string | null;
+  /** @nullable */
+  gozoFim?: string | null;
+  /**
+     * @minimum 0
+     * @maximum 10
+     */
+  diasVendidos?: number;
+  /** @nullable */
+  valor?: string | null;
+  /** @nullable */
+  observacao?: string | null;
+}
+
+export interface FeriasPatch {
+  aquisitivoInicio?: string;
+  aquisitivoFim?: string;
+  /** @nullable */
+  gozoInicio?: string | null;
+  /** @nullable */
+  gozoFim?: string | null;
+  /**
+     * @minimum 0
+     * @maximum 10
+     */
+  diasVendidos?: number;
+  /** @nullable */
+  valor?: string | null;
+  /** @nullable */
+  observacao?: string | null;
+}
+
+export interface FichaFuncionario {
+  funcionario: Funcionario;
+  folha: LancamentoFolha[];
+  ferias: PeriodoFerias[];
+}
+
+export type ListarDebitosParams = {
+status?: StatusDebito;
+clienteId?: number;
+};
+
 export type ListarProcessosParams = {
 status?: StatusProcesso;
 clienteId?: number;
 categoria?: CategoriaProcesso;
+};
+
+export type ListarDespesasParams = {
+escopo?: EscopoRegistro;
+clienteId?: number;
+ano?: number;
+mes?: number;
+};
+
+export type ListarFuncionariosParams = {
+escopo?: EscopoRegistro;
+clienteId?: number;
+situacao?: SituacaoFuncionario;
+};
+
+export type ListarFolhaParams = {
+ano: number;
+mes: number;
+escopo?: EscopoRegistro;
+clienteId?: number;
+};
+
+export type ListarFeriasParams = {
+escopo?: EscopoRegistro;
+clienteId?: number;
+funcionarioId?: number;
 };
 

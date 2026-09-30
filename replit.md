@@ -11,6 +11,7 @@ _Gestão de obrigações contábeis: o contador acompanha, mês a mês (competê
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
 - `pnpm --filter @workspace/db run seed-tipos` — repopula o catálogo padrão de tipos de obrigação (idempotente; rode depois de um `e2e`, que trunca o banco)
+- `pnpm --filter @workspace/db run criar-conta -- --nome="AZ CONTABILIDADE" --login=az [--senha=x] [--cnpj=… --responsavel=… --crc=… --telefone=… --email=…]` — cria um escritório novo (conta + usuário + catálogo padrão). `--trocar-senha` redefine a senha de um login que já existe
 - `pnpm --filter @workspace/db run import-clientes -- ./Pasta1.xlsx [--dry]` — importa o cadastro de empresas de uma planilha (colunas: Cód. | Razão Social | CNPJ | Inscr. Estadual | Envio). Pula CNPJ/código já existentes; `--dry` só mostra o que faria
 - Required env: `DATABASE_URL` — Postgres connection string
 
@@ -36,8 +37,12 @@ _Gestão de obrigações contábeis: o contador acompanha, mês a mês (competê
 - Abrir competência aceita `somenteHonorarios: true` — gera só os pagamentos, sem checklist. É como se registram honorários de meses anteriores ao início do uso do sistema.
 - **Depois de mexer em rotas da API, o servidor precisa ser reiniciado.** Reconstruir o bundle não basta: o processo Node já carregou o antigo na memória e devolve 404 nas rotas novas.
 - Processos: tabelas `processos` + `processo_etapas`; rotas `routes/processos.ts` (`/api/processos`) e `routes/etapas.ts` (`/api/etapas/:id`). O detalhe faz atualização otimista no cache do React Query antes do PATCH — sem isso o checkbox (controlado) volta ao valor antigo até o refetch e o clique parece não funcionar.
+- **Despesas, funcionários, folha e férias existem para o escritório e para os clientes na mesma tabela**: `cliente_id` nulo = do próprio escritório. O filtro `escopo` (`escritorio`/`clientes`/`todos`) das rotas é o que separa os dois; duplicar a estrutura dobraria o código sem ganho nenhum.
+- Folha: `folha_lancamentos` tem índice único `(funcionário, ano, mês, tipo)`, e o POST é um upsert nele — a tela de Folha do mês grava na primeira digitação, sem precisar "abrir" o mês antes. `tipo` separa salário de 13º e de férias, que caem no mesmo mês.
+- Férias: o banco guarda o período **aquisitivo** e o de **gozo**; `limiteGozo` (um ano depois do fim do aquisitivo) e `vencendo` são calculados na API, não no banco nem na tela — assim o aviso é o mesmo em qualquer lugar que liste férias.
+- O perfil do escritório mora nas colunas de `contas` (`cnpj`, `responsavel`, `crc`, `telefone`, `email`, `endereco`). O PUT `/api/perfil` filtra pelo id da sessão, nunca por um id do corpo. Ao salvar, a tela invalida também a sessão — é dela que o menu tira o nome do escritório.
 - Frontend: `artifacts/gestao-contabil/src` — `pages/*` (one per screen), `components/MenuLateral.tsx` (nav)
-- e2e tests: `artifacts/gestao-contabil/e2e/` (`journey` = full flow, `smoke` = per-page, `api` = validation, `cadastro` = planilha editável, `processos` = processos + checklist), config in `playwright.config.ts`
+- e2e tests: `artifacts/gestao-contabil/e2e/` (`journey` = full flow, `smoke` = per-page, `api` = validation, `cadastro` = planilha editável, `processos` = processos + checklist, `pessoal` = perfil + despesas + funcionários + folha + férias, `multitenant` = isolamento entre contas), config in `playwright.config.ts`
 
 ## Architecture decisions
 
@@ -47,7 +52,7 @@ _Gestão de obrigações contábeis: o contador acompanha, mês a mês (competê
 
 ## Product
 
-Telas: **Painel** (dashboard), **Clientes** (cadastro + obrigações vinculadas), **Dados cadastrais** (`/cadastro` — planilha editável célula a célula com CNPJ, inscrições, sócio/CPF, senha gov.br, período da procuração, contato/WhatsApp/e-mail, senha do portal NFS-e; exporta CSV), **Tipos de obrigação** (catálogo), **Senhas** (`/senhas` — uma linha por empresa × sistema/obrigação, com login e senha; tabela `credenciais`), **Processos** (`/processos` — processos avulsos por cliente: troca de titularidade, alteração de endereço…; cada um com prazo, protocolo e um checklist de etapas montado à mão em `/processos/:id`), **Competências** (abre o mês → gera checklist + pagamentos de todos os clientes ativos), **Checklist** (status por cliente × obrigação), **Pagamentos** (honorários do mês), **Pendências** (atrasados + cobrança via WhatsApp).
+Telas: **Painel** (dashboard), **Clientes** (cadastro + obrigações vinculadas), **Dados cadastrais** (`/cadastro` — planilha editável célula a célula com CNPJ, inscrições, sócio/CPF, senha gov.br, período da procuração, contato/WhatsApp/e-mail, senha do portal NFS-e; exporta CSV), **Tipos de obrigação** (catálogo), **Guias em atraso** (`/atrasos` — tabela `debitos`: o que a *empresa* deve ao fisco, com competência, vencimento, valor e situação em aberto/parcelado/pago. Não confundir com **Pendências**, que são as obrigações e honorários atrasados do *escritório*), **Senhas** (`/senhas` — uma linha por empresa × sistema/obrigação, com login e senha; tabela `credenciais`), **Processos** (`/processos` — processos avulsos por cliente: troca de titularidade, alteração de endereço…; cada um com prazo, protocolo e um checklist de etapas montado à mão em `/processos/:id`), **Funcionários** (`/funcionarios` — quadro do escritório e dos clientes; a ficha em `/funcionarios/:id` traz cadastro completo, folha mês a mês e férias), **Folha do mês** (`/folha` — uma linha por funcionário, editável célula a célula), **Despesas** (`/despesas` — gastos do escritório e dos clientes, com total do mês e o que falta pagar), **Perfil do escritório** (`/perfil` — razão social, CNPJ, contadora responsável, CRC, contato), **Competências** (abre o mês → gera checklist + pagamentos de todos os clientes ativos), **Checklist** (status por cliente × obrigação), **Pagamentos** (honorários do mês), **Pendências** (atrasados + cobrança via WhatsApp).
 
 ## User preferences
 

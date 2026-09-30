@@ -8,11 +8,14 @@ import {
   RegistrarCobrancaBody,
 } from "@workspace/api-zod";
 import { HttpError } from "../lib/http";
+import { contaDaRequisicao } from "../middlewares/autenticacao";
 
 const router = Router();
 
 // GET /api/pendencias
 router.get("/", async (req, res) => {
+  const contaId = contaDaRequisicao(req);
+
   const obrigacoes = await db
     .select({
       id: checklistItens.id,
@@ -31,6 +34,7 @@ router.get("/", async (req, res) => {
     .innerJoin(tiposObrigacao, eq(tiposObrigacao.id, checklistItens.tipoObrigacaoId))
     .innerJoin(competencias, eq(competencias.id, checklistItens.competenciaId))
     .where(and(
+      eq(checklistItens.contaId, contaId),
       eq(checklistItens.status, "pendente"),
       sql`${checklistItens.vencimento} is not null`,
       sql`${checklistItens.vencimento} < current_date`,
@@ -57,6 +61,7 @@ router.get("/", async (req, res) => {
     .innerJoin(competencias, eq(competencias.id, pagamentos.competenciaId))
     .leftJoin(cobrancas, eq(cobrancas.pagamentoId, pagamentos.id))
     .where(and(
+      eq(pagamentos.contaId, contaId),
       eq(pagamentos.status, "pendente"),
       sql`${pagamentos.valor} is not null`,
       sql`${pagamentos.vencimento} is not null`,
@@ -70,26 +75,39 @@ router.get("/", async (req, res) => {
 
 // PATCH /api/pendencias/obrigacoes/:id/feito
 router.patch("/obrigacoes/:id/feito", async (req, res) => {
+  const contaId = contaDaRequisicao(req);
   const { id } = MarcarObrigacaoFeitaParams.parse(req.params);
-  await db.update(checklistItens)
+  const [alterado] = await db
+    .update(checklistItens)
     .set({ status: "enviado", atualizadoEm: new Date() })
-    .where(eq(checklistItens.id, id));
+    .where(and(eq(checklistItens.id, id), eq(checklistItens.contaId, contaId)))
+    .returning({ id: checklistItens.id });
+  if (!alterado) throw new HttpError(404, "Item do checklist não encontrado.");
   res.status(204).send();
 });
 
 // PATCH /api/pendencias/pagamentos/:id/pago
 router.patch("/pagamentos/:id/pago", async (req, res) => {
+  const contaId = contaDaRequisicao(req);
   const { id } = MarcarPagamentoPagoParams.parse(req.params);
-  await db.update(pagamentos)
+  const [alterado] = await db
+    .update(pagamentos)
     .set({ status: "pago", atualizadoEm: new Date() })
-    .where(eq(pagamentos.id, id));
+    .where(and(eq(pagamentos.id, id), eq(pagamentos.contaId, contaId)))
+    .returning({ id: pagamentos.id });
+  if (!alterado) throw new HttpError(404, "Pagamento não encontrado.");
   res.status(204).send();
 });
 
 // POST /api/pendencias/cobrancas
 router.post("/cobrancas", async (req, res) => {
+  const contaId = contaDaRequisicao(req);
   const { pagamentoId } = RegistrarCobrancaBody.parse(req.body);
-  const [pg] = await db.select({ id: pagamentos.id }).from(pagamentos).where(eq(pagamentos.id, pagamentoId));
+  // `cobrancas` não tem conta própria: a conta vem do pagamento cobrado.
+  const [pg] = await db
+    .select({ id: pagamentos.id })
+    .from(pagamentos)
+    .where(and(eq(pagamentos.id, pagamentoId), eq(pagamentos.contaId, contaId)));
   if (!pg) throw new HttpError(404, "Pagamento não encontrado.");
   await db.insert(cobrancas).values({ pagamentoId });
   res.status(204).send();

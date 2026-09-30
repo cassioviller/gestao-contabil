@@ -23,9 +23,18 @@ export default defineConfig({
 
   projects: [
     {
+      // Abre a sessão uma vez e grava o cookie; todo o resto herda o estado.
+      name: "setup",
+      testMatch: /auth\.setup\.ts/,
+    },
+    {
       name: "chromium",
+      dependencies: ["setup"],
       use: {
         ...devices["Desktop Chrome"],
+        // A API responde 401 sem sessão, então os testes começam já logados.
+        // Quem precisa testar o não-logado abre um contexto próprio.
+        storageState: "e2e/.auth/e2e.json",
         // On Replit the downloaded Chromium lacks system libs; use the
         // Nix-provided browser instead when available.
         launchOptions: process.env.REPLIT_PLAYWRIGHT_CHROMIUM_EXECUTABLE

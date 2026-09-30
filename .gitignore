@@ -56,3 +56,5 @@ test-results/
 playwright-report/
 blob-report/
 .playwright/
+# Cookie de sessão gravado pelo auth.setup.ts — credencial, não versionar
+e2e/.auth/

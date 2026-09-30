@@ -11,8 +11,13 @@ const PAGINAS = [
   { rota: "/pedidos", heading: "Pedidos" },
   { rota: "/processos", heading: "Processos" },
   { rota: "/competencias", heading: "Competências" },
+  { rota: "/atrasos", heading: "Guias em atraso" },
   { rota: "/pendencias", heading: "Pendências" },
   { rota: "/tipos", heading: "Tipos de obrigação" },
+  { rota: "/funcionarios", heading: "Funcionários" },
+  { rota: "/folha", heading: "Folha do mês" },
+  { rota: "/despesas", heading: "Despesas" },
+  { rota: "/perfil", heading: "Perfil do escritório" },
 ];
 
 // Network/resource noise (favicon 404 etc.) isn't an app error — ignore it.

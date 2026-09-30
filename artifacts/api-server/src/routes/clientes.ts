@@ -1,10 +1,7 @@
 import { Router } from "express";
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq, inArray } from "drizzle-orm";
 import { db } from "@workspace/db";
-import {
-  clientes,
-  clienteObrigacoes,
-} from "@workspace/db";
+import { clientes, clienteObrigacoes, tiposObrigacao } from "@workspace/db";
 import {
   AtualizarClienteBody,
   AtualizarClienteParams,
@@ -12,42 +9,86 @@ import {
   RemoverClienteParams,
 } from "@workspace/api-zod";
 import { HttpError } from "../lib/http";
+import { contaDaRequisicao } from "../middlewares/autenticacao";
 
 const router = Router();
 
 // GET /api/clientes
 router.get("/", async (req, res) => {
-  const lista = await db.select().from(clientes).orderBy(asc(clientes.codigo), asc(clientes.razaoSocial));
-  const vinculos = await db.select().from(clienteObrigacoes);
+  const contaId = contaDaRequisicao(req);
+
+  const lista = await db
+    .select()
+    .from(clientes)
+    .where(eq(clientes.contaId, contaId))
+    .orderBy(asc(clientes.codigo), asc(clientes.razaoSocial));
+
   const mapaObrig: Record<number, number[]> = {};
-  for (const v of vinculos) (mapaObrig[v.clienteId] ??= []).push(v.tipoObrigacaoId);
+  if (lista.length) {
+    const vinculos = await db
+      .select()
+      .from(clienteObrigacoes)
+      .where(
+        inArray(
+          clienteObrigacoes.clienteId,
+          lista.map((c) => c.id),
+        ),
+      );
+    for (const v of vinculos) (mapaObrig[v.clienteId] ??= []).push(v.tipoObrigacaoId);
+  }
 
   res.json(lista.map((c) => ({ ...c, obrigacoes: mapaObrig[c.id] ?? [] })));
 });
 
 // POST /api/clientes (criar ou editar)
 router.post("/", async (req, res) => {
+  const contaId = contaDaRequisicao(req);
   const { id, obrigacoes = [], ...dados } = CriarClienteBody.parse(req.body);
+
+  // As obrigações vêm por id do corpo da requisição: sem esta conferência dava
+  // para vincular o cliente a um tipo de outro escritório.
+  if (obrigacoes.length) {
+    const validos = await db
+      .select({ id: tiposObrigacao.id })
+      .from(tiposObrigacao)
+      .where(and(eq(tiposObrigacao.contaId, contaId), inArray(tiposObrigacao.id, obrigacoes)));
+    if (validos.length !== new Set(obrigacoes).size) {
+      throw new HttpError(400, "Obrigação inexistente.");
+    }
+  }
 
   let clienteId: number;
   if (id) {
-    clienteId = id;
-    await db.update(clientes).set(dados).where(eq(clientes.id, clienteId));
+    const [atualizado] = await db
+      .update(clientes)
+      .set(dados)
+      .where(and(eq(clientes.id, id), eq(clientes.contaId, contaId)))
+      .returning({ id: clientes.id });
+    if (!atualizado) throw new HttpError(404, "Cliente não encontrado.");
+    clienteId = atualizado.id;
   } else {
-    const [novo] = await db.insert(clientes).values(dados).returning();
+    const [novo] = await db
+      .insert(clientes)
+      .values({ ...dados, contaId })
+      .returning();
     clienteId = novo.id;
   }
 
   await db.delete(clienteObrigacoes).where(eq(clienteObrigacoes.clienteId, clienteId));
   if (obrigacoes.length) {
-    await db.insert(clienteObrigacoes).values(
-      obrigacoes.map((t: number) => ({ clienteId, tipoObrigacaoId: t }))
-    );
+    await db
+      .insert(clienteObrigacoes)
+      .values(obrigacoes.map((t: number) => ({ clienteId, tipoObrigacaoId: t })));
   }
 
-  const [c] = await db.select().from(clientes).where(eq(clientes.id, clienteId));
-  const vinculos = await db.select({ tipoObrigacaoId: clienteObrigacoes.tipoObrigacaoId })
-    .from(clienteObrigacoes).where(eq(clienteObrigacoes.clienteId, clienteId));
+  const [c] = await db
+    .select()
+    .from(clientes)
+    .where(and(eq(clientes.id, clienteId), eq(clientes.contaId, contaId)));
+  const vinculos = await db
+    .select({ tipoObrigacaoId: clienteObrigacoes.tipoObrigacaoId })
+    .from(clienteObrigacoes)
+    .where(eq(clienteObrigacoes.clienteId, clienteId));
 
   res.json({ ...c, obrigacoes: vinculos.map((v) => v.tipoObrigacaoId) });
 });
@@ -55,12 +96,11 @@ router.post("/", async (req, res) => {
 // PATCH /api/clientes/:id — edição campo a campo (tela de Dados cadastrais).
 // Só grava as chaves presentes no body e não toca nas obrigações vinculadas.
 router.patch("/:id", async (req, res) => {
+  const contaId = contaDaRequisicao(req);
   const { id } = AtualizarClienteParams.parse(req.params);
   const body = AtualizarClienteBody.parse(req.body);
 
-  const campos = Object.fromEntries(
-    Object.entries(body).filter(([, v]) => v !== undefined)
-  );
+  const campos = Object.fromEntries(Object.entries(body).filter(([, v]) => v !== undefined));
   if (Object.keys(campos).length === 0) {
     throw new HttpError(400, "Nenhum campo para atualizar.");
   }
@@ -68,7 +108,7 @@ router.patch("/:id", async (req, res) => {
   const [atualizado] = await db
     .update(clientes)
     .set(campos)
-    .where(eq(clientes.id, id))
+    .where(and(eq(clientes.id, id), eq(clientes.contaId, contaId)))
     .returning();
   if (!atualizado) throw new HttpError(404, "Cliente não encontrado.");
 
@@ -82,8 +122,9 @@ router.patch("/:id", async (req, res) => {
 
 // DELETE /api/clientes/:id
 router.delete("/:id", async (req, res) => {
+  const contaId = contaDaRequisicao(req);
   const { id } = RemoverClienteParams.parse(req.params);
-  await db.delete(clientes).where(eq(clientes.id, id));
+  await db.delete(clientes).where(and(eq(clientes.id, id), eq(clientes.contaId, contaId)));
   res.status(204).send();
 });
 

@@ -17,10 +17,11 @@ import {
   ListarPagamentosParams,
 } from "@workspace/api-zod";
 import { HttpError } from "../lib/http";
+import { contaDaRequisicao } from "../middlewares/autenticacao";
 
 const router = Router();
 
-async function resumoCompetencia(competenciaId: number) {
+async function resumoCompetencia(competenciaId: number, contaId: number) {
   const [obr] = await db
     .select({
       total: sql<number>`count(*)::int`,
@@ -30,7 +31,9 @@ async function resumoCompetencia(competenciaId: number) {
       pendentes: sql<number>`count(*) filter (where ${checklistItens.status} = 'pendente')::int`,
     })
     .from(checklistItens)
-    .where(eq(checklistItens.competenciaId, competenciaId));
+    .where(
+      and(eq(checklistItens.competenciaId, competenciaId), eq(checklistItens.contaId, contaId)),
+    );
 
   const [pag] = await db
     .select({
@@ -41,7 +44,7 @@ async function resumoCompetencia(competenciaId: number) {
       aReceber: sql<string>`coalesce(sum(${pagamentos.valor}) filter (where ${pagamentos.status} = 'pendente'), 0)::text`,
     })
     .from(pagamentos)
-    .where(eq(pagamentos.competenciaId, competenciaId));
+    .where(and(eq(pagamentos.competenciaId, competenciaId), eq(pagamentos.contaId, contaId)));
 
   return { obrigacoes: obr, pagamentos: pag };
 }
@@ -81,30 +84,45 @@ function calcularVencimento(ano: number, mes: number, dia: number | null, offset
 
 // GET /api/competencias
 router.get("/", async (req, res) => {
-  const comps = await db.select().from(competencias).orderBy(asc(competencias.ano), asc(competencias.mes));
-  const comResumo = await Promise.all(comps.map(async (c) => ({ ...c, resumo: await resumoCompetencia(c.id) })));
+  const contaId = contaDaRequisicao(req);
+  const comps = await db
+    .select()
+    .from(competencias)
+    .where(eq(competencias.contaId, contaId))
+    .orderBy(asc(competencias.ano), asc(competencias.mes));
+  const comResumo = await Promise.all(
+    comps.map(async (c) => ({ ...c, resumo: await resumoCompetencia(c.id, contaId) })),
+  );
   comResumo.reverse();
   res.json(comResumo);
 });
 
 // POST /api/competencias
 router.post("/", async (req, res) => {
+  const contaId = contaDaRequisicao(req);
   const { ano, mes, somenteHonorarios = false } = AbrirCompetenciaBody.parse(req.body);
   if (mes < 1 || mes > 12) {
     throw new HttpError(400, "Mês inválido (use 1 a 12).");
   }
 
-  const existente = await db.select({ id: competencias.id }).from(competencias)
-    .where(and(eq(competencias.ano, ano), eq(competencias.mes, mes)));
+  const existente = await db
+    .select({ id: competencias.id })
+    .from(competencias)
+    .where(
+      and(eq(competencias.contaId, contaId), eq(competencias.ano, ano), eq(competencias.mes, mes)),
+    );
   if (existente.length) {
     throw new HttpError(400, "Esse mês já foi aberto.");
   }
 
-  const [comp] = await db.insert(competencias).values({ ano, mes }).returning();
+  const [comp] = await db.insert(competencias).values({ contaId, ano, mes }).returning();
 
-  const ativos = await db.select().from(clientes).where(eq(clientes.ativo, true));
+  const ativos = await db
+    .select()
+    .from(clientes)
+    .where(and(eq(clientes.contaId, contaId), eq(clientes.ativo, true)));
   const ativosIds = ativos.map((c) => c.id);
-  const tipos = await db.select().from(tiposObrigacao);
+  const tipos = await db.select().from(tiposObrigacao).where(eq(tiposObrigacao.contaId, contaId));
   const tipoPorId = new Map(tipos.map((t) => [t.id, t]));
 
   if (ativosIds.length) {
@@ -126,6 +144,7 @@ router.post("/", async (req, res) => {
         doMes.map((v) => {
           const tipo = tipoPorId.get(v.tipoObrigacaoId);
           return {
+            contaId,
             competenciaId: comp.id,
             clienteId: v.clienteId,
             tipoObrigacaoId: v.tipoObrigacaoId,
@@ -139,6 +158,7 @@ router.post("/", async (req, res) => {
     const DIA_PADRAO = 10;
     await db.insert(pagamentos).values(
       ativos.map((c) => ({
+        contaId,
         competenciaId: comp.id,
         clienteId: c.id,
         status: "pendente" as const,
@@ -153,22 +173,30 @@ router.post("/", async (req, res) => {
 
 // GET /api/competencias/:id
 router.get("/:id", async (req, res) => {
+  const contaId = contaDaRequisicao(req);
   const { id } = GetCompetenciaParams.parse(req.params);
-  const [comp] = await db.select().from(competencias).where(eq(competencias.id, id));
+  const [comp] = await db
+    .select()
+    .from(competencias)
+    .where(and(eq(competencias.id, id), eq(competencias.contaId, contaId)));
   if (!comp) throw new HttpError(404, "Competência não encontrada.");
-  const resumo = await resumoCompetencia(comp.id);
+  const resumo = await resumoCompetencia(comp.id, contaId);
   res.json({ ...comp, resumo });
 });
 
 // DELETE /api/competencias/:id
 router.delete("/:id", async (req, res) => {
+  const contaId = contaDaRequisicao(req);
   const { id } = RemoverCompetenciaParams.parse(req.params);
-  await db.delete(competencias).where(eq(competencias.id, id));
+  await db
+    .delete(competencias)
+    .where(and(eq(competencias.id, id), eq(competencias.contaId, contaId)));
   res.status(204).send();
 });
 
 // GET /api/competencias/:id/checklist
 router.get("/:id/checklist", async (req, res) => {
+  const contaId = contaDaRequisicao(req);
   const { id } = ListarChecklistParams.parse(req.params);
   const itens = await db
     .select({
@@ -186,13 +214,14 @@ router.get("/:id/checklist", async (req, res) => {
     .from(checklistItens)
     .innerJoin(clientes, eq(clientes.id, checklistItens.clienteId))
     .innerJoin(tiposObrigacao, eq(tiposObrigacao.id, checklistItens.tipoObrigacaoId))
-    .where(eq(checklistItens.competenciaId, id))
+    .where(and(eq(checklistItens.competenciaId, id), eq(checklistItens.contaId, contaId)))
     .orderBy(asc(clientes.codigo), asc(tiposObrigacao.ordem));
   res.json(itens);
 });
 
 // GET /api/competencias/:id/pagamentos
 router.get("/:id/pagamentos", async (req, res) => {
+  const contaId = contaDaRequisicao(req);
   const { id } = ListarPagamentosParams.parse(req.params);
   const pgs = await db
     .select({
@@ -209,7 +238,7 @@ router.get("/:id/pagamentos", async (req, res) => {
     })
     .from(pagamentos)
     .innerJoin(clientes, eq(clientes.id, pagamentos.clienteId))
-    .where(eq(pagamentos.competenciaId, id))
+    .where(and(eq(pagamentos.competenciaId, id), eq(pagamentos.contaId, contaId)))
     .orderBy(asc(clientes.codigo));
   res.json(pgs);
 });
