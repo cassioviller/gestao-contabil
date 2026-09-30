@@ -8,7 +8,9 @@ import {
   useRemoverCredencial,
   useListarClientes,
   useListarTipos,
+  getSenhaCredencial,
 } from "@workspace/api-client-react";
+import { mensagemDeErro } from "@/lib/erros";
 
 type Credencial = {
   id: number;
@@ -17,7 +19,8 @@ type Credencial = {
   tipoObrigacaoId: number | null;
   rotulo: string;
   login: string | null;
-  senha: string | null;
+  /** A listagem só diz se há senha; o valor vem de /credenciais/:id/senha. */
+  temSenha: boolean;
   observacao: string | null;
 };
 
@@ -37,7 +40,9 @@ export default function Senhas() {
   const remover = useRemoverCredencial();
 
   const [busca, setBusca] = useState("");
-  const [revelar, setRevelar] = useState(false);
+  // Senhas reveladas nesta tela, por acesso. Cada revelação é um pedido à API
+  // que fica na auditoria — por isso é por linha, não um botão "mostrar todas".
+  const [reveladas, setReveladas] = useState<Record<number, string>>({});
   const [erro, setErro] = useState<string | null>(null);
   const [salvo, setSalvo] = useState(false);
   const [novoCliente, setNovoCliente] = useState("");
@@ -54,12 +59,30 @@ export default function Senhas() {
       setSalvo(true);
       window.setTimeout(() => setSalvo(false), 1500);
     } catch (e) {
-      setErro(
-        e instanceof Error && e.message
-          ? `Não foi possível salvar: ${e.message}`
-          : "Não foi possível salvar. Verifique se o servidor da API está no ar."
-      );
+      setErro(mensagemDeErro(e, "Não foi possível salvar. Verifique se o servidor da API está no ar."));
     }
+  }
+
+  async function revelar(id: number) {
+    setErro(null);
+    try {
+      const { senha } = await getSenhaCredencial(id);
+      setReveladas((r) => ({ ...r, [id]: senha ?? "" }));
+    } catch (e) {
+      setErro(mensagemDeErro(e, "Não foi possível revelar a senha."));
+    }
+  }
+
+  function ocultar(id: number) {
+    setReveladas((r) => {
+      const { [id]: _fora, ...resto } = r;
+      return resto;
+    });
+  }
+
+  async function salvarSenha(id: number, digitado: string) {
+    await salvarCampo(id, "senha", digitado);
+    setReveladas((r) => (id in r ? { ...r, [id]: digitado.trim() } : r));
   }
 
   /** Enter confirma (sai do campo, o que dispara o save); Esc desfaz. */
@@ -129,9 +152,6 @@ export default function Senhas() {
         </div>
         <div className="flex items-center gap-2">
           {salvo && <span className="text-xs text-green-600">✓ salvo</span>}
-          <button onClick={() => setRevelar((v) => !v)} className={campoForm}>
-            {revelar ? "🙈 Ocultar senhas" : "👁 Mostrar senhas"}
-          </button>
         </div>
       </div>
 
@@ -206,10 +226,29 @@ export default function Senhas() {
                       className={entrada} />
                   </td>
                   <td className={`w-44 ${celula}`}>
-                    <input name="senha" type={revelar ? "text" : "password"} defaultValue={c.senha ?? ""}
-                      onKeyDown={teclas(c.senha ?? "")}
-                      onBlur={(e) => e.target.value !== (c.senha ?? "") && salvarCampo(c.id, "senha", e.target.value)}
-                      className={entrada} />
+                    {(() => {
+                      const revelada = c.id in reveladas;
+                      const valor = revelada ? reveladas[c.id] : "";
+                      return (
+                        <div className="flex items-center">
+                          <input name="senha" key={revelada ? "aberta" : "fechada"}
+                            type={revelada ? "text" : "password"} defaultValue={valor}
+                            placeholder={revelada ? "—" : c.temSenha ? "••••••••" : "—"}
+                            autoComplete="new-password"
+                            onKeyDown={teclas(valor)}
+                            onBlur={(e) => {
+                              const digitado = e.target.value;
+                              if (revelada ? digitado !== valor : digitado !== "") salvarSenha(c.id, digitado);
+                            }}
+                            className={entrada} />
+                          <button type="button" title={revelada ? "Ocultar senha" : "Revelar senha"}
+                            onClick={() => (revelada ? ocultar(c.id) : revelar(c.id))}
+                            className="px-1 text-neutral-500 hover:text-black dark:hover:text-white">
+                            {revelada ? "🙈" : "👁"}
+                          </button>
+                        </div>
+                      );
+                    })()}
                   </td>
                   <td className={celula}>
                     <input name="observacao" defaultValue={c.observacao ?? ""}
@@ -246,7 +285,7 @@ export default function Senhas() {
       )}
 
       <p className="mt-3 text-xs text-neutral-500">
-        Senhas ficam gravadas em texto no banco — use só em ambiente de confiança.
+        Senhas ficam cifradas no banco; cada revelação (👁) fica registrada com usuário, data e IP.
       </p>
     </div>
   );

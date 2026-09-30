@@ -33,6 +33,8 @@ tags:
     description: Guias do cliente em atraso com o fisco
   - name: auth
     description: Login e sessão do escritório
+  - name: usuarios
+    description: Usuários do escritório e seus papéis
 
 paths:
   /auth/entrar:
@@ -79,6 +81,32 @@ paths:
                 $ref: "#/components/schemas/SessaoAtual"
         "401":
           description: Sem sessão
+
+  /auth/trocar-senha:
+    post:
+      operationId: trocarSenha
+      tags: [auth]
+      summary: Troca a própria senha (encerra as outras sessões do usuário)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TrocarSenhaInput"
+      responses:
+        "204":
+          description: Senha trocada
+        "400":
+          description: Senha atual não confere
+
+  /auth/sair-de-todos:
+    post:
+      operationId: sairDeTodos
+      tags: [auth]
+      summary: Encerra todas as sessões do usuário, inclusive a atual
+      responses:
+        "204":
+          description: Sessões encerradas
 
   /healthz:
     get:
@@ -176,6 +204,29 @@ paths:
         "204":
           description: Removido
 
+  /clientes/{id}/segredos:
+    get:
+      operationId: getSegredosCliente
+      tags: [clientes]
+      summary: Revela as senhas gov.br e NFS-e do cliente (fica registrado na auditoria)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Senhas em claro
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SegredosCliente"
+        "403":
+          description: O papel do usuário não pode revelar senhas
+        "404":
+          description: Cliente não encontrado
+
   /tipos:
     get:
       operationId: listarTipos
@@ -207,6 +258,19 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/TipoObrigacao"
+
+  /tipos/vincular-automaticos:
+    post:
+      operationId: vincularAutomaticas
+      tags: [tipos]
+      summary: Vincula a cada cliente ativo com regime as obrigações automáticas do regime dele (só acrescenta)
+      responses:
+        "200":
+          description: Quantos vínculos foram criados
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResultadoVinculo"
 
   /tipos/{id}:
     delete:
@@ -373,6 +437,29 @@ paths:
       responses:
         "204":
           description: Removida
+
+  /credenciais/{id}/senha:
+    get:
+      operationId: getSenhaCredencial
+      tags: [credenciais]
+      summary: Revela a senha de um acesso (fica registrado na auditoria)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Senha em claro
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SenhaRevelada"
+        "403":
+          description: O papel do usuário não pode revelar senhas
+        "404":
+          description: Credencial não encontrada
 
   /processos:
     get:
@@ -1224,6 +1311,93 @@ paths:
       responses:
         "204":
           description: Removido
+  /usuarios:
+    get:
+      operationId: listarUsuarios
+      tags: [usuarios]
+      summary: Usuários do escritório (só admin)
+      responses:
+        "200":
+          description: Lista de usuários
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Usuario"
+    post:
+      operationId: criarUsuario
+      tags: [usuarios]
+      summary: Cria um usuário no escritório (só admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UsuarioInput"
+      responses:
+        "200":
+          description: Usuário criado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Usuario"
+        "409":
+          description: Já existe um usuário com esse login
+
+  /usuarios/{id}:
+    patch:
+      operationId: atualizarUsuario
+      tags: [usuarios]
+      summary: Altera nome, e-mail, papel ou situação de um usuário (só admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UsuarioPatch"
+      responses:
+        "200":
+          description: Usuário atualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Usuario"
+        "400":
+          description: A alteração deixaria o escritório sem administrador ativo
+        "404":
+          description: Usuário não encontrado
+
+  /usuarios/{id}/redefinir-senha:
+    post:
+      operationId: redefinirSenhaUsuario
+      tags: [usuarios]
+      summary: Define uma nova senha para o usuário e derruba as sessões dele (só admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RedefinirSenhaInput"
+      responses:
+        "204":
+          description: Senha redefinida
+        "404":
+          description: Usuário não encontrado
+
+
 components:
   schemas:
     HealthStatus:
@@ -1248,12 +1422,77 @@ components:
     # API responde só o que pertence a ela.
     SessaoAtual:
       type: object
-      required: [contaId, conta, login, nome]
+      required: [contaId, conta, login, nome, usuarioId, papel]
       properties:
         contaId: { type: integer }
         conta: { type: string }
+        usuarioId: { type: integer }
         login: { type: string }
         nome: { type: ["string", "null"] }
+        papel: { $ref: "#/components/schemas/Papel" }
+
+    # admin: gerencia usuários e tudo o mais; contador: opera o escritório e
+    # revela senhas; auxiliar: opera, mas não revela senhas nem gerencia gente.
+    Papel:
+      type: string
+      enum: [admin, contador, auxiliar]
+
+    TrocarSenhaInput:
+      type: object
+      required: [senhaAtual, novaSenha]
+      properties:
+        senhaAtual: { type: string, minLength: 1 }
+        novaSenha: { type: string, minLength: 8, maxLength: 200 }
+
+    SegredosCliente:
+      type: object
+      required: [senhaGov, senhaNfse]
+      properties:
+        senhaGov: { type: ["string", "null"] }
+        senhaNfse: { type: ["string", "null"] }
+
+    SenhaRevelada:
+      type: object
+      required: [senha]
+      properties:
+        senha: { type: ["string", "null"] }
+
+    Usuario:
+      type: object
+      required: [id, login, nome, email, papel, ativo, ultimoAcessoEm, criadoEm]
+      properties:
+        id: { type: integer }
+        login: { type: string }
+        nome: { type: ["string", "null"] }
+        email: { type: ["string", "null"] }
+        papel: { $ref: "#/components/schemas/Papel" }
+        ativo: { type: boolean }
+        ultimoAcessoEm: { type: ["string", "null"], format: date-time }
+        criadoEm: { type: string, format: date-time }
+
+    UsuarioInput:
+      type: object
+      required: [login, papel, senha]
+      properties:
+        login: { type: string, minLength: 2, maxLength: 60 }
+        nome: { type: ["string", "null"] }
+        email: { type: ["string", "null"] }
+        papel: { $ref: "#/components/schemas/Papel" }
+        senha: { type: string, minLength: 8, maxLength: 200 }
+
+    UsuarioPatch:
+      type: object
+      properties:
+        nome: { type: ["string", "null"] }
+        email: { type: ["string", "null"] }
+        papel: { $ref: "#/components/schemas/Papel" }
+        ativo: { type: boolean }
+
+    RedefinirSenhaInput:
+      type: object
+      required: [novaSenha]
+      properties:
+        novaSenha: { type: string, minLength: 8, maxLength: 200 }
 
     Resumo:
       type: object
@@ -1295,7 +1534,7 @@ components:
 
     Cliente:
       type: object
-      required: [id, razaoSocial, ativo, obrigacoes]
+      required: [id, razaoSocial, ativo, obrigacoes, temSenhaGov, temSenhaNfse]
       properties:
         id: { type: integer }
         codigo: { type: ["integer", "null"] }
@@ -1310,8 +1549,9 @@ components:
         procuracaoVencimento: { type: ["string", "null"] }
         socioNome: { type: ["string", "null"] }
         socioCpf: { type: ["string", "null"] }
-        senhaGov: { type: ["string", "null"] }
-        senhaNfse: { type: ["string", "null"] }
+        # As senhas nunca saem na listagem: só por /clientes/{id}/segredos, com auditoria.
+        temSenhaGov: { type: boolean }
+        temSenhaNfse: { type: boolean }
         observacao: { type: ["string", "null"] }
         valorHonorario: { type: ["string", "null"] }
         diaVencimentoHonorario: { type: ["integer", "null"] }
@@ -1395,10 +1635,11 @@ components:
 
     TipoObrigacao:
       type: object
-      required: [id, nome, ordem, offsetMes, periodicidade, ativo]
+      required: [id, nome, ordem, offsetMes, periodicidade, ativo, vincularAutomatico]
       properties:
         id: { type: integer }
         nome: { type: string }
+        descricao: { type: ["string", "null"] }
         ordem: { type: integer }
         diaVencimento: { type: ["integer", "null"] }
         offsetMes: { type: integer }
@@ -1408,6 +1649,10 @@ components:
         regimes:
           type: ["array", "null"]
           items: { $ref: "#/components/schemas/RegimeValor" }
+        # Ao definir o regime de um cliente, esta obrigação é vinculada sozinha
+        # (se for do regime dele). Desmarcada = só à mão.
+        vincularAutomatico: { type: boolean }
+        # Inativa não entra em mês novo, mas o histórico dela fica.
         ativo: { type: boolean }
 
     TipoObrigacaoInput:
@@ -1416,6 +1661,7 @@ components:
       properties:
         id: { type: ["integer", "null"] }
         nome: { type: string }
+        descricao: { type: ["string", "null"] }
         ordem: { type: integer }
         diaVencimento: { type: ["integer", "null"] }
         offsetMes: { type: integer }
@@ -1425,6 +1671,14 @@ components:
         regimes:
           type: ["array", "null"]
           items: { $ref: "#/components/schemas/RegimeValor" }
+        vincularAutomatico: { type: boolean }
+        ativo: { type: boolean }
+
+    ResultadoVinculo:
+      type: object
+      required: [vinculosCriados]
+      properties:
+        vinculosCriados: { type: integer }
 
     StatusDebito:
       type: string
@@ -1472,7 +1726,7 @@ components:
 
     Credencial:
       type: object
-      required: [id, clienteId, clienteNome, rotulo]
+      required: [id, clienteId, clienteNome, rotulo, temSenha]
       properties:
         id: { type: integer }
         clienteId: { type: integer }
@@ -1480,7 +1734,8 @@ components:
         tipoObrigacaoId: { type: ["integer", "null"] }
         rotulo: { type: string }
         login: { type: ["string", "null"] }
-        senha: { type: ["string", "null"] }
+        # A senha só sai por /credenciais/{id}/senha, com auditoria.
+        temSenha: { type: boolean }
         observacao: { type: ["string", "null"] }
 
     CredencialInput:

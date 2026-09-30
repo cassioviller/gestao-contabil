@@ -23,8 +23,10 @@ export const EntrarBody = zod.object({
 export const EntrarResponse = zod.object({
   "contaId": zod.number(),
   "conta": zod.string(),
+  "usuarioId": zod.number(),
   "login": zod.string(),
-  "nome": zod.string().nullable()
+  "nome": zod.string().nullable(),
+  "papel": zod.enum(['admin', 'contador', 'auxiliar'])
 })
 
 
@@ -40,9 +42,34 @@ export const SairResponse = zod.void()
 export const GetSessaoAtualResponse = zod.object({
   "contaId": zod.number(),
   "conta": zod.string(),
+  "usuarioId": zod.number(),
   "login": zod.string(),
-  "nome": zod.string().nullable()
+  "nome": zod.string().nullable(),
+  "papel": zod.enum(['admin', 'contador', 'auxiliar'])
 })
+
+
+/**
+ * @summary Troca a própria senha (encerra as outras sessões do usuário)
+ */
+
+export const trocarSenhaBodyNovaSenhaMin = 8;
+export const trocarSenhaBodyNovaSenhaMax = 200;
+
+
+
+export const TrocarSenhaBody = zod.object({
+  "senhaAtual": zod.string().min(1),
+  "novaSenha": zod.string().min(trocarSenhaBodyNovaSenhaMin).max(trocarSenhaBodyNovaSenhaMax)
+})
+
+export const TrocarSenhaResponse = zod.void()
+
+
+/**
+ * @summary Encerra todas as sessões do usuário, inclusive a atual
+ */
+export const SairDeTodosResponse = zod.void()
 
 
 /**
@@ -98,8 +125,8 @@ export const ListarClientesResponseItem = zod.object({
   "procuracaoVencimento": zod.string().nullish(),
   "socioNome": zod.string().nullish(),
   "socioCpf": zod.string().nullish(),
-  "senhaGov": zod.string().nullish(),
-  "senhaNfse": zod.string().nullish(),
+  "temSenhaGov": zod.boolean(),
+  "temSenhaNfse": zod.boolean(),
   "observacao": zod.string().nullish(),
   "valorHonorario": zod.string().nullish(),
   "diaVencimentoHonorario": zod.number().nullish(),
@@ -155,8 +182,8 @@ export const CriarClienteResponse = zod.object({
   "procuracaoVencimento": zod.string().nullish(),
   "socioNome": zod.string().nullish(),
   "socioCpf": zod.string().nullish(),
-  "senhaGov": zod.string().nullish(),
-  "senhaNfse": zod.string().nullish(),
+  "temSenhaGov": zod.boolean(),
+  "temSenhaNfse": zod.boolean(),
   "observacao": zod.string().nullish(),
   "valorHonorario": zod.string().nullish(),
   "diaVencimentoHonorario": zod.number().nullish(),
@@ -213,8 +240,8 @@ export const AtualizarClienteResponse = zod.object({
   "procuracaoVencimento": zod.string().nullish(),
   "socioNome": zod.string().nullish(),
   "socioCpf": zod.string().nullish(),
-  "senhaGov": zod.string().nullish(),
-  "senhaNfse": zod.string().nullish(),
+  "temSenhaGov": zod.boolean(),
+  "temSenhaNfse": zod.boolean(),
   "observacao": zod.string().nullish(),
   "valorHonorario": zod.string().nullish(),
   "diaVencimentoHonorario": zod.number().nullish(),
@@ -237,17 +264,32 @@ export const RemoverClienteResponse = zod.void()
 
 
 /**
+ * @summary Revela as senhas gov.br e NFS-e do cliente (fica registrado na auditoria)
+ */
+export const GetSegredosClienteParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetSegredosClienteResponse = zod.object({
+  "senhaGov": zod.string().nullable(),
+  "senhaNfse": zod.string().nullable()
+})
+
+
+/**
  * @summary Lista tipos de obrigação
  */
 export const ListarTiposResponseItem = zod.object({
   "id": zod.number(),
   "nome": zod.string(),
+  "descricao": zod.string().nullish(),
   "ordem": zod.number(),
   "diaVencimento": zod.number().nullish(),
   "offsetMes": zod.number(),
   "periodicidade": zod.enum(['mensal', 'bimestral', 'trimestral', 'semestral', 'anual']),
   "mesReferencia": zod.number().nullish(),
   "regimes": zod.array(zod.enum(['simples_nacional', 'mei', 'lucro_presumido', 'lucro_real'])).nullish(),
+  "vincularAutomatico": zod.boolean(),
   "ativo": zod.boolean()
 })
 export const ListarTiposResponse = zod.array(ListarTiposResponseItem)
@@ -259,24 +301,37 @@ export const ListarTiposResponse = zod.array(ListarTiposResponseItem)
 export const SalvarTipoBody = zod.object({
   "id": zod.number().nullish(),
   "nome": zod.string(),
+  "descricao": zod.string().nullish(),
   "ordem": zod.number().optional(),
   "diaVencimento": zod.number().nullish(),
   "offsetMes": zod.number().optional(),
   "periodicidade": zod.enum(['mensal', 'bimestral', 'trimestral', 'semestral', 'anual']).optional(),
   "mesReferencia": zod.number().nullish(),
-  "regimes": zod.array(zod.enum(['simples_nacional', 'mei', 'lucro_presumido', 'lucro_real'])).nullish()
+  "regimes": zod.array(zod.enum(['simples_nacional', 'mei', 'lucro_presumido', 'lucro_real'])).nullish(),
+  "vincularAutomatico": zod.boolean().optional(),
+  "ativo": zod.boolean().optional()
 })
 
 export const SalvarTipoResponse = zod.object({
   "id": zod.number(),
   "nome": zod.string(),
+  "descricao": zod.string().nullish(),
   "ordem": zod.number(),
   "diaVencimento": zod.number().nullish(),
   "offsetMes": zod.number(),
   "periodicidade": zod.enum(['mensal', 'bimestral', 'trimestral', 'semestral', 'anual']),
   "mesReferencia": zod.number().nullish(),
   "regimes": zod.array(zod.enum(['simples_nacional', 'mei', 'lucro_presumido', 'lucro_real'])).nullish(),
+  "vincularAutomatico": zod.boolean(),
   "ativo": zod.boolean()
+})
+
+
+/**
+ * @summary Vincula a cada cliente ativo com regime as obrigações automáticas do regime dele (só acrescenta)
+ */
+export const VincularAutomaticasResponse = zod.object({
+  "vinculosCriados": zod.number()
 })
 
 
@@ -393,7 +448,7 @@ export const ListarCredenciaisResponseItem = zod.object({
   "tipoObrigacaoId": zod.number().nullish(),
   "rotulo": zod.string(),
   "login": zod.string().nullish(),
-  "senha": zod.string().nullish(),
+  "temSenha": zod.boolean(),
   "observacao": zod.string().nullish()
 })
 export const ListarCredenciaisResponse = zod.array(ListarCredenciaisResponseItem)
@@ -419,7 +474,7 @@ export const SalvarCredencialResponse = zod.object({
   "tipoObrigacaoId": zod.number().nullish(),
   "rotulo": zod.string(),
   "login": zod.string().nullish(),
-  "senha": zod.string().nullish(),
+  "temSenha": zod.boolean(),
   "observacao": zod.string().nullish()
 })
 
@@ -446,7 +501,7 @@ export const AtualizarCredencialResponse = zod.object({
   "tipoObrigacaoId": zod.number().nullish(),
   "rotulo": zod.string(),
   "login": zod.string().nullish(),
-  "senha": zod.string().nullish(),
+  "temSenha": zod.boolean(),
   "observacao": zod.string().nullish()
 })
 
@@ -459,6 +514,18 @@ export const RemoverCredencialParams = zod.object({
 })
 
 export const RemoverCredencialResponse = zod.void()
+
+
+/**
+ * @summary Revela a senha de um acesso (fica registrado na auditoria)
+ */
+export const GetSenhaCredencialParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetSenhaCredencialResponse = zod.object({
+  "senha": zod.string().nullable()
+})
 
 
 /**
@@ -1550,5 +1617,97 @@ export const RemoverFeriasParams = zod.object({
 })
 
 export const RemoverFeriasResponse = zod.void()
+
+
+/**
+ * @summary Usuários do escritório (só admin)
+ */
+export const ListarUsuariosResponseItem = zod.object({
+  "id": zod.number(),
+  "login": zod.string(),
+  "nome": zod.string().nullable(),
+  "email": zod.string().nullable(),
+  "papel": zod.enum(['admin', 'contador', 'auxiliar']),
+  "ativo": zod.boolean(),
+  "ultimoAcessoEm": zod.coerce.date().nullable(),
+  "criadoEm": zod.coerce.date()
+})
+export const ListarUsuariosResponse = zod.array(ListarUsuariosResponseItem)
+
+
+/**
+ * @summary Cria um usuário no escritório (só admin)
+ */
+export const criarUsuarioBodyLoginMin = 2;
+export const criarUsuarioBodyLoginMax = 60;
+
+export const criarUsuarioBodySenhaMin = 8;
+export const criarUsuarioBodySenhaMax = 200;
+
+
+
+export const CriarUsuarioBody = zod.object({
+  "login": zod.string().min(criarUsuarioBodyLoginMin).max(criarUsuarioBodyLoginMax),
+  "nome": zod.string().nullish(),
+  "email": zod.string().nullish(),
+  "papel": zod.enum(['admin', 'contador', 'auxiliar']),
+  "senha": zod.string().min(criarUsuarioBodySenhaMin).max(criarUsuarioBodySenhaMax)
+})
+
+export const CriarUsuarioResponse = zod.object({
+  "id": zod.number(),
+  "login": zod.string(),
+  "nome": zod.string().nullable(),
+  "email": zod.string().nullable(),
+  "papel": zod.enum(['admin', 'contador', 'auxiliar']),
+  "ativo": zod.boolean(),
+  "ultimoAcessoEm": zod.coerce.date().nullable(),
+  "criadoEm": zod.coerce.date()
+})
+
+
+/**
+ * @summary Altera nome, e-mail, papel ou situação de um usuário (só admin)
+ */
+export const AtualizarUsuarioParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const AtualizarUsuarioBody = zod.object({
+  "nome": zod.string().nullish(),
+  "email": zod.string().nullish(),
+  "papel": zod.enum(['admin', 'contador', 'auxiliar']).optional(),
+  "ativo": zod.boolean().optional()
+})
+
+export const AtualizarUsuarioResponse = zod.object({
+  "id": zod.number(),
+  "login": zod.string(),
+  "nome": zod.string().nullable(),
+  "email": zod.string().nullable(),
+  "papel": zod.enum(['admin', 'contador', 'auxiliar']),
+  "ativo": zod.boolean(),
+  "ultimoAcessoEm": zod.coerce.date().nullable(),
+  "criadoEm": zod.coerce.date()
+})
+
+
+/**
+ * @summary Define uma nova senha para o usuário e derruba as sessões dele (só admin)
+ */
+export const RedefinirSenhaUsuarioParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const redefinirSenhaUsuarioBodyNovaSenhaMin = 8;
+export const redefinirSenhaUsuarioBodyNovaSenhaMax = 200;
+
+
+
+export const RedefinirSenhaUsuarioBody = zod.object({
+  "novaSenha": zod.string().min(redefinirSenhaUsuarioBodyNovaSenhaMin).max(redefinirSenhaUsuarioBodyNovaSenhaMax)
+})
+
+export const RedefinirSenhaUsuarioResponse = zod.void()
 
 

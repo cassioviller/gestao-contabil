@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { getGetSessaoAtualQueryKey, useEntrar } from "@workspace/api-client-react";
+import { useEntrar } from "@workspace/api-client-react";
+import { assumirSessao } from "@/lib/sessao";
 
 export default function Login() {
   const queryClient = useQueryClient();
@@ -10,13 +11,10 @@ export default function Login() {
 
   const entrar = useEntrar({
     mutation: {
-      onSuccess: (sessao) => {
-        // Reaproveita a resposta como sessão atual e joga fora o cache do
-        // usuário anterior — trocar de conta na mesma aba não pode deixar dado
-        // do escritório antigo na tela.
-        queryClient.clear();
-        queryClient.setQueryData(getGetSessaoAtualQueryKey(), sessao);
-      },
+      // Reaproveita a resposta como sessão atual e joga fora o cache do
+      // usuário anterior — trocar de conta na mesma aba não pode deixar dado
+      // do escritório antigo na tela.
+      onSuccess: (sessao) => assumirSessao(queryClient, sessao),
       onError: () => setErro("Login ou senha inválidos."),
     },
   });

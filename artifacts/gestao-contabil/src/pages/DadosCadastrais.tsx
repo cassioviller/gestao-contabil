@@ -6,9 +6,11 @@ import {
   useCriarCliente,
   useAtualizarCliente,
   useRemoverCliente,
+  getSegredosCliente,
 } from "@workspace/api-client-react";
 import { REGIMES, formatarNumeroBR, hojeBR, paraDecimalAPI, rotuloRegime } from "@/lib/formato";
 import { paraCsv } from "@workspace/dominio";
+import { mensagemDeErro } from "@/lib/erros";
 
 type Cliente = {
   id: number;
@@ -21,8 +23,9 @@ type Cliente = {
   inscricaoMunicipal: string | null;
   socioNome: string | null;
   socioCpf: string | null;
-  senhaGov: string | null;
-  senhaNfse: string | null;
+  /** A listagem só diz se há senha; o valor vem de /clientes/:id/segredos. */
+  temSenhaGov: boolean;
+  temSenhaNfse: boolean;
   procuracaoVencimento: string | null;
   valorHonorario: string | null;
   diaVencimentoHonorario: number | null;
@@ -33,7 +36,9 @@ type Cliente = {
   ativo: boolean;
 };
 
-type Campo = keyof Omit<Cliente, "id" | "ativo">;
+type CampoSenha = "senhaGov" | "senhaNfse";
+type Campo = keyof Omit<Cliente, "id" | "ativo" | "temSenhaGov" | "temSenhaNfse"> | CampoSenha;
+type Segredos = { senhaGov: string | null; senhaNfse: string | null };
 
 type Coluna = {
   campo: Campo;
@@ -85,9 +90,10 @@ function baixarCsv(clientes: Cliente[]) {
     String(c.codigo ?? ""),
     c.razaoSocial,
     // Colunas de lista exportam o rótulo legível, não o valor do enum.
-    ...colunas.map((col) =>
-      col.opcoes ? rotuloRegime(c[col.campo] as string) : String(c[col.campo] ?? "")
-    ),
+    ...colunas.map((col) => {
+      const valor = (c as unknown as Record<string, unknown>)[col.campo];
+      return col.opcoes ? rotuloRegime(valor as string) : String(valor ?? "");
+    }),
     c.ativo ? "Sim" : "Não",
   ]);
   const blob = new Blob([paraCsv([cabecalho, ...corpo])], {
@@ -109,19 +115,50 @@ export default function DadosCadastrais() {
   const remover = useRemoverCliente();
 
   const [busca, setBusca] = useState("");
-  const [revelarSenhas, setRevelarSenhas] = useState(false);
+  // Senhas reveladas nesta tela, por cliente. Cada revelação é um pedido à API
+  // que fica na auditoria — por isso é por linha, não um botão "mostrar todas".
+  const [reveladas, setReveladas] = useState<Record<number, Segredos>>({});
+  const [erro, setErro] = useState<string | null>(null);
   const [salvo, setSalvo] = useState(false);
   const hoje = hojeBR();
+
+  async function revelar(id: number) {
+    setErro(null);
+    try {
+      const segredos = await getSegredosCliente(id);
+      setReveladas((r) => ({ ...r, [id]: segredos }));
+    } catch (e) {
+      setErro(mensagemDeErro(e, "Não foi possível revelar a senha."));
+    }
+  }
+
+  function ocultar(id: number) {
+    setReveladas((r) => {
+      const { [id]: _fora, ...resto } = r;
+      return resto;
+    });
+  }
+
+  async function salvarSenha(id: number, campo: CampoSenha, digitado: string) {
+    const valor = digitado.trim() || null;
+    await salvarCampo(id, campo, valor);
+    setReveladas((r) => (r[id] ? { ...r, [id]: { ...r[id], [campo]: valor } } : r));
+  }
 
   function invalidar() {
     qc.invalidateQueries({ queryKey: getListarClientesQueryKey() });
   }
 
   async function salvarCampo(id: number, campo: Campo | "ativo", valor: unknown) {
-    await atualizar.mutateAsync({ id, data: { [campo]: valor } as never });
-    invalidar();
-    setSalvo(true);
-    window.setTimeout(() => setSalvo(false), 1500);
+    setErro(null);
+    try {
+      await atualizar.mutateAsync({ id, data: { [campo]: valor } as never });
+      invalidar();
+      setSalvo(true);
+      window.setTimeout(() => setSalvo(false), 1500);
+    } catch (e) {
+      setErro(mensagemDeErro(e, "Não foi possível salvar."));
+    }
   }
 
   async function adicionarEmpresa() {
@@ -170,12 +207,6 @@ export default function DadosCadastrais() {
         <div className="flex flex-wrap items-center gap-2">
           {salvo && <span className="text-xs text-green-600">✓ salvo</span>}
           <button
-            onClick={() => setRevelarSenhas((v) => !v)}
-            className="rounded-lg border border-black/15 px-3 py-2 text-sm"
-          >
-            {revelarSenhas ? "🙈 Ocultar senhas" : "👁 Mostrar senhas"}
-          </button>
-          <button
             onClick={() => baixarCsv(filtrados)}
             className="rounded-lg border border-black/15 px-3 py-2 text-sm"
           >
@@ -189,6 +220,12 @@ export default function DadosCadastrais() {
           </button>
         </div>
       </div>
+
+      {erro && (
+        <p role="alert" className="mb-3 rounded-lg bg-red-600/10 px-3 py-2 text-sm text-red-700">
+          {erro}
+        </p>
+      )}
 
       <input
         value={busca}
@@ -252,7 +289,53 @@ export default function DadosCadastrais() {
                       />
                     </td>
                     {COLUNAS.map((col) => {
-                      const atual = c[col.campo];
+                      if (col.senha) {
+                        const campo = col.campo as CampoSenha;
+                        const revelada = reveladas[c.id];
+                        const tem = campo === "senhaGov" ? c.temSenhaGov : c.temSenhaNfse;
+                        const valor = revelada ? (revelada[campo] ?? "") : "";
+                        const rotulo = col.rotulo.toLowerCase();
+                        return (
+                          <td key={col.campo} className={`${col.largura} ${celula}`}>
+                            <div className="flex items-center">
+                              <input
+                                // Remonta ao revelar/ocultar para o defaultValue valer de novo.
+                                key={revelada ? "aberta" : "fechada"}
+                                type={revelada ? "text" : "password"}
+                                name={col.campo}
+                                defaultValue={valor}
+                                placeholder={revelada ? "—" : tem ? "••••••••" : "—"}
+                                autoComplete="new-password"
+                                title={tem && !revelada ? "Há senha gravada; digite para substituir ou revele" : undefined}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") e.currentTarget.blur();
+                                  if (e.key === "Escape") {
+                                    e.currentTarget.value = valor;
+                                    e.currentTarget.blur();
+                                  }
+                                }}
+                                onBlur={(e) => {
+                                  const digitado = e.target.value;
+                                  // Fechada: só grava se algo foi digitado (vazio = não mexer).
+                                  if (revelada ? digitado !== valor : digitado !== "") {
+                                    salvarSenha(c.id, campo, digitado);
+                                  }
+                                }}
+                                className={entrada}
+                              />
+                              <button
+                                type="button"
+                                title={revelada ? `Ocultar ${rotulo}` : `Revelar ${rotulo}`}
+                                onClick={() => (revelada ? ocultar(c.id) : revelar(c.id))}
+                                className="px-1 text-neutral-500 hover:text-black"
+                              >
+                                {revelada ? "🙈" : "👁"}
+                              </button>
+                            </div>
+                          </td>
+                        );
+                      }
+                      const atual = c[col.campo as keyof Cliente];
                       const alerta = col.campo === "procuracaoVencimento" && vencida;
                       // Dinheiro é exibido em pt-BR ("350,00") e comparado já
                       // normalizado: assim reeditar sem mexer não grava nada.
@@ -288,7 +371,7 @@ export default function DadosCadastrais() {
                       return (
                         <td key={col.campo} className={`${col.largura} ${celula}`}>
                           <input
-                            type={col.senha && !revelarSenhas ? "password" : col.tipo ?? "text"}
+                            type={col.tipo ?? "text"}
                             name={col.campo}
                             defaultValue={exibido}
                             placeholder={col.placeholder}
@@ -341,7 +424,7 @@ export default function DadosCadastrais() {
       )}
 
       <p className="mt-3 text-xs text-neutral-500">
-        Senhas ficam gravadas em texto no banco — use só em ambiente de confiança. Procuração vencida aparece em vermelho.
+        Senhas ficam cifradas no banco; cada revelação (👁) fica registrada com usuário, data e IP. Procuração vencida aparece em vermelho.
       </p>
     </div>
   );

@@ -6,10 +6,8 @@ import {
   QueryClientProvider,
   type Query,
 } from "@tanstack/react-query";
-import {
-  getGetSessaoAtualQueryKey,
-  useGetSessaoAtual,
-} from "@workspace/api-client-react";
+import { useGetSessaoAtual } from "@workspace/api-client-react";
+import { CHAVE_SESSAO, ehSessao } from "@/lib/sessao";
 import MenuLateral from "@/components/MenuLateral";
 import Login from "@/pages/Login";
 import Painel from "@/pages/Painel";
@@ -18,6 +16,8 @@ import DadosCadastrais from "@/pages/DadosCadastrais";
 import Senhas from "@/pages/Senhas";
 import Atrasos from "@/pages/Atrasos";
 import Perfil from "@/pages/Perfil";
+import Usuarios from "@/pages/Usuarios";
+import MinhaConta from "@/pages/MinhaConta";
 import Despesas from "@/pages/Despesas";
 import Funcionarios from "@/pages/Funcionarios";
 import FuncionarioDetalhe from "@/pages/FuncionarioDetalhe";
@@ -32,13 +32,7 @@ import CompetenciaPagamentos from "@/pages/CompetenciaPagamentos";
 import Pendencias from "@/pages/Pendencias";
 import NotFound from "@/pages/not-found";
 
-const CHAVE_SESSAO = getGetSessaoAtualQueryKey();
-
 type QualquerQuery = Query<unknown, unknown, unknown, readonly unknown[]>;
-
-function ehSessao(query?: QualquerQuery): boolean {
-  return query?.queryKey?.[0] === CHAVE_SESSAO[0];
-}
 
 /**
  * Qualquer 401 (sessão expirou, ou alguém saiu em outra aba) revalida a sessão,
@@ -78,6 +72,8 @@ function Router() {
           <Route path="/funcionarios" component={Funcionarios} />
           <Route path="/folha" component={Folha} />
           <Route path="/perfil" component={Perfil} />
+          <Route path="/usuarios" component={Usuarios} />
+          <Route path="/minha-conta" component={MinhaConta} />
           <Route path="/processos/:id" component={ProcessoDetalhe} />
           {/* Forma com children: o Route do wouter passa props próprias ao
               `component`, que não casam com a prop `categoria`. */}

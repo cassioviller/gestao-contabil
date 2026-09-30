@@ -5,8 +5,9 @@ import {
   useGetSessaoAtual,
   useSair,
 } from "@workspace/api-client-react";
+import { encerrarSessaoLocal } from "@/lib/sessao";
 
-const itens = [
+const itens: { href: string; rotulo: string; icone: string; somenteAdmin?: boolean }[] = [
   { href: "/", rotulo: "Painel", icone: "📊" },
   { href: "/clientes", rotulo: "Clientes", icone: "👥" },
   { href: "/cadastro", rotulo: "Dados cadastrais", icone: "🗂️" },
@@ -21,7 +22,14 @@ const itens = [
   { href: "/folha", rotulo: "Folha do mês", icone: "🧾" },
   { href: "/despesas", rotulo: "Despesas", icone: "💸" },
   { href: "/perfil", rotulo: "Perfil do escritório", icone: "🏢" },
+  { href: "/usuarios", rotulo: "Usuários", icone: "🔐", somenteAdmin: true },
 ];
+
+const PAPEL: Record<string, string> = {
+  admin: "administrador",
+  contador: "contador(a)",
+  auxiliar: "auxiliar",
+};
 
 export default function MenuLateral() {
   const [caminho] = useLocation();
@@ -32,9 +40,9 @@ export default function MenuLateral() {
 
   const sair = useSair({
     mutation: {
-      // Limpa o cache no sucesso e também no erro: se o cookie já tinha
-      // caducado, o pedido falha mas a sessão local precisa cair do mesmo jeito.
-      onSettled: () => queryClient.clear(),
+      // No sucesso e também no erro: se o cookie já tinha caducado, o pedido
+      // falha mas a sessão local precisa cair do mesmo jeito.
+      onSettled: () => encerrarSessaoLocal(queryClient),
     },
   });
 
@@ -49,7 +57,7 @@ export default function MenuLateral() {
         <p className="text-xs text-neutral-500">ContaFácil · gestão contábil</p>
       </div>
       <nav className="flex flex-col gap-1">
-        {itens.map((item) => {
+        {itens.filter((item) => !item.somenteAdmin || sessao?.papel === "admin").map((item) => {
           const ativo =
             item.href === "/"
               ? caminho === "/"
@@ -75,7 +83,13 @@ export default function MenuLateral() {
         <p className="truncate text-sm font-medium" title={sessao?.conta}>
           {sessao?.conta ?? ""}
         </p>
-        <p className="truncate text-xs text-neutral-500">{sessao?.login ?? ""}</p>
+        <p className="truncate text-xs text-neutral-500">
+          {sessao?.login ?? ""}
+          {sessao?.papel ? ` · ${PAPEL[sessao.papel] ?? sessao.papel}` : ""}
+        </p>
+        <Link href="/minha-conta" className="mt-1 block text-xs text-blue-600 hover:underline dark:text-blue-400">
+          Minha conta (trocar senha)
+        </Link>
         <button
           type="button"
           onClick={() => sair.mutate()}

@@ -31,10 +31,8 @@ export interface Cliente {
   socioNome?: string | null;
   /** @nullable */
   socioCpf?: string | null;
-  /** @nullable */
-  senhaGov?: string | null;
-  /** @nullable */
-  senhaNfse?: string | null;
+  temSenhaGov: boolean;
+  temSenhaNfse: boolean;
   /** @nullable */
   observacao?: string | null;
   /** @nullable */

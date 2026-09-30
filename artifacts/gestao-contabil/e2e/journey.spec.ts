@@ -36,6 +36,10 @@ test("jornada completa do contador: tipo → cliente → competência → checkl
   await page.locator('select[name="regime"]').selectOption("simples_nacional");
   await page.locator('input[name="cnaePrincipal"]').fill("6920-6/01");
   await page.locator('input[name="email"]').fill("contato@clienteteste.com.br");
+  // Escolher o regime marca sozinho as obrigações automáticas dele (as que
+  // outros specs deixaram no catálogo). A jornada quer exatamente uma.
+  const marcadas = page.locator('fieldset input[type="checkbox"]:checked');
+  while (await marcadas.count()) await marcadas.first().uncheck();
   await page.locator("label").filter({ hasText: TIPO }).getByRole("checkbox").check();
   await page.getByRole("button", { name: "Salvar" }).click();
   await expect(page.getByRole("cell", { name: CLIENTE })).toBeVisible();

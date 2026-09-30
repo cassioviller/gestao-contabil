@@ -13,9 +13,6 @@ test("edita células da planilha e os valores persistem após reload", async ({ 
   const linha = page.locator("tbody tr").filter({ has: page.locator(`input[value="${EMPRESA}"]`) });
   await expect(linha).toHaveCount(1);
 
-  // Senhas nascem mascaradas; revelar para poder conferir o valor digitado.
-  await page.getByRole("button", { name: /Mostrar senhas/ }).click();
-
   const valores: Record<string, string> = {
     cnpj: "12.345.678/0001-99",
     cnaePrincipal: "6920-6/01",
@@ -40,14 +37,38 @@ test("edita células da planilha e os valores persistem após reload", async ({ 
 
   // Reload: os valores vêm do banco, não do estado local.
   await page.reload();
-  await page.getByRole("button", { name: /Mostrar senhas/ }).click();
   const recarregada = page
     .locator("tbody tr")
     .filter({ has: page.locator(`input[value="${EMPRESA}"]`) });
 
+  // As senhas não vêm na listagem (só "tem senha"); ficam mascaradas até o
+  // clique em revelar, que é um pedido à API registrado na auditoria.
+  const senhas = ["senhaGov", "senhaNfse"];
   for (const [campo, valor] of Object.entries(valores)) {
+    if (senhas.includes(campo)) continue;
     await expect(recarregada.locator(`input[name="${campo}"]`)).toHaveValue(valor);
   }
+  await expect(recarregada.locator('input[name="senhaGov"]')).toHaveAttribute("type", "password");
+  await expect(recarregada.locator('input[name="senhaGov"]')).toHaveValue("");
+  await recarregada.locator('button[title="Revelar senha gov.br"]').click();
+  await expect(recarregada.locator('input[name="senhaGov"]')).toHaveAttribute("type", "text");
+  await expect(recarregada.locator('input[name="senhaGov"]')).toHaveValue(valores.senhaGov);
+  await expect(recarregada.locator('input[name="senhaNfse"]')).toHaveValue(valores.senhaNfse);
+
+  // Editar a senha revelada grava a nova e ela volta cifrada.
+  await recarregada.locator('input[name="senhaGov"]').fill("gov-nova");
+  await recarregada.locator('input[name="senhaGov"]').press("Enter");
+  await expect(page.getByText("✓ salvo")).toBeVisible();
+
+  // A API nunca devolve a senha em claro na listagem, e no banco ela está cifrada.
+  const lista = (await (await request.get("/api/clientes")).json()) as Array<Record<string, unknown>>;
+  const cliente = lista.find((c) => c.razaoSocial === EMPRESA)!;
+  expect(cliente.temSenhaGov).toBe(true);
+  expect(cliente.temSenhaNfse).toBe(true);
+  expect("senhaGov" in cliente).toBe(false);
+  expect(JSON.stringify(lista)).not.toContain("gov-nova");
+  const segredos = await (await request.get(`/api/clientes/${cliente.id}/segredos`)).json();
+  expect(segredos).toEqual({ senhaGov: "gov-nova", senhaNfse: valores.senhaNfse });
 
   await expect(recarregada.locator('select[name="regime"]')).toHaveValue("lucro_presumido");
 

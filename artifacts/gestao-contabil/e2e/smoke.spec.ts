@@ -8,6 +8,8 @@ const PAGINAS = [
   { rota: "/clientes", heading: "Clientes" },
   { rota: "/cadastro", heading: "Dados cadastrais" },
   { rota: "/senhas", heading: "Senhas" },
+  { rota: "/usuarios", heading: "Usuários" },
+  { rota: "/minha-conta", heading: "Minha conta" },
   { rota: "/pedidos", heading: "Pedidos" },
   { rota: "/processos", heading: "Processos" },
   { rota: "/competencias", heading: "Competências" },

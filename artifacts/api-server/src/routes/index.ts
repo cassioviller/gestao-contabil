@@ -19,6 +19,7 @@ import despesasRouter from "./despesas";
 import funcionariosRouter from "./funcionarios";
 import folhaRouter from "./folha";
 import feriasRouter from "./ferias";
+import usuariosRouter from "./usuarios";
 
 const router: IRouter = Router();
 
@@ -48,5 +49,6 @@ router.use("/despesas", despesasRouter);
 router.use("/funcionarios", funcionariosRouter);
 router.use("/folha", folhaRouter);
 router.use("/ferias", feriasRouter);
+router.use("/usuarios", usuariosRouter);
 
 export default router;

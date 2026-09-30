@@ -5,7 +5,10 @@ import {
   getListarTiposQueryKey,
   useSalvarTipo,
   useRemoverTipo,
+  useVincularAutomaticas,
+  getListarClientesQueryKey,
 } from "@workspace/api-client-react";
+import { mensagemDeErro } from "@/lib/erros";
 import {
   PERIODICIDADES,
   rotuloPeriodicidade,
@@ -18,12 +21,17 @@ import {
 type Tipo = {
   id: number;
   nome: string;
+  descricao: string | null;
   ordem: number;
   diaVencimento: number | null;
   offsetMes: number;
   periodicidade: string;
   mesReferencia: number | null;
   regimes: string[] | null;
+  /** Ao definir o regime de um cliente, vincula sozinha (se for do regime). */
+  vincularAutomatico: boolean;
+  /** Inativa não entra em mês novo, mas o histórico fica. */
+  ativo: boolean;
 };
 
 /** Campos que a grade edita. `id` fica de fora — é a identidade da linha. */
@@ -52,12 +60,14 @@ export default function Tipos() {
   const { data: tiposApi = [], isLoading } = useListarTipos();
   const salvarMutation = useSalvarTipo();
   const removerMutation = useRemoverTipo();
+  const vincularMutation = useVincularAutomaticas();
 
   const [rascunhos, setRascunhos] = useState<Record<number, Rascunho>>({});
   const [filtro, setFiltro] = useState("todas");
   const [erro, setErro] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
   const [salvo, setSalvo] = useState(false);
+  const [aviso, setAviso] = useState<string | null>(null);
 
   const tipos = tiposApi as unknown as Tipo[];
 
@@ -112,6 +122,9 @@ export default function Tipos() {
             periodicidade: dados.periodicidade,
             mesReferencia: dados.periodicidade === "mensal" ? null : dados.mesReferencia ?? 1,
             regimes: dados.regimes,
+            descricao: dados.descricao,
+            vincularAutomatico: dados.vincularAutomatico,
+            ativo: dados.ativo,
           } as never,
         });
       }
@@ -120,13 +133,26 @@ export default function Tipos() {
       setSalvo(true);
       window.setTimeout(() => setSalvo(false), 2000);
     } catch (e) {
-      setErro(
-        e instanceof Error && e.message
-          ? `Não foi possível salvar: ${e.message}`
-          : "Não foi possível salvar. Verifique se o servidor da API está no ar."
-      );
+      setErro(mensagemDeErro(e, "Não foi possível salvar. Verifique se o servidor da API está no ar."));
     } finally {
       setSalvando(false);
+    }
+  }
+
+  /** Põe a base em dia: cada cliente com regime ganha as automáticas do regime dele. */
+  async function vincularAutomaticas() {
+    setErro(null);
+    setAviso(null);
+    try {
+      const { vinculosCriados } = await vincularMutation.mutateAsync();
+      qc.invalidateQueries({ queryKey: getListarClientesQueryKey() });
+      setAviso(
+        vinculosCriados === 0
+          ? "Nenhum vínculo novo: os clientes já tinham as obrigações automáticas do regime deles."
+          : `${vinculosCriados} vínculo(s) criado(s) entre clientes e obrigações automáticas.`,
+      );
+    } catch (e) {
+      setErro(mensagemDeErro(e));
     }
   }
 
@@ -166,11 +192,20 @@ export default function Tipos() {
             Edite tudo aqui e grave de uma vez · a periodicidade define em que meses cada uma aparece
           </p>
         </div>
-        <button onClick={adicionar}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
-          + Nova obrigação
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button onClick={vincularAutomaticas} disabled={vincularMutation.isPending}
+            title="Vincula a cada cliente ativo com regime as obrigações marcadas como automáticas; não desvincula nada"
+            className="rounded-lg border border-black/15 px-4 py-2 text-sm disabled:opacity-50 dark:border-white/15">
+            {vincularMutation.isPending ? "Vinculando..." : "Vincular automáticas aos clientes"}
+          </button>
+          <button onClick={adicionar}
+            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+            + Nova obrigação
+          </button>
+        </div>
       </div>
+
+      {aviso && <p className="mb-3 text-sm text-green-700 dark:text-green-400">✓ {aviso}</p>}
 
       {erro && (
         <p role="alert" className="mb-3 rounded-lg bg-red-600/10 px-3 py-2 text-sm text-red-700 dark:text-red-400">
@@ -204,6 +239,7 @@ export default function Tipos() {
               <tr>
                 <th className={`w-16 px-2 py-2 font-medium ${celula}`}>Ordem</th>
                 <th className={`min-w-56 px-2 py-2 font-medium ${celula}`}>Obrigação</th>
+                <th className={`min-w-64 px-2 py-2 font-medium ${celula}`}>Descrição</th>
                 <th className={`w-36 px-2 py-2 font-medium ${celula}`}>Periodicidade</th>
                 <th className={`w-32 px-2 py-2 font-medium ${celula}`}>Mês de referência</th>
                 <th className={`w-24 px-2 py-2 font-medium ${celula}`}>Dia venc.</th>
@@ -214,6 +250,14 @@ export default function Tipos() {
                     S=Simples M=MEI P=Presumido R=Real
                   </span>
                 </th>
+                <th className={`w-16 px-2 py-2 text-center font-medium ${celula}`}
+                  title="Ao definir o regime de um cliente, a obrigação é vinculada sozinha">
+                  Auto
+                </th>
+                <th className={`w-16 px-2 py-2 text-center font-medium ${celula}`}
+                  title="Inativa não entra em mês novo; o histórico fica">
+                  Ativa
+                </th>
                 <th className="w-10" />
               </tr>
             </thead>
@@ -222,8 +266,10 @@ export default function Tipos() {
                 const periodicidade = ver(t, "periodicidade");
                 const regimes = ver(t, "regimes") ?? [];
                 const alterado = alterados.some((a) => a.id === t.id);
+                const ativa = ver(t, "ativo");
                 return (
-                  <tr key={t.id} className={alterado ? "bg-amber-50 dark:bg-amber-950/20" : ""}>
+                  <tr key={t.id}
+                    className={`${alterado ? "bg-amber-50 dark:bg-amber-950/20" : ""} ${ativa ? "" : "opacity-60"}`}>
                     <td className={`w-16 ${celula}`}>
                       <input type="number" name="ordem" aria-label={`Ordem de ${t.nome}`}
                         value={ver(t, "ordem")}
@@ -240,6 +286,13 @@ export default function Tipos() {
                           {mesesDaPeriodicidade(periodicidade, ver(t, "mesReferencia")).map(nomeMes).join(", ")}
                         </p>
                       )}
+                    </td>
+                    <td className={`min-w-64 ${celula}`}>
+                      <input name="descricao" aria-label={`Descrição de ${t.nome}`}
+                        value={ver(t, "descricao") ?? ""}
+                        placeholder="o que é, quem entrega"
+                        onChange={(e) => mudar(t, "descricao", e.target.value || null)}
+                        className={`${entrada} text-neutral-600 dark:text-neutral-300`} />
                     </td>
                     <td className={`w-36 ${celula}`}>
                       <select name="periodicidade" aria-label={`Periodicidade de ${t.nome}`}
@@ -302,6 +355,17 @@ export default function Tipos() {
                         {regimes.length ? "" : "todos"}
                       </p>
                     </td>
+                    <td className={`w-16 px-2 py-2 text-center ${celula}`}>
+                      <input type="checkbox" name="vincularAutomatico"
+                        aria-label={`${t.nome}: vincular automaticamente`}
+                        checked={ver(t, "vincularAutomatico")}
+                        onChange={(e) => mudar(t, "vincularAutomatico", e.target.checked)} />
+                    </td>
+                    <td className={`w-16 px-2 py-2 text-center ${celula}`}>
+                      <input type="checkbox" name="ativo" aria-label={`${t.nome}: ativa`}
+                        checked={ativa}
+                        onChange={(e) => mudar(t, "ativo", e.target.checked)} />
+                    </td>
                     <td className="w-10 px-2 py-2 text-center">
                       <button onClick={() => remover(t)} title="Remover obrigação"
                         className="text-neutral-400 hover:text-red-600">
@@ -313,7 +377,7 @@ export default function Tipos() {
               })}
               {visiveis.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-3 py-8 text-center text-neutral-500">
+                  <td colSpan={11} className="px-3 py-8 text-center text-neutral-500">
                     {tipos.length === 0 ? "Nenhuma obrigação cadastrada." : "Nenhuma nesta periodicidade."}
                   </td>
                 </tr>

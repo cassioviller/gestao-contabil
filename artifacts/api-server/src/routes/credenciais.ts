@@ -1,15 +1,17 @@
 import { Router } from "express";
-import { and, asc, eq } from "drizzle-orm";
-import { db } from "@workspace/db";
+import { and, asc, eq, sql } from "drizzle-orm";
+import { cifrar, db, decifrar } from "@workspace/db";
 import { clientes, credenciais, tiposObrigacao } from "@workspace/db";
 import {
   AtualizarCredencialBody,
   AtualizarCredencialParams,
+  GetSenhaCredencialParams,
   RemoverCredencialParams,
   SalvarCredencialBody,
 } from "@workspace/api-zod";
 import { HttpError } from "../lib/http";
-import { contaDaRequisicao } from "../middlewares/autenticacao";
+import { auditar } from "../lib/auditoria";
+import { contaDaRequisicao, exigirPapel } from "../middlewares/autenticacao";
 
 const router = Router();
 
@@ -20,7 +22,8 @@ const campos = {
   tipoObrigacaoId: credenciais.tipoObrigacaoId,
   rotulo: credenciais.rotulo,
   login: credenciais.login,
-  senha: credenciais.senha,
+  // A senha fica cifrada e só sai por `/credenciais/:id/senha`, com auditoria.
+  temSenha: sql<boolean>`(${credenciais.senha} is not null)`,
   observacao: credenciais.observacao,
 };
 
@@ -72,6 +75,7 @@ router.get("/", async (req, res) => {
 router.post("/", async (req, res) => {
   const contaId = contaDaRequisicao(req);
   const { id, ...dados } = SalvarCredencialBody.parse(req.body);
+  if (dados.senha !== undefined) dados.senha = cifrar(dados.senha);
 
   await validarVinculos(contaId, dados.clienteId, dados.tipoObrigacaoId);
 
@@ -92,6 +96,10 @@ router.post("/", async (req, res) => {
     credencialId = nova.id;
   }
 
+  if (dados.senha !== undefined) {
+    await auditar(req, { acao: "alterar_segredo", entidade: "credencial", entidadeId: credencialId, campo: "senha" });
+  }
+
   const [salva] = await consulta(contaId, eq(credenciais.id, credencialId));
   res.json(salva);
 });
@@ -104,6 +112,7 @@ router.patch("/:id", async (req, res) => {
 
   const mudancas = Object.fromEntries(Object.entries(body).filter(([, v]) => v !== undefined));
   if (Object.keys(mudancas).length === 0) throw new HttpError(400, "Nenhum campo para atualizar.");
+  if ("senha" in mudancas) mudancas.senha = cifrar(mudancas.senha as string | null);
 
   if (mudancas.clienteId !== undefined || mudancas.tipoObrigacaoId !== undefined) {
     const [atual] = await db
@@ -124,9 +133,25 @@ router.patch("/:id", async (req, res) => {
     .where(and(eq(credenciais.id, id), eq(credenciais.contaId, contaId)))
     .returning({ id: credenciais.id });
   if (!atualizada) throw new HttpError(404, "Credencial não encontrada.");
+  if ("senha" in mudancas) {
+    await auditar(req, { acao: "alterar_segredo", entidade: "credencial", entidadeId: id, campo: "senha" });
+  }
 
   const [salva] = await consulta(contaId, eq(credenciais.id, id));
   res.json(salva);
+});
+
+// GET /api/credenciais/:id/senha — a senha em claro, com auditoria.
+router.get("/:id/senha", exigirPapel("admin", "contador"), async (req, res) => {
+  const contaId = contaDaRequisicao(req);
+  const { id } = GetSenhaCredencialParams.parse(req.params);
+  const [c] = await db
+    .select({ senha: credenciais.senha })
+    .from(credenciais)
+    .where(and(eq(credenciais.id, id), eq(credenciais.contaId, contaId)));
+  if (!c) throw new HttpError(404, "Credencial não encontrada.");
+  await auditar(req, { acao: "revelar_segredo", entidade: "credencial", entidadeId: id, campo: "senha" });
+  res.json({ senha: decifrar(c.senha) });
 });
 
 // DELETE /api/credenciais/:id

@@ -12,6 +12,8 @@ export interface TipoObrigacaoInput {
   /** @nullable */
   id?: number | null;
   nome: string;
+  /** @nullable */
+  descricao?: string | null;
   ordem?: number;
   /** @nullable */
   diaVencimento?: number | null;
@@ -21,4 +23,6 @@ export interface TipoObrigacaoInput {
   mesReferencia?: number | null;
   /** @nullable */
   regimes?: RegimeValor[] | null;
+  vincularAutomatico?: boolean;
+  ativo?: boolean;
 }

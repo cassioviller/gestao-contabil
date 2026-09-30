@@ -7,12 +7,11 @@
  */
 import type { Papel } from './papel';
 
-export interface SessaoAtual {
-  contaId: number;
-  conta: string;
-  usuarioId: number;
-  login: string;
+export interface UsuarioPatch {
   /** @nullable */
-  nome: string | null;
-  papel: Papel;
+  nome?: string | null;
+  /** @nullable */
+  email?: string | null;
+  papel?: Papel;
+  ativo?: boolean;
 }

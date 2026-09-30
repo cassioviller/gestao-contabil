@@ -19,7 +19,6 @@ type Cliente = {
   inscricaoEstadual: string | null;
   formaEnvio: string | null;
   procuracao: string | null;
-  senhaNfse: string | null;
   observacao: string | null;
   valorHonorario: string | null;
   diaVencimentoHonorario: number | null;
@@ -32,7 +31,7 @@ type Cliente = {
 
 const novoCliente: Cliente = {
   id: 0, codigo: null, razaoSocial: "", cnpj: "", cnaePrincipal: "", regime: null, inscricaoEstadual: "",
-  formaEnvio: "", procuracao: "", senhaNfse: "", observacao: "",
+  formaEnvio: "", procuracao: "", observacao: "",
   valorHonorario: "", diaVencimentoHonorario: null,
   contatoNome: "", whatsapp: "", email: "", ativo: true, obrigacoes: [],
 };
@@ -49,14 +48,47 @@ function Campo({ label, name, defaultValue, type = "text", required, placeholder
   );
 }
 
+type TipoResumo = {
+  id: number;
+  nome: string;
+  regimes: string[] | null;
+  vincularAutomatico?: boolean;
+  ativo?: boolean;
+};
+
 function FormularioCliente({ cliente, tipos, aoFechar }: {
   cliente: Cliente;
-  tipos: { id: number; nome: string; regimes: string[] | null }[];
+  tipos: TipoResumo[];
   aoFechar: () => void;
 }) {
   // Controlado para as obrigações reagirem à troca de regime.
   const [regime, setRegime] = useState(cliente.regime ?? "");
   const [mostrarTodas, setMostrarTodas] = useState(false);
+  // Obrigações marcadas: controladas para o regime poder marcar as automáticas.
+  const [marcadas, setMarcadas] = useState<Set<number>>(() => new Set(cliente.obrigacoes));
+
+  /** Trocar o regime marca as obrigações automáticas dele; nunca desmarca nada. */
+  function mudarRegime(novo: string) {
+    setRegime(novo);
+    if (!novo) return;
+    setMarcadas((atual) => {
+      const proximo = new Set(atual);
+      for (const t of tipos) {
+        const doRegime = !t.regimes?.length || t.regimes.includes(novo);
+        if (t.vincularAutomatico !== false && t.ativo !== false && doRegime) proximo.add(t.id);
+      }
+      return proximo;
+    });
+  }
+
+  function alternar(id: number) {
+    setMarcadas((atual) => {
+      const proximo = new Set(atual);
+      if (proximo.has(id)) proximo.delete(id);
+      else proximo.add(id);
+      return proximo;
+    });
+  }
   const qc = useQueryClient();
   const criarMutation = useCriarCliente();
   const removerMutation = useRemoverCliente();
@@ -65,7 +97,7 @@ function FormularioCliente({ cliente, tipos, aoFechar }: {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
-    const tipoIds = tipos.map((t) => t.id).filter((id) => fd.get(`obrig_${id}`) !== null);
+    const tipoIds = tipos.map((t) => t.id).filter((id) => marcadas.has(id));
     const dados = {
       id: ehNovo ? null : cliente.id,
       codigo: fd.get("codigo") ? Number(fd.get("codigo")) : null,
@@ -76,7 +108,6 @@ function FormularioCliente({ cliente, tipos, aoFechar }: {
       inscricaoEstadual: String(fd.get("inscricaoEstadual") ?? "") || null,
       formaEnvio: String(fd.get("formaEnvio") ?? "") || null,
       procuracao: String(fd.get("procuracao") ?? "") || null,
-      senhaNfse: String(fd.get("senhaNfse") ?? "") || null,
       observacao: String(fd.get("observacao") ?? "") || null,
       valorHonorario: paraDecimalAPI(String(fd.get("valorHonorario") ?? "")),
       diaVencimentoHonorario: fd.get("diaVencimentoHonorario") ? Number(fd.get("diaVencimentoHonorario")) : null,
@@ -125,7 +156,7 @@ function FormularioCliente({ cliente, tipos, aoFechar }: {
           <label className="flex flex-col gap-1 text-sm">
             <span className="text-neutral-600 dark:text-neutral-400">Regime tributário</span>
             {/* Fundo próprio: com `bg-transparent` a lista suspensa sai branca e o texto claro some. */}
-            <select name="regime" value={regime} onChange={(e) => setRegime(e.target.value)}
+            <select name="regime" value={regime} onChange={(e) => mudarRegime(e.target.value)}
               className="rounded-lg border border-black/15 bg-neutral-900 px-3 py-2 text-white dark:border-white/15">
               <option value="" className="bg-neutral-900 text-white">Não definido</option>
               {REGIMES.map((r) => (
@@ -136,7 +167,6 @@ function FormularioCliente({ cliente, tipos, aoFechar }: {
           <Campo label="Inscrição estadual" name="inscricaoEstadual" defaultValue={cliente.inscricaoEstadual ?? ""} />
           <Campo label="Forma de envio" name="formaEnvio" defaultValue={cliente.formaEnvio ?? ""} />
           <Campo label="Procuração" name="procuracao" defaultValue={cliente.procuracao ?? ""} />
-          <Campo label="Senha NFS-e" name="senhaNfse" defaultValue={cliente.senhaNfse ?? ""} />
           <Campo label="Honorário mensal (R$)" name="valorHonorario" defaultValue={formatarNumeroBR(cliente.valorHonorario)} placeholder="ex: 350,00" />
           <Campo label="Contato (WhatsApp)" name="contatoNome" defaultValue={cliente.contatoNome ?? ""} placeholder="ex: Maria (financeiro)" />
           <Campo label="WhatsApp" name="whatsapp" defaultValue={cliente.whatsapp ?? ""} placeholder="ex: (11) 99999-9999" />
@@ -154,7 +184,7 @@ function FormularioCliente({ cliente, tipos, aoFechar }: {
                 const incompativel = !compativel(t);
                 return (
                   <label key={t.id} className="flex items-center gap-2 text-sm">
-                    <input type="checkbox" name={`obrig_${t.id}`} defaultChecked={cliente.obrigacoes.includes(t.id)} />
+                    <input type="checkbox" name={`obrig_${t.id}`} checked={marcadas.has(t.id)} onChange={() => alternar(t.id)} />
                     <span className={incompativel ? "text-amber-600 dark:text-amber-400" : ""}>
                       {t.nome}
                       {incompativel && <span title="Não é deste regime"> ⚠</span>}
@@ -274,7 +304,7 @@ export default function Clientes() {
       {editando && (
         <FormularioCliente
           cliente={editando}
-          tipos={tipos as { id: number; nome: string; regimes: string[] | null }[]}
+          tipos={tipos as unknown as TipoResumo[]}
           aoFechar={() => setEditando(null)}
         />
       )}

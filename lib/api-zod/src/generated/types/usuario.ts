@@ -5,17 +5,18 @@
  * ContaFácil API — gestão contábil
  * OpenAPI spec version: 0.1.0
  */
+import type { Papel } from './papel';
 
-export interface Credencial {
+export interface Usuario {
   id: number;
-  clienteId: number;
-  clienteNome: string;
+  login: string;
   /** @nullable */
-  tipoObrigacaoId?: number | null;
-  rotulo: string;
+  nome: string | null;
   /** @nullable */
-  login?: string | null;
-  temSenha: boolean;
+  email: string | null;
+  papel: Papel;
+  ativo: boolean;
   /** @nullable */
-  observacao?: string | null;
+  ultimoAcessoEm: Date | null;
+  criadoEm: Date;
 }

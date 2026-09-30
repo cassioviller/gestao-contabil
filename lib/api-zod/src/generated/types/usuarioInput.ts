@@ -7,12 +7,20 @@
  */
 import type { Papel } from './papel';
 
-export interface SessaoAtual {
-  contaId: number;
-  conta: string;
-  usuarioId: number;
+export interface UsuarioInput {
+  /**
+     * @minLength 2
+     * @maxLength 60
+     */
   login: string;
   /** @nullable */
-  nome: string | null;
+  nome?: string | null;
+  /** @nullable */
+  email?: string | null;
   papel: Papel;
+  /**
+     * @minLength 8
+     * @maxLength 200
+     */
+  senha: string;
 }

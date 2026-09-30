@@ -1,6 +1,6 @@
-import type { NextFunction, Request, Response } from "express";
+import type { NextFunction, Request, RequestHandler, Response } from "express";
 import { HttpError } from "../lib/http";
-import { COOKIE_SESSAO, buscarSessao, type Sessao } from "../lib/sessao";
+import { COOKIE_SESSAO, buscarSessao, type Papel, type Sessao } from "../lib/sessao";
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -30,14 +30,31 @@ export async function exigirSessao(
 }
 
 /**
+ * Restringe uma rota a certos papéis. Usa-se depois de `exigirSessao`: aqui o
+ * usuário já é conhecido, a pergunta é só se ele pode fazer isto.
+ */
+export function exigirPapel(...papeis: Papel[]): RequestHandler {
+  return (req, _res, next) => {
+    const sessao = sessaoDaRequisicao(req);
+    if (!papeis.includes(sessao.papel)) {
+      throw new HttpError(403, "Você não tem permissão para isso.", undefined, "sem_permissao");
+    }
+    next();
+  };
+}
+
+/**
  * A conta dona da requisição. Todo acesso ao banco passa por aqui — se alguma
  * rota escapar do `exigirSessao`, isto estoura em vez de vazar dados de outro
  * escritório.
  */
 export function contaDaRequisicao(req: Request): number {
-  const contaId = req.sessao?.contaId;
-  if (contaId === undefined) {
+  return sessaoDaRequisicao(req).contaId;
+}
+
+export function sessaoDaRequisicao(req: Request): Sessao {
+  if (!req.sessao) {
     throw new HttpError(401, "Sessão expirada. Entre de novo.");
   }
-  return contaId;
+  return req.sessao;
 }

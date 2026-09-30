@@ -16,12 +16,94 @@ export interface Credenciais {
   senha: string;
 }
 
+export type Papel = typeof Papel[keyof typeof Papel];
+
+
+export const Papel = {
+  admin: 'admin',
+  contador: 'contador',
+  auxiliar: 'auxiliar',
+} as const;
+
 export interface SessaoAtual {
   contaId: number;
   conta: string;
+  usuarioId: number;
   login: string;
   /** @nullable */
   nome: string | null;
+  papel: Papel;
+}
+
+export interface TrocarSenhaInput {
+  /** @minLength 1 */
+  senhaAtual: string;
+  /**
+     * @minLength 8
+     * @maxLength 200
+     */
+  novaSenha: string;
+}
+
+export interface SegredosCliente {
+  /** @nullable */
+  senhaGov: string | null;
+  /** @nullable */
+  senhaNfse: string | null;
+}
+
+export interface SenhaRevelada {
+  /** @nullable */
+  senha: string | null;
+}
+
+export interface Usuario {
+  id: number;
+  login: string;
+  /** @nullable */
+  nome: string | null;
+  /** @nullable */
+  email: string | null;
+  papel: Papel;
+  ativo: boolean;
+  /** @nullable */
+  ultimoAcessoEm: string | null;
+  criadoEm: string;
+}
+
+export interface UsuarioInput {
+  /**
+     * @minLength 2
+     * @maxLength 60
+     */
+  login: string;
+  /** @nullable */
+  nome?: string | null;
+  /** @nullable */
+  email?: string | null;
+  papel: Papel;
+  /**
+     * @minLength 8
+     * @maxLength 200
+     */
+  senha: string;
+}
+
+export interface UsuarioPatch {
+  /** @nullable */
+  nome?: string | null;
+  /** @nullable */
+  email?: string | null;
+  papel?: Papel;
+  ativo?: boolean;
+}
+
+export interface RedefinirSenhaInput {
+  /**
+     * @minLength 8
+     * @maxLength 200
+     */
+  novaSenha: string;
 }
 
 export type ResumoObrigacoes = {
@@ -97,10 +179,8 @@ export interface Cliente {
   socioNome?: string | null;
   /** @nullable */
   socioCpf?: string | null;
-  /** @nullable */
-  senhaGov?: string | null;
-  /** @nullable */
-  senhaNfse?: string | null;
+  temSenhaGov: boolean;
+  temSenhaNfse: boolean;
   /** @nullable */
   observacao?: string | null;
   /** @nullable */
@@ -228,6 +308,8 @@ export const RegimeValor = {
 export interface TipoObrigacao {
   id: number;
   nome: string;
+  /** @nullable */
+  descricao?: string | null;
   ordem: number;
   /** @nullable */
   diaVencimento?: number | null;
@@ -237,6 +319,7 @@ export interface TipoObrigacao {
   mesReferencia?: number | null;
   /** @nullable */
   regimes?: RegimeValor[] | null;
+  vincularAutomatico: boolean;
   ativo: boolean;
 }
 
@@ -244,6 +327,8 @@ export interface TipoObrigacaoInput {
   /** @nullable */
   id?: number | null;
   nome: string;
+  /** @nullable */
+  descricao?: string | null;
   ordem?: number;
   /** @nullable */
   diaVencimento?: number | null;
@@ -253,6 +338,12 @@ export interface TipoObrigacaoInput {
   mesReferencia?: number | null;
   /** @nullable */
   regimes?: RegimeValor[] | null;
+  vincularAutomatico?: boolean;
+  ativo?: boolean;
+}
+
+export interface ResultadoVinculo {
+  vinculosCriados: number;
 }
 
 export type StatusDebito = typeof StatusDebito[keyof typeof StatusDebito];
@@ -324,8 +415,7 @@ export interface Credencial {
   rotulo: string;
   /** @nullable */
   login?: string | null;
-  /** @nullable */
-  senha?: string | null;
+  temSenha: boolean;
   /** @nullable */
   observacao?: string | null;
 }

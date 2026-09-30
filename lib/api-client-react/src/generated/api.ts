@@ -69,11 +69,19 @@ import type {
   ProcessoComEtapas,
   ProcessoEtapa,
   ProcessoInput,
+  RedefinirSenhaInput,
   ResultadoSincronizacao,
+  ResultadoVinculo,
+  SegredosCliente,
+  SenhaRevelada,
   SessaoAtual,
   StatusChecklistInput,
   TipoObrigacao,
   TipoObrigacaoInput,
+  TrocarSenhaInput,
+  Usuario,
+  UsuarioInput,
+  UsuarioPatch,
   VencimentoInput
 } from './api.schemas';
 
@@ -320,6 +328,146 @@ export function useGetSessaoAtual<TData = Awaited<ReturnType<typeof getSessaoAtu
 
 
 
+
+export const getTrocarSenhaUrl = () => {
+
+
+
+
+  return `/api/auth/trocar-senha`
+}
+
+/**
+ * @summary Troca a própria senha (encerra as outras sessões do usuário)
+ */
+export const trocarSenha = async (trocarSenhaInput: TrocarSenhaInput, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getTrocarSenhaUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(trocarSenhaInput)
+  }
+);}
+
+
+
+
+export const getTrocarSenhaMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof trocarSenha>>, TError,{data: BodyType<TrocarSenhaInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof trocarSenha>>, TError,{data: BodyType<TrocarSenhaInput>}, TContext> => {
+
+const mutationKey = ['trocarSenha'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof trocarSenha>>, {data: BodyType<TrocarSenhaInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  trocarSenha(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TrocarSenhaMutationResult = NonNullable<Awaited<ReturnType<typeof trocarSenha>>>
+    export type TrocarSenhaMutationBody = BodyType<TrocarSenhaInput>
+    export type TrocarSenhaMutationError = ErrorType<void>
+
+    /**
+ * @summary Troca a própria senha (encerra as outras sessões do usuário)
+ */
+export const useTrocarSenha = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof trocarSenha>>, TError,{data: BodyType<TrocarSenhaInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof trocarSenha>>,
+        TError,
+        {data: BodyType<TrocarSenhaInput>},
+        TContext
+      > => {
+      return useMutation(getTrocarSenhaMutationOptions(options));
+    }
+
+export const getSairDeTodosUrl = () => {
+
+
+
+
+  return `/api/auth/sair-de-todos`
+}
+
+/**
+ * @summary Encerra todas as sessões do usuário, inclusive a atual
+ */
+export const sairDeTodos = async ( options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getSairDeTodosUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getSairDeTodosMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sairDeTodos>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof sairDeTodos>>, TError,void, TContext> => {
+
+const mutationKey = ['sairDeTodos'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof sairDeTodos>>, void> = () => {
+
+
+          return  sairDeTodos(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SairDeTodosMutationResult = NonNullable<Awaited<ReturnType<typeof sairDeTodos>>>
+
+    export type SairDeTodosMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Encerra todas as sessões do usuário, inclusive a atual
+ */
+export const useSairDeTodos = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sairDeTodos>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof sairDeTodos>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getSairDeTodosMutationOptions(options));
+    }
 
 export const getHealthCheckUrl = () => {
 
@@ -763,6 +911,83 @@ export const useRemoverCliente = <TError = ErrorType<unknown>,
       return useMutation(getRemoverClienteMutationOptions(options));
     }
 
+export const getGetSegredosClienteUrl = (id: number,) => {
+
+
+
+
+  return `/api/clientes/${id}/segredos`
+}
+
+/**
+ * @summary Revela as senhas gov.br e NFS-e do cliente (fica registrado na auditoria)
+ */
+export const getSegredosCliente = async (id: number, options?: RequestInit): Promise<SegredosCliente> => {
+
+  return customFetch<SegredosCliente>(getGetSegredosClienteUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSegredosClienteQueryKey = (id: number,) => {
+    return [
+    `/api/clientes/${id}/segredos`
+    ] as const;
+    }
+
+
+export const getGetSegredosClienteQueryOptions = <TData = Awaited<ReturnType<typeof getSegredosCliente>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSegredosCliente>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSegredosClienteQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSegredosCliente>>> = ({ signal }) => getSegredosCliente(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSegredosCliente>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetSegredosClienteQueryResult = NonNullable<Awaited<ReturnType<typeof getSegredosCliente>>>
+export type GetSegredosClienteQueryError = ErrorType<void>
+
+
+/**
+ * @summary Revela as senhas gov.br e NFS-e do cliente (fica registrado na auditoria)
+ */
+
+export function useGetSegredosCliente<TData = Awaited<ReturnType<typeof getSegredosCliente>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSegredosCliente>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetSegredosClienteQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const getListarTiposUrl = () => {
 
 
@@ -908,6 +1133,76 @@ export const useSalvarTipo = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getSalvarTipoMutationOptions(options));
+    }
+
+export const getVincularAutomaticasUrl = () => {
+
+
+
+
+  return `/api/tipos/vincular-automaticos`
+}
+
+/**
+ * @summary Vincula a cada cliente ativo com regime as obrigações automáticas do regime dele (só acrescenta)
+ */
+export const vincularAutomaticas = async ( options?: RequestInit): Promise<ResultadoVinculo> => {
+
+  return customFetch<ResultadoVinculo>(getVincularAutomaticasUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getVincularAutomaticasMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof vincularAutomaticas>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof vincularAutomaticas>>, TError,void, TContext> => {
+
+const mutationKey = ['vincularAutomaticas'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof vincularAutomaticas>>, void> = () => {
+
+
+          return  vincularAutomaticas(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type VincularAutomaticasMutationResult = NonNullable<Awaited<ReturnType<typeof vincularAutomaticas>>>
+
+    export type VincularAutomaticasMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Vincula a cada cliente ativo com regime as obrigações automáticas do regime dele (só acrescenta)
+ */
+export const useVincularAutomaticas = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof vincularAutomaticas>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof vincularAutomaticas>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getVincularAutomaticasMutationOptions(options));
     }
 
 export const getRemoverTipoUrl = (id: number,) => {
@@ -1562,6 +1857,83 @@ export const useRemoverCredencial = <TError = ErrorType<unknown>,
       > => {
       return useMutation(getRemoverCredencialMutationOptions(options));
     }
+
+export const getGetSenhaCredencialUrl = (id: number,) => {
+
+
+
+
+  return `/api/credenciais/${id}/senha`
+}
+
+/**
+ * @summary Revela a senha de um acesso (fica registrado na auditoria)
+ */
+export const getSenhaCredencial = async (id: number, options?: RequestInit): Promise<SenhaRevelada> => {
+
+  return customFetch<SenhaRevelada>(getGetSenhaCredencialUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSenhaCredencialQueryKey = (id: number,) => {
+    return [
+    `/api/credenciais/${id}/senha`
+    ] as const;
+    }
+
+
+export const getGetSenhaCredencialQueryOptions = <TData = Awaited<ReturnType<typeof getSenhaCredencial>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSenhaCredencial>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSenhaCredencialQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSenhaCredencial>>> = ({ signal }) => getSenhaCredencial(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSenhaCredencial>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetSenhaCredencialQueryResult = NonNullable<Awaited<ReturnType<typeof getSenhaCredencial>>>
+export type GetSenhaCredencialQueryError = ErrorType<void>
+
+
+/**
+ * @summary Revela a senha de um acesso (fica registrado na auditoria)
+ */
+
+export function useGetSenhaCredencial<TData = Awaited<ReturnType<typeof getSenhaCredencial>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSenhaCredencial>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetSenhaCredencialQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getListarProcessosUrl = (params?: ListarProcessosParams,) => {
   const normalizedParams = new URLSearchParams();
@@ -4645,5 +5017,294 @@ export const useRemoverFerias = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getRemoverFeriasMutationOptions(options));
+    }
+
+export const getListarUsuariosUrl = () => {
+
+
+
+
+  return `/api/usuarios`
+}
+
+/**
+ * @summary Usuários do escritório (só admin)
+ */
+export const listarUsuarios = async ( options?: RequestInit): Promise<Usuario[]> => {
+
+  return customFetch<Usuario[]>(getListarUsuariosUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListarUsuariosQueryKey = () => {
+    return [
+    `/api/usuarios`
+    ] as const;
+    }
+
+
+export const getListarUsuariosQueryOptions = <TData = Awaited<ReturnType<typeof listarUsuarios>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listarUsuarios>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListarUsuariosQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listarUsuarios>>> = ({ signal }) => listarUsuarios({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listarUsuarios>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListarUsuariosQueryResult = NonNullable<Awaited<ReturnType<typeof listarUsuarios>>>
+export type ListarUsuariosQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Usuários do escritório (só admin)
+ */
+
+export function useListarUsuarios<TData = Awaited<ReturnType<typeof listarUsuarios>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listarUsuarios>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListarUsuariosQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCriarUsuarioUrl = () => {
+
+
+
+
+  return `/api/usuarios`
+}
+
+/**
+ * @summary Cria um usuário no escritório (só admin)
+ */
+export const criarUsuario = async (usuarioInput: UsuarioInput, options?: RequestInit): Promise<Usuario> => {
+
+  return customFetch<Usuario>(getCriarUsuarioUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(usuarioInput)
+  }
+);}
+
+
+
+
+export const getCriarUsuarioMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof criarUsuario>>, TError,{data: BodyType<UsuarioInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof criarUsuario>>, TError,{data: BodyType<UsuarioInput>}, TContext> => {
+
+const mutationKey = ['criarUsuario'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof criarUsuario>>, {data: BodyType<UsuarioInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  criarUsuario(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CriarUsuarioMutationResult = NonNullable<Awaited<ReturnType<typeof criarUsuario>>>
+    export type CriarUsuarioMutationBody = BodyType<UsuarioInput>
+    export type CriarUsuarioMutationError = ErrorType<void>
+
+    /**
+ * @summary Cria um usuário no escritório (só admin)
+ */
+export const useCriarUsuario = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof criarUsuario>>, TError,{data: BodyType<UsuarioInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof criarUsuario>>,
+        TError,
+        {data: BodyType<UsuarioInput>},
+        TContext
+      > => {
+      return useMutation(getCriarUsuarioMutationOptions(options));
+    }
+
+export const getAtualizarUsuarioUrl = (id: number,) => {
+
+
+
+
+  return `/api/usuarios/${id}`
+}
+
+/**
+ * @summary Altera nome, e-mail, papel ou situação de um usuário (só admin)
+ */
+export const atualizarUsuario = async (id: number,
+    usuarioPatch: UsuarioPatch, options?: RequestInit): Promise<Usuario> => {
+
+  return customFetch<Usuario>(getAtualizarUsuarioUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(usuarioPatch)
+  }
+);}
+
+
+
+
+export const getAtualizarUsuarioMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof atualizarUsuario>>, TError,{id: number;data: BodyType<UsuarioPatch>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof atualizarUsuario>>, TError,{id: number;data: BodyType<UsuarioPatch>}, TContext> => {
+
+const mutationKey = ['atualizarUsuario'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof atualizarUsuario>>, {id: number;data: BodyType<UsuarioPatch>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  atualizarUsuario(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AtualizarUsuarioMutationResult = NonNullable<Awaited<ReturnType<typeof atualizarUsuario>>>
+    export type AtualizarUsuarioMutationBody = BodyType<UsuarioPatch>
+    export type AtualizarUsuarioMutationError = ErrorType<void>
+
+    /**
+ * @summary Altera nome, e-mail, papel ou situação de um usuário (só admin)
+ */
+export const useAtualizarUsuario = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof atualizarUsuario>>, TError,{id: number;data: BodyType<UsuarioPatch>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof atualizarUsuario>>,
+        TError,
+        {id: number;data: BodyType<UsuarioPatch>},
+        TContext
+      > => {
+      return useMutation(getAtualizarUsuarioMutationOptions(options));
+    }
+
+export const getRedefinirSenhaUsuarioUrl = (id: number,) => {
+
+
+
+
+  return `/api/usuarios/${id}/redefinir-senha`
+}
+
+/**
+ * @summary Define uma nova senha para o usuário e derruba as sessões dele (só admin)
+ */
+export const redefinirSenhaUsuario = async (id: number,
+    redefinirSenhaInput: RedefinirSenhaInput, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getRedefinirSenhaUsuarioUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(redefinirSenhaInput)
+  }
+);}
+
+
+
+
+export const getRedefinirSenhaUsuarioMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof redefinirSenhaUsuario>>, TError,{id: number;data: BodyType<RedefinirSenhaInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof redefinirSenhaUsuario>>, TError,{id: number;data: BodyType<RedefinirSenhaInput>}, TContext> => {
+
+const mutationKey = ['redefinirSenhaUsuario'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof redefinirSenhaUsuario>>, {id: number;data: BodyType<RedefinirSenhaInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  redefinirSenhaUsuario(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RedefinirSenhaUsuarioMutationResult = NonNullable<Awaited<ReturnType<typeof redefinirSenhaUsuario>>>
+    export type RedefinirSenhaUsuarioMutationBody = BodyType<RedefinirSenhaInput>
+    export type RedefinirSenhaUsuarioMutationError = ErrorType<void>
+
+    /**
+ * @summary Define uma nova senha para o usuário e derruba as sessões dele (só admin)
+ */
+export const useRedefinirSenhaUsuario = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof redefinirSenhaUsuario>>, TError,{id: number;data: BodyType<RedefinirSenhaInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof redefinirSenhaUsuario>>,
+        TError,
+        {id: number;data: BodyType<RedefinirSenhaInput>},
+        TContext
+      > => {
+      return useMutation(getRedefinirSenhaUsuarioMutationOptions(options));
     }
 
