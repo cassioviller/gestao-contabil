@@ -75,9 +75,7 @@ router.patch("/:id", async (req, res) => {
   const { id } = AtualizarFeriasParams.parse(req.params);
   const body = AtualizarFeriasBody.parse(req.body);
 
-  const mudancas = Object.fromEntries(
-    Object.entries(body).filter(([, v]) => v !== undefined),
-  );
+  const mudancas = Object.fromEntries(Object.entries(body).filter(([, v]) => v !== undefined));
   if (Object.keys(mudancas).length === 0) {
     throw new HttpError(400, "Nenhum campo para atualizar.");
   }

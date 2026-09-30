@@ -24,18 +24,10 @@ export const statusItemEnum = pgEnum("status_item", [
   "nao_aplica",
 ]);
 
-export const statusPagamentoEnum = pgEnum("status_pagamento", [
-  "pendente",
-  "pago",
-  "isento",
-]);
+export const statusPagamentoEnum = pgEnum("status_pagamento", ["pendente", "pago", "isento"]);
 
 /** Situação de uma guia em atraso do cliente com o fisco. */
-export const statusDebitoEnum = pgEnum("status_debito", [
-  "em_aberto",
-  "parcelado",
-  "pago",
-]);
+export const statusDebitoEnum = pgEnum("status_debito", ["em_aberto", "parcelado", "pago"]);
 
 export const periodicidadeEnum = pgEnum("periodicidade", [
   "mensal",
@@ -46,10 +38,7 @@ export const periodicidadeEnum = pgEnum("periodicidade", [
 ]);
 
 /** Separa o que é processo formal (JUCESP, Receita) do pedido corriqueiro do cliente. */
-export const categoriaProcessoEnum = pgEnum("categoria_processo", [
-  "processo",
-  "pedido",
-]);
+export const categoriaProcessoEnum = pgEnum("categoria_processo", ["processo", "pedido"]);
 
 export const statusProcessoEnum = pgEnum("status_processo", [
   "aberto",
@@ -83,7 +72,12 @@ export const statusAvisoEnum = pgEnum("status_aviso", [
   "falhou",
 ]);
 
-export const statusJobEnum = pgEnum("status_job", ["pendente", "executando", "concluido", "falhou"]);
+export const statusJobEnum = pgEnum("status_job", [
+  "pendente",
+  "executando",
+  "concluido",
+  "falhou",
+]);
 
 /**
  * Um escritório de contabilidade. É a fronteira do multitenant: **toda** tabela
@@ -113,9 +107,7 @@ export const contas = pgTable("contas", {
   /** Quantos dias depois do vencimento o honorário gera aviso de cobrança. */
   diasParaCobrar: integer("dias_para_cobrar").notNull().default(5),
   ativo: boolean("ativo").notNull().default(true),
-  criadoEm: timestamp("criado_em", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
+  criadoEm: timestamp("criado_em", { withTimezone: true }).notNull().defaultNow(),
 });
 
 /**
@@ -138,9 +130,7 @@ export const usuarios = pgTable(
     ativo: boolean("ativo").notNull().default(true),
     ultimoAcessoEm: timestamp("ultimo_acesso_em", { withTimezone: true }),
     senhaAlteradaEm: timestamp("senha_alterada_em", { withTimezone: true }),
-    criadoEm: timestamp("criado_em", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
+    criadoEm: timestamp("criado_em", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => ({
     porConta: index("ix_usuarios_conta").on(t.contaId, t.ativo),
@@ -162,13 +152,9 @@ export const sessoes = pgTable(
     usuarioId: integer("usuario_id")
       .notNull()
       .references(() => usuarios.id, { onDelete: "cascade" }),
-    criadoEm: timestamp("criado_em", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
+    criadoEm: timestamp("criado_em", { withTimezone: true }).notNull().defaultNow(),
     /** Renovado a cada requisição: é o que dá o timeout por inatividade. */
-    ultimoUsoEm: timestamp("ultimo_uso_em", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
+    ultimoUsoEm: timestamp("ultimo_uso_em", { withTimezone: true }).notNull().defaultNow(),
     expiraEm: timestamp("expira_em", { withTimezone: true }).notNull(),
   },
   (t) => ({
@@ -247,9 +233,7 @@ export const clientes = pgTable(
     ativo: boolean("ativo").notNull().default(true),
     /** Quando foi inativado — a exclusão de cliente virou inativação. */
     inativadoEm: timestamp("inativado_em", { withTimezone: true }),
-    criadoEm: timestamp("criado_em", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
+    criadoEm: timestamp("criado_em", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => ({
     porConta: index("ix_clientes_conta").on(t.contaId, t.ativo),
@@ -268,9 +252,7 @@ export const tiposObrigacao = pgTable(
     ordem: integer("ordem").notNull().default(0),
     diaVencimento: integer("dia_vencimento"),
     offsetMes: integer("offset_mes").notNull().default(1),
-    periodicidade: periodicidadeEnum("periodicidade")
-      .notNull()
-      .default("mensal"),
+    periodicidade: periodicidadeEnum("periodicidade").notNull().default("mensal"),
     /**
      * Mês âncora do ciclo, para o que não é mensal: a obrigação vale nos meses em
      * que `(mes - mesReferencia)` é múltiplo do intervalo. Ex.: anual com
@@ -322,9 +304,7 @@ export const competencias = pgTable(
     mes: integer("mes").notNull(),
     /** `honorarios` marca o mês aberto só com pagamentos, sem checklist. */
     rotulo: text("rotulo"),
-    criadoEm: timestamp("criado_em", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
+    criadoEm: timestamp("criado_em", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => ({
     unq: uniqueIndex("ux_competencia_ano_mes").on(t.contaId, t.ano, t.mes),
@@ -352,17 +332,13 @@ export const checklistItens = pgTable(
     observacao: text("observacao"),
     /** Quando a guia foi enviada ao cliente (protocolo). */
     enviadoEm: timestamp("enviado_em", { withTimezone: true }),
-    atualizadoPor: integer("atualizado_por").references(() => usuarios.id, { onDelete: "set null" }),
-    atualizadoEm: timestamp("atualizado_em", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
+    atualizadoPor: integer("atualizado_por").references(() => usuarios.id, {
+      onDelete: "set null",
+    }),
+    atualizadoEm: timestamp("atualizado_em", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => ({
-    unq: uniqueIndex("ux_checklist_item").on(
-      t.competenciaId,
-      t.clienteId,
-      t.tipoObrigacaoId,
-    ),
+    unq: uniqueIndex("ux_checklist_item").on(t.competenciaId, t.clienteId, t.tipoObrigacaoId),
     // É o que a tela de Pendências e o painel de alertas consultam.
     porStatus: index("ix_checklist_conta_status_venc").on(t.contaId, t.status, t.vencimento),
   }),
@@ -391,10 +367,10 @@ export const pagamentos = pgTable(
     cobrancaExternaId: text("cobranca_externa_id"),
     linkPagamento: text("link_pagamento"),
     qrPix: text("qr_pix"),
-    atualizadoPor: integer("atualizado_por").references(() => usuarios.id, { onDelete: "set null" }),
-    atualizadoEm: timestamp("atualizado_em", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
+    atualizadoPor: integer("atualizado_por").references(() => usuarios.id, {
+      onDelete: "set null",
+    }),
+    atualizadoEm: timestamp("atualizado_em", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => ({
     unq: uniqueIndex("ux_pagamento").on(t.competenciaId, t.clienteId),
@@ -417,12 +393,9 @@ export const debitos = pgTable(
     clienteId: integer("cliente_id")
       .notNull()
       .references(() => clientes.id, { onDelete: "cascade" }),
-    tipoObrigacaoId: integer("tipo_obrigacao_id").references(
-      () => tiposObrigacao.id,
-      {
-        onDelete: "set null",
-      },
-    ),
+    tipoObrigacaoId: integer("tipo_obrigacao_id").references(() => tiposObrigacao.id, {
+      onDelete: "set null",
+    }),
     /** Nome da guia como o contador escreve — livre para o que não está no catálogo. */
     rotulo: text("rotulo").notNull(),
     /** Competência de origem, em texto: aceita "05/2026" ou "03 a 05/2025". */
@@ -431,9 +404,7 @@ export const debitos = pgTable(
     valor: numeric("valor", { precision: 12, scale: 2 }),
     status: statusDebitoEnum("status").notNull().default("em_aberto"),
     observacao: text("observacao"),
-    criadoEm: timestamp("criado_em", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
+    criadoEm: timestamp("criado_em", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => ({
     porStatus: index("ix_debitos_conta_status").on(t.contaId, t.status),
@@ -458,12 +429,9 @@ export const credenciais = pgTable(
     clienteId: integer("cliente_id")
       .notNull()
       .references(() => clientes.id, { onDelete: "cascade" }),
-    tipoObrigacaoId: integer("tipo_obrigacao_id").references(
-      () => tiposObrigacao.id,
-      {
-        onDelete: "set null",
-      },
-    ),
+    tipoObrigacaoId: integer("tipo_obrigacao_id").references(() => tiposObrigacao.id, {
+      onDelete: "set null",
+    }),
     rotulo: text("rotulo").notNull(),
     login: text("login"),
     senha: text("senha"),
@@ -501,9 +469,7 @@ export const processos = pgTable(
     observacao: text("observacao"),
     /** Pedido aberto pelo próprio cliente no portal. */
     origem: text("origem").notNull().default("escritorio"),
-    criadoEm: timestamp("criado_em", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
+    criadoEm: timestamp("criado_em", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => ({
     porStatus: index("ix_processos_conta_status").on(t.contaId, t.status),
@@ -552,9 +518,7 @@ export const cobrancas = pgTable(
       .notNull()
       .references(() => pagamentos.id, { onDelete: "cascade" }),
     canal: text("canal").notNull().default("whatsapp"),
-    enviadoEm: timestamp("enviado_em", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
+    enviadoEm: timestamp("enviado_em", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => ({
     porPagamento: index("ix_cobrancas_pagamento").on(t.pagamentoId),
@@ -577,11 +541,7 @@ export const situacaoFuncionarioEnum = pgEnum("situacao_funcionario", [
  * são pagos junto com um mês qualquer e não podem ser confundidos com o salário
  * daquele mês nos totais.
  */
-export const tipoFolhaEnum = pgEnum("tipo_folha", [
-  "mensal",
-  "ferias",
-  "decimo_terceiro",
-]);
+export const tipoFolhaEnum = pgEnum("tipo_folha", ["mensal", "ferias", "decimo_terceiro"]);
 
 /**
  * Gasto do escritório ou de um cliente. `clienteId` nulo = despesa da própria
@@ -609,9 +569,7 @@ export const despesas = pgTable(
     formaPagamento: text("forma_pagamento"),
     pago: boolean("pago").notNull().default(false),
     observacao: text("observacao"),
-    criadoEm: timestamp("criado_em", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
+    criadoEm: timestamp("criado_em", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => ({
     porData: index("ix_despesas_conta_data").on(t.contaId, t.data),
@@ -648,9 +606,7 @@ export const funcionarios = pgTable(
     email: text("email"),
     endereco: text("endereco"),
     observacao: text("observacao"),
-    criadoEm: timestamp("criado_em", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
+    criadoEm: timestamp("criado_em", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => ({
     porCliente: index("ix_funcionarios_conta_cliente").on(t.contaId, t.clienteId),
@@ -721,12 +677,7 @@ export const folhaLancamentos = pgTable(
     observacao: text("observacao"),
   },
   (t) => ({
-    unico: uniqueIndex("ux_folha_funcionario_mes_tipo").on(
-      t.funcionarioId,
-      t.ano,
-      t.mes,
-      t.tipo,
-    ),
+    unico: uniqueIndex("ux_folha_funcionario_mes_tipo").on(t.funcionarioId, t.ano, t.mes, t.tipo),
   }),
 );
 

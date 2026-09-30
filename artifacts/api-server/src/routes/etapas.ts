@@ -29,7 +29,7 @@ router.patch("/:id", async (req, res) => {
   const body = AtualizarEtapaBody.parse(req.body);
 
   const campos: Record<string, unknown> = Object.fromEntries(
-    Object.entries(body).filter(([, v]) => v !== undefined)
+    Object.entries(body).filter(([, v]) => v !== undefined),
   );
   if (Object.keys(campos).length === 0) throw new HttpError(400, "Nenhum campo para atualizar.");
 

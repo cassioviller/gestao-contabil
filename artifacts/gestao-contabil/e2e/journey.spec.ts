@@ -48,7 +48,11 @@ test("jornada completa do contador: tipo → cliente → competência → checkl
   // Reabrir o cadastro: CNAE e e-mail têm que voltar do banco.
   // Mira a linha desta empresa — outros testes deixam clientes na lista e o
   // `.first()` pegaria a linha errada.
-  await page.locator("tbody tr").filter({ hasText: CLIENTE }).getByRole("button", { name: "Editar" }).click();
+  await page
+    .locator("tbody tr")
+    .filter({ hasText: CLIENTE })
+    .getByRole("button", { name: "Editar" })
+    .click();
   await expect(page.locator('input[name="cnaePrincipal"]')).toHaveValue("6920-6/01");
   await expect(page.locator('input[name="email"]')).toHaveValue("contato@clienteteste.com.br");
   await page.getByRole("button", { name: "Cancelar" }).click();
@@ -66,7 +70,10 @@ test("jornada completa do contador: tipo → cliente → competência → checkl
   await cardComp.click();
   await expect(page.getByRole("heading", { name: ROTULO })).toBeVisible();
   await expect(page.getByRole("columnheader", { name: TIPO })).toBeVisible();
-  const celula = page.getByRole("row", { name: new RegExp(CLIENTE) }).getByRole("button").first();
+  const celula = page
+    .getByRole("row", { name: new RegExp(CLIENTE) })
+    .getByRole("button")
+    .first();
   await expect(celula).toHaveText("•"); // pendente
   await Promise.all([
     page.waitForResponse(
@@ -88,7 +95,10 @@ test("jornada completa do contador: tipo → cliente → competência → checkl
   // Recarrega para confirmar a persistência no DB e atualizar o resumo do cabeçalho.
   await page.reload();
   await expect(
-    page.getByRole("row", { name: new RegExp(CLIENTE) }).getByRole("button").first(),
+    page
+      .getByRole("row", { name: new RegExp(CLIENTE) })
+      .getByRole("button")
+      .first(),
   ).toHaveText("✓");
   await expect(page.getByText("1/1")).toBeVisible(); // "Obrigações enviadas 1/1"
 

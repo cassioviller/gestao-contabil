@@ -14,11 +14,7 @@ test("obrigação anual só entra no mês de referência", async ({ request }) =
   const trimestral = await request.post("/api/tipos", {
     data: { nome: "DEFIS trimestral", periodicidade: "trimestral", mesReferencia: 3 },
   });
-  const ids = [
-    (await mensal.json()).id,
-    (await anual.json()).id,
-    (await trimestral.json()).id,
-  ];
+  const ids = [(await mensal.json()).id, (await anual.json()).id, (await trimestral.json()).id];
 
   await request.post("/api/clientes", { data: { razaoSocial: EMPRESA, obrigacoes: ids } });
 
@@ -26,15 +22,18 @@ test("obrigação anual só entra no mês de referência", async ({ request }) =
   const julho = await request.post("/api/competencias", { data: { ano: 2095, mes: 7 } });
   const { id: idJulho } = await julho.json();
   const itensJulho = await (await request.get(`/api/competencias/${idJulho}/checklist`)).json();
-  const nomesJulho = itensJulho.filter((i: { cliente: string }) => i.cliente === EMPRESA)
-    .map((i: { obrigacao: string }) => i.obrigacao).sort();
+  const nomesJulho = itensJulho
+    .filter((i: { cliente: string }) => i.cliente === EMPRESA)
+    .map((i: { obrigacao: string }) => i.obrigacao)
+    .sort();
   expect(nomesJulho).toEqual(["ECF anual", "INSS mensal"]);
 
   // Agosto: só a mensal.
   const agosto = await request.post("/api/competencias", { data: { ano: 2095, mes: 8 } });
   const { id: idAgosto } = await agosto.json();
   const itensAgosto = await (await request.get(`/api/competencias/${idAgosto}/checklist`)).json();
-  const nomesAgosto = itensAgosto.filter((i: { cliente: string }) => i.cliente === EMPRESA)
+  const nomesAgosto = itensAgosto
+    .filter((i: { cliente: string }) => i.cliente === EMPRESA)
     .map((i: { obrigacao: string }) => i.obrigacao);
   expect(nomesAgosto).toEqual(["INSS mensal"]);
 
@@ -42,8 +41,10 @@ test("obrigação anual só entra no mês de referência", async ({ request }) =
   const setembro = await request.post("/api/competencias", { data: { ano: 2095, mes: 9 } });
   const { id: idSet } = await setembro.json();
   const itensSet = await (await request.get(`/api/competencias/${idSet}/checklist`)).json();
-  const nomesSet = itensSet.filter((i: { cliente: string }) => i.cliente === EMPRESA)
-    .map((i: { obrigacao: string }) => i.obrigacao).sort();
+  const nomesSet = itensSet
+    .filter((i: { cliente: string }) => i.cliente === EMPRESA)
+    .map((i: { obrigacao: string }) => i.obrigacao)
+    .sort();
   expect(nomesSet).toEqual(["DEFIS trimestral", "INSS mensal"]);
 });
 
@@ -65,11 +66,15 @@ test("tela de Tipos permite escolher periodicidade e filtra por ela", async ({ p
   await expect(page.getByText(/cai em Julho/)).toBeVisible();
 
   // O seletor de mês só existe fora do mensal: a linha anual tem, a mensal não.
-  const linhaAnual = page.locator("tbody tr").filter({ has: page.locator('input[value="ECF anual"]') });
+  const linhaAnual = page
+    .locator("tbody tr")
+    .filter({ has: page.locator('input[value="ECF anual"]') });
   await expect(linhaAnual.locator('select[name="mesReferencia"]')).toHaveValue("7");
 
   await page.getByRole("button", { name: /^Mensal/ }).click();
-  const linhaMensal = page.locator("tbody tr").filter({ has: page.locator('input[value="INSS mensal"]') });
+  const linhaMensal = page
+    .locator("tbody tr")
+    .filter({ has: page.locator('input[value="INSS mensal"]') });
   await expect(linhaMensal.locator('select[name="mesReferencia"]')).toHaveCount(0);
 });
 

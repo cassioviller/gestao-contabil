@@ -32,6 +32,6 @@ export interface Aviso {
   /** @nullable */
   referenciaId?: number | null;
   /** @nullable */
-  enviadoEm: Date | null;
-  criadoEm: Date;
+  enviadoEm: string | null;
+  criadoEm: string;
 }

@@ -146,7 +146,12 @@ router.post("/:id/etapas", async (req, res) => {
 
   const [etapa] = await db
     .insert(processoEtapas)
-    .values({ processoId: id, descricao: dados.descricao, observacao: dados.observacao, ordem: proxima })
+    .values({
+      processoId: id,
+      descricao: dados.descricao,
+      observacao: dados.observacao,
+      ordem: proxima,
+    })
     .returning();
 
   res.json(etapa);

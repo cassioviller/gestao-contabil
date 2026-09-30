@@ -9,7 +9,10 @@ import type { PagamentoInputStatus } from './pagamentoInputStatus';
 
 export interface PagamentoInput {
   status?: PagamentoInputStatus;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   valor?: string | null;
   /** @nullable */
   dataPagamento?: string | null;

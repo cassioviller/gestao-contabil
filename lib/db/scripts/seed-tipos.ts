@@ -27,13 +27,10 @@ const client = new pg.Client({ connectionString: process.env.DATABASE_URL });
 await client.connect();
 
 const { rows: contas } = filtroConta
-  ? await client.query<{ id: number; nome: string }>(
-      "select id, nome from contas where id = $1",
-      [Number(filtroConta)],
-    )
-  : await client.query<{ id: number; nome: string }>(
-      "select id, nome from contas order by id",
-    );
+  ? await client.query<{ id: number; nome: string }>("select id, nome from contas where id = $1", [
+      Number(filtroConta),
+    ])
+  : await client.query<{ id: number; nome: string }>("select id, nome from contas order by id");
 
 if (!contas.length) {
   console.error(

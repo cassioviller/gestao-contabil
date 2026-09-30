@@ -16,6 +16,7 @@ export interface DespesaInput {
   categoria: string;
   /** @minLength 1 */
   descricao: string;
+  /** @pattern ^-?\d+(\.\d{1,2})?$ */
   valor: string;
   /** @nullable */
   vencimento?: string | null;

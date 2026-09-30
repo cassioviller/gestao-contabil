@@ -56,7 +56,9 @@ const limitePorLogin = rateLimit({
   legacyHeaders: false,
   keyGenerator: (req) => {
     const login = (req.body as { login?: unknown } | undefined)?.login;
-    return typeof login === "string" ? `login:${login.trim().toLowerCase()}` : ipKeyGenerator(req.ip ?? "");
+    return typeof login === "string"
+      ? `login:${login.trim().toLowerCase()}`
+      : ipKeyGenerator(req.ip ?? "");
   },
   handler: (_req, _res, next) => {
     next(new HttpError(429, "Muitas tentativas para este login. Aguarde alguns minutos."));

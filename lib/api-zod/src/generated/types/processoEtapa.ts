@@ -11,6 +11,7 @@ export interface ProcessoEtapa {
   processoId: number;
   descricao: string;
   feito: boolean;
+  /** @minimum 0 */
   ordem: number;
   /** @nullable */
   concluidoEm?: string | null;

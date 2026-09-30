@@ -4,7 +4,10 @@ import { test, expect } from "@playwright/test";
 // obrigações do escritório.
 const EMPRESA = "Devedora LTDA";
 
-test("registra guias em atraso, soma o devido e some do total ao pagar", async ({ page, request }) => {
+test("registra guias em atraso, soma o devido e some do total ao pagar", async ({
+  page,
+  request,
+}) => {
   await request.post("/api/clientes", { data: { razaoSocial: EMPRESA } });
 
   await page.goto("/atrasos");

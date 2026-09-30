@@ -111,7 +111,11 @@ export function rotuloTipoFolha(valor: string | null | undefined): string {
 export const PAPEIS_USUARIO = [
   { valor: "admin", rotulo: "Administrador", descricao: "Tudo, inclusive usuários e senhas" },
   { valor: "contador", rotulo: "Contador", descricao: "Tudo, exceto gerir usuários" },
-  { valor: "auxiliar", rotulo: "Auxiliar", descricao: "Checklist e cadastros; não vê senhas nem honorários" },
+  {
+    valor: "auxiliar",
+    rotulo: "Auxiliar",
+    descricao: "Checklist e cadastros; não vê senhas nem honorários",
+  },
 ] as const;
 
 export type PapelUsuario = (typeof PAPEIS_USUARIO)[number]["valor"];

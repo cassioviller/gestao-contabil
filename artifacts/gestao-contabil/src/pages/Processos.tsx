@@ -54,7 +54,7 @@ function FormularioProcesso({
       setErro(
         e instanceof Error && e.message
           ? `Não foi possível salvar: ${e.message}`
-          : "Não foi possível salvar. Verifique se o servidor da API está no ar."
+          : "Não foi possível salvar. Verifique se o servidor da API está no ar.",
       );
       return;
     }
@@ -76,14 +76,21 @@ function FormularioProcesso({
         </div>
         <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {erro && (
-            <p role="alert" className="rounded-lg bg-red-600/10 px-3 py-2 text-sm text-red-700 sm:col-span-2 dark:text-red-400">
+            <p
+              role="alert"
+              className="rounded-lg bg-red-600/10 px-3 py-2 text-sm text-red-700 sm:col-span-2 dark:text-red-400"
+            >
               {erro}
             </p>
           )}
           <label className="flex flex-col gap-1 text-sm sm:col-span-2">
             <span className="text-neutral-600 dark:text-neutral-400">Empresa *</span>
-            <select name="clienteId" required defaultValue=""
-              className="rounded-lg border border-black/15 bg-neutral-900 px-3 py-2 text-sm text-white dark:border-white/15">
+            <select
+              name="clienteId"
+              required
+              defaultValue=""
+              className="rounded-lg border border-black/15 bg-neutral-900 px-3 py-2 text-sm text-white dark:border-white/15"
+            >
               <option value="" disabled className="bg-neutral-900 text-white">
                 Selecione…
               </option>
@@ -98,7 +105,13 @@ function FormularioProcesso({
           <label className="flex flex-col gap-1 text-sm sm:col-span-2">
             <span className="text-neutral-600 dark:text-neutral-400">Tipo de {txt.singular} *</span>
             {/* Lista aberta: as sugestões cobrem o comum, mas dá para digitar qualquer coisa. */}
-            <input name="tipo" required list="tipos-sugeridos" placeholder={txt.exemploTipo} className={campo} />
+            <input
+              name="tipo"
+              required
+              list="tipos-sugeridos"
+              placeholder={txt.exemploTipo}
+              className={campo}
+            />
             <datalist id="tipos-sugeridos">
               {txt.sugestoes.map((t) => (
                 <option key={t} value={t} />
@@ -139,8 +152,11 @@ function FormularioProcesso({
             <button type="button" onClick={aoFechar} className={campo}>
               Cancelar
             </button>
-            <button type="submit" disabled={salvar.isPending}
-              className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50">
+            <button
+              type="submit"
+              disabled={salvar.isPending}
+              className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
+            >
               {salvar.isPending ? "Salvando..." : `Criar ${txt.singular}`}
             </button>
           </div>
@@ -167,7 +183,7 @@ export default function Processos({ categoria = "processo" }: { categoria?: Cate
     const t = busca.trim().toLowerCase();
     if (!t) return true;
     return [p.clienteNome, p.tipo, p.titulo, p.protocolo, p.orgao].some((v) =>
-      (v ?? "").toLowerCase().includes(t)
+      (v ?? "").toLowerCase().includes(t),
     );
   });
 
@@ -185,26 +201,34 @@ export default function Processos({ categoria = "processo" }: { categoria?: Cate
             {filtrados.length} {txt.singular}(s) · abra um para montar o checklist
           </p>
         </div>
-        <button onClick={() => setCriando(true)}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+        <button
+          onClick={() => setCriando(true)}
+          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+        >
           + {txt.novo}
         </button>
       </div>
 
       <div className="mb-4 flex flex-wrap items-center gap-2">
         {abas.map((a) => (
-          <button key={a.valor} onClick={() => setFiltro(a.valor)}
+          <button
+            key={a.valor}
+            onClick={() => setFiltro(a.valor)}
             className={`rounded-lg px-3 py-1.5 text-sm ${
               filtro === a.valor
                 ? "bg-blue-600 text-white"
                 : "border border-black/15 text-neutral-700 dark:border-white/15 dark:text-neutral-300"
-            }`}>
+            }`}
+          >
             {a.rotulo}
           </button>
         ))}
-        <input value={busca} onChange={(e) => setBusca(e.target.value)}
+        <input
+          value={busca}
+          onChange={(e) => setBusca(e.target.value)}
           placeholder="Buscar por empresa, tipo, protocolo…"
-          className="ml-auto w-full rounded-lg border border-black/15 bg-transparent px-3 py-2 text-sm dark:border-white/15 sm:w-72" />
+          className="ml-auto w-full rounded-lg border border-black/15 bg-transparent px-3 py-2 text-sm dark:border-white/15 sm:w-72"
+        />
       </div>
 
       {isLoading ? (
@@ -236,7 +260,9 @@ export default function Processos({ categoria = "processo" }: { categoria?: Cate
                       {p.titulo && <p className="text-xs text-neutral-500">{p.titulo}</p>}
                     </td>
                     <td className="px-3 py-3">
-                      <span className={`rounded-full px-2 py-0.5 text-xs ${corStatusProcesso(p.status)}`}>
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-xs ${corStatusProcesso(p.status)}`}
+                      >
                         {rotuloStatusProcesso(p.status)}
                       </span>
                     </td>
@@ -254,12 +280,17 @@ export default function Processos({ categoria = "processo" }: { categoria?: Cate
                         </div>
                       )}
                     </td>
-                    <td className={`px-3 py-3 ${vencido ? "font-medium text-red-600" : "text-neutral-600 dark:text-neutral-400"}`}>
+                    <td
+                      className={`px-3 py-3 ${vencido ? "font-medium text-red-600" : "text-neutral-600 dark:text-neutral-400"}`}
+                    >
                       {formatarData(p.prazo)}
                       {vencido && <span className="ml-1 text-xs">atrasado</span>}
                     </td>
                     <td className="px-3 py-3 text-right">
-                      <Link href={`/${categoria}s/${p.id}`} className="text-xs text-blue-600 hover:underline">
+                      <Link
+                        href={`/${categoria}s/${p.id}`}
+                        className="text-xs text-blue-600 hover:underline"
+                      >
                         Abrir
                       </Link>
                     </td>

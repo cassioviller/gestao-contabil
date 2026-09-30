@@ -10,15 +10,32 @@ import type { RegimeValor } from './regimeValor';
 
 export interface TipoObrigacao {
   id: number;
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
   nome: string;
   /** @nullable */
   descricao?: string | null;
+  /** @minimum 0 */
   ordem: number;
-  /** @nullable */
+  /**
+     * @minimum 1
+     * @maximum 31
+     * @nullable
+     */
   diaVencimento?: number | null;
+  /**
+     * @minimum 0
+     * @maximum 12
+     */
   offsetMes: number;
   periodicidade: Periodicidade;
-  /** @nullable */
+  /**
+     * @minimum 1
+     * @maximum 12
+     * @nullable
+     */
   mesReferencia?: number | null;
   /** @nullable */
   regimes?: RegimeValor[] | null;

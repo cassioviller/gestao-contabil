@@ -39,7 +39,9 @@ test("formulário de pedido sugere os pedidos comuns", async ({ page }) => {
   await page.getByRole("button", { name: "+ Novo pedido" }).click();
   const opcoes = page.locator("#tipos-sugeridos option");
   await expect(opcoes.first()).toHaveAttribute("value", "Atualização de guia");
-  await expect(page.locator('#tipos-sugeridos option[value="Atualização de salário"]')).toHaveCount(1);
+  await expect(page.locator('#tipos-sugeridos option[value="Atualização de salário"]')).toHaveCount(
+    1,
+  );
 });
 
 test.afterAll(async ({ playwright }) => {

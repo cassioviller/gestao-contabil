@@ -12,6 +12,7 @@ export interface DespesaPatch {
   data?: string;
   categoria?: string;
   descricao?: string;
+  /** @pattern ^-?\d+(\.\d{1,2})?$ */
   valor?: string;
   /** @nullable */
   vencimento?: string | null;

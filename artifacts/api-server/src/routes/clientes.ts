@@ -21,7 +21,11 @@ const router = Router();
  * banco e só saem por `/clientes/:id/segredos`, uma de cada vez e com
  * registro na auditoria. A listagem diz apenas se existem.
  */
-const { senhaGov: _senhaGov, senhaNfse: _senhaNfse, ...colunasPublicas } = getTableColumns(clientes);
+const {
+  senhaGov: _senhaGov,
+  senhaNfse: _senhaNfse,
+  ...colunasPublicas
+} = getTableColumns(clientes);
 const projecao = {
   ...colunasPublicas,
   temSenhaGov: sql<boolean>`(${clientes.senhaGov} is not null)`,
@@ -134,7 +138,11 @@ router.post("/", async (req, res) => {
       await vincularObrigacoesAutomaticas(tx, contaId, clienteId);
     }
     for (const campo of camposDeSegredo(corpo)) {
-      await auditar(req, { acao: "alterar_segredo", entidade: "cliente", entidadeId: clienteId, campo }, tx);
+      await auditar(
+        req,
+        { acao: "alterar_segredo", entidade: "cliente", entidadeId: clienteId, campo },
+        tx,
+      );
     }
     return clienteId;
   });

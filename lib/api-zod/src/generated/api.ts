@@ -83,12 +83,21 @@ export const HealthCheckResponse = zod.object({
 /**
  * @summary Resumo do painel principal
  */
+export const getPainelResponseCompetenciaAtualAnoMin = 2000;
+export const getPainelResponseCompetenciaAtualAnoMax = 2100;
+
+export const getPainelResponseCompetenciaAtualMesMax = 12;
+
+export const getPainelResponseCompetenciaAtualResumoPagamentosRecebidoRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+export const getPainelResponseCompetenciaAtualResumoPagamentosAReceberRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+
+
 export const GetPainelResponse = zod.object({
   "clientesAtivos": zod.number(),
   "competenciaAtual": zod.object({
   "id": zod.number().optional(),
-  "ano": zod.number().optional(),
-  "mes": zod.number().optional(),
+  "ano": zod.number().min(getPainelResponseCompetenciaAtualAnoMin).max(getPainelResponseCompetenciaAtualAnoMax).optional(),
+  "mes": zod.number().min(1).max(getPainelResponseCompetenciaAtualMesMax).optional(),
   "resumo": zod.object({
   "obrigacoes": zod.object({
   "total": zod.number(),
@@ -100,8 +109,8 @@ export const GetPainelResponse = zod.object({
   "total": zod.number(),
   "pagos": zod.number(),
   "pendentes": zod.number(),
-  "recebido": zod.string(),
-  "aReceber": zod.string()
+  "recebido": zod.string().regex(getPainelResponseCompetenciaAtualResumoPagamentosRecebidoRegExp),
+  "aReceber": zod.string().regex(getPainelResponseCompetenciaAtualResumoPagamentosAReceberRegExp)
 })
 }).optional()
 }).nullable()
@@ -111,10 +120,19 @@ export const GetPainelResponse = zod.object({
 /**
  * @summary Lista todos os clientes
  */
+export const listarClientesResponseCodigoMin = 0;
+
+export const listarClientesResponseRazaoSocialMax = 200;
+
+export const listarClientesResponseValorHonorarioRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+export const listarClientesResponseDiaVencimentoHonorarioMax = 31;
+
+
+
 export const ListarClientesResponseItem = zod.object({
   "id": zod.number(),
-  "codigo": zod.number().nullish(),
-  "razaoSocial": zod.string(),
+  "codigo": zod.number().min(listarClientesResponseCodigoMin).nullish(),
+  "razaoSocial": zod.string().min(1).max(listarClientesResponseRazaoSocialMax),
   "cnpj": zod.string().nullish(),
   "cnaePrincipal": zod.string().nullish(),
   "regime": zod.union([zod.literal('simples_nacional'),zod.literal('mei'),zod.literal('lucro_presumido'),zod.literal('lucro_real'),zod.literal(null)]).nullish(),
@@ -122,14 +140,14 @@ export const ListarClientesResponseItem = zod.object({
   "inscricaoMunicipal": zod.string().nullish(),
   "formaEnvio": zod.string().nullish(),
   "procuracao": zod.string().nullish(),
-  "procuracaoVencimento": zod.string().nullish(),
+  "procuracaoVencimento": zod.string().date().nullish(),
   "socioNome": zod.string().nullish(),
   "socioCpf": zod.string().nullish(),
   "temSenhaGov": zod.boolean(),
   "temSenhaNfse": zod.boolean(),
   "observacao": zod.string().nullish(),
-  "valorHonorario": zod.string().nullish(),
-  "diaVencimentoHonorario": zod.number().nullish(),
+  "valorHonorario": zod.string().regex(listarClientesResponseValorHonorarioRegExp).nullish(),
+  "diaVencimentoHonorario": zod.number().min(1).max(listarClientesResponseDiaVencimentoHonorarioMax).nullish(),
   "contatoNome": zod.string().nullish(),
   "whatsapp": zod.string().nullish(),
   "email": zod.string().nullish(),
@@ -142,10 +160,19 @@ export const ListarClientesResponse = zod.array(ListarClientesResponseItem)
 /**
  * @summary Cria ou atualiza um cliente
  */
+export const criarClienteBodyCodigoMin = 0;
+
+export const criarClienteBodyRazaoSocialMax = 200;
+
+export const criarClienteBodyValorHonorarioRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+export const criarClienteBodyDiaVencimentoHonorarioMax = 31;
+
+
+
 export const CriarClienteBody = zod.object({
   "id": zod.number().nullish(),
-  "codigo": zod.number().nullish(),
-  "razaoSocial": zod.string(),
+  "codigo": zod.number().min(criarClienteBodyCodigoMin).nullish(),
+  "razaoSocial": zod.string().min(1).max(criarClienteBodyRazaoSocialMax),
   "cnpj": zod.string().nullish(),
   "cnaePrincipal": zod.string().nullish(),
   "regime": zod.union([zod.literal('simples_nacional'),zod.literal('mei'),zod.literal('lucro_presumido'),zod.literal('lucro_real'),zod.literal(null)]).nullish(),
@@ -153,14 +180,14 @@ export const CriarClienteBody = zod.object({
   "inscricaoMunicipal": zod.string().nullish(),
   "formaEnvio": zod.string().nullish(),
   "procuracao": zod.string().nullish(),
-  "procuracaoVencimento": zod.string().nullish(),
+  "procuracaoVencimento": zod.string().date().nullish(),
   "socioNome": zod.string().nullish(),
   "socioCpf": zod.string().nullish(),
   "senhaGov": zod.string().nullish(),
   "senhaNfse": zod.string().nullish(),
   "observacao": zod.string().nullish(),
-  "valorHonorario": zod.string().nullish(),
-  "diaVencimentoHonorario": zod.number().nullish(),
+  "valorHonorario": zod.string().regex(criarClienteBodyValorHonorarioRegExp).nullish(),
+  "diaVencimentoHonorario": zod.number().min(1).max(criarClienteBodyDiaVencimentoHonorarioMax).nullish(),
   "contatoNome": zod.string().nullish(),
   "whatsapp": zod.string().nullish(),
   "email": zod.string().nullish(),
@@ -168,10 +195,19 @@ export const CriarClienteBody = zod.object({
   "obrigacoes": zod.array(zod.number()).optional()
 })
 
+export const criarClienteResponseCodigoMin = 0;
+
+export const criarClienteResponseRazaoSocialMax = 200;
+
+export const criarClienteResponseValorHonorarioRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+export const criarClienteResponseDiaVencimentoHonorarioMax = 31;
+
+
+
 export const CriarClienteResponse = zod.object({
   "id": zod.number(),
-  "codigo": zod.number().nullish(),
-  "razaoSocial": zod.string(),
+  "codigo": zod.number().min(criarClienteResponseCodigoMin).nullish(),
+  "razaoSocial": zod.string().min(1).max(criarClienteResponseRazaoSocialMax),
   "cnpj": zod.string().nullish(),
   "cnaePrincipal": zod.string().nullish(),
   "regime": zod.union([zod.literal('simples_nacional'),zod.literal('mei'),zod.literal('lucro_presumido'),zod.literal('lucro_real'),zod.literal(null)]).nullish(),
@@ -179,14 +215,14 @@ export const CriarClienteResponse = zod.object({
   "inscricaoMunicipal": zod.string().nullish(),
   "formaEnvio": zod.string().nullish(),
   "procuracao": zod.string().nullish(),
-  "procuracaoVencimento": zod.string().nullish(),
+  "procuracaoVencimento": zod.string().date().nullish(),
   "socioNome": zod.string().nullish(),
   "socioCpf": zod.string().nullish(),
   "temSenhaGov": zod.boolean(),
   "temSenhaNfse": zod.boolean(),
   "observacao": zod.string().nullish(),
-  "valorHonorario": zod.string().nullish(),
-  "diaVencimentoHonorario": zod.number().nullish(),
+  "valorHonorario": zod.string().regex(criarClienteResponseValorHonorarioRegExp).nullish(),
+  "diaVencimentoHonorario": zod.number().min(1).max(criarClienteResponseDiaVencimentoHonorarioMax).nullish(),
   "contatoNome": zod.string().nullish(),
   "whatsapp": zod.string().nullish(),
   "email": zod.string().nullish(),
@@ -198,13 +234,25 @@ export const CriarClienteResponse = zod.object({
 /**
  * @summary Atualiza campos avulsos de um cliente
  */
+
+
+
 export const AtualizarClienteParams = zod.object({
-  "id": zod.coerce.number()
+  "id": zod.coerce.number().min(1)
 })
 
+export const atualizarClienteBodyCodigoMin = 0;
+
+export const atualizarClienteBodyRazaoSocialMax = 200;
+
+export const atualizarClienteBodyValorHonorarioRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+export const atualizarClienteBodyDiaVencimentoHonorarioMax = 31;
+
+
+
 export const AtualizarClienteBody = zod.object({
-  "codigo": zod.number().nullish(),
-  "razaoSocial": zod.string().optional(),
+  "codigo": zod.number().min(atualizarClienteBodyCodigoMin).nullish(),
+  "razaoSocial": zod.string().min(1).max(atualizarClienteBodyRazaoSocialMax).optional(),
   "cnpj": zod.string().nullish(),
   "cnaePrincipal": zod.string().nullish(),
   "regime": zod.union([zod.literal('simples_nacional'),zod.literal('mei'),zod.literal('lucro_presumido'),zod.literal('lucro_real'),zod.literal(null)]).nullish(),
@@ -212,24 +260,33 @@ export const AtualizarClienteBody = zod.object({
   "inscricaoMunicipal": zod.string().nullish(),
   "formaEnvio": zod.string().nullish(),
   "procuracao": zod.string().nullish(),
-  "procuracaoVencimento": zod.string().nullish(),
+  "procuracaoVencimento": zod.string().date().nullish(),
   "socioNome": zod.string().nullish(),
   "socioCpf": zod.string().nullish(),
   "senhaGov": zod.string().nullish(),
   "senhaNfse": zod.string().nullish(),
   "observacao": zod.string().nullish(),
-  "valorHonorario": zod.string().nullish(),
-  "diaVencimentoHonorario": zod.number().nullish(),
+  "valorHonorario": zod.string().regex(atualizarClienteBodyValorHonorarioRegExp).nullish(),
+  "diaVencimentoHonorario": zod.number().min(1).max(atualizarClienteBodyDiaVencimentoHonorarioMax).nullish(),
   "contatoNome": zod.string().nullish(),
   "whatsapp": zod.string().nullish(),
   "email": zod.string().nullish(),
   "ativo": zod.boolean().optional()
 })
 
+export const atualizarClienteResponseCodigoMin = 0;
+
+export const atualizarClienteResponseRazaoSocialMax = 200;
+
+export const atualizarClienteResponseValorHonorarioRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+export const atualizarClienteResponseDiaVencimentoHonorarioMax = 31;
+
+
+
 export const AtualizarClienteResponse = zod.object({
   "id": zod.number(),
-  "codigo": zod.number().nullish(),
-  "razaoSocial": zod.string(),
+  "codigo": zod.number().min(atualizarClienteResponseCodigoMin).nullish(),
+  "razaoSocial": zod.string().min(1).max(atualizarClienteResponseRazaoSocialMax),
   "cnpj": zod.string().nullish(),
   "cnaePrincipal": zod.string().nullish(),
   "regime": zod.union([zod.literal('simples_nacional'),zod.literal('mei'),zod.literal('lucro_presumido'),zod.literal('lucro_real'),zod.literal(null)]).nullish(),
@@ -237,14 +294,14 @@ export const AtualizarClienteResponse = zod.object({
   "inscricaoMunicipal": zod.string().nullish(),
   "formaEnvio": zod.string().nullish(),
   "procuracao": zod.string().nullish(),
-  "procuracaoVencimento": zod.string().nullish(),
+  "procuracaoVencimento": zod.string().date().nullish(),
   "socioNome": zod.string().nullish(),
   "socioCpf": zod.string().nullish(),
   "temSenhaGov": zod.boolean(),
   "temSenhaNfse": zod.boolean(),
   "observacao": zod.string().nullish(),
-  "valorHonorario": zod.string().nullish(),
-  "diaVencimentoHonorario": zod.number().nullish(),
+  "valorHonorario": zod.string().regex(atualizarClienteResponseValorHonorarioRegExp).nullish(),
+  "diaVencimentoHonorario": zod.number().min(1).max(atualizarClienteResponseDiaVencimentoHonorarioMax).nullish(),
   "contatoNome": zod.string().nullish(),
   "whatsapp": zod.string().nullish(),
   "email": zod.string().nullish(),
@@ -256,8 +313,11 @@ export const AtualizarClienteResponse = zod.object({
 /**
  * @summary Remove um cliente
  */
+
+
+
 export const RemoverClienteParams = zod.object({
-  "id": zod.coerce.number()
+  "id": zod.coerce.number().min(1)
 })
 
 export const RemoverClienteResponse = zod.void()
@@ -266,8 +326,11 @@ export const RemoverClienteResponse = zod.void()
 /**
  * @summary Revela as senhas gov.br e NFS-e do cliente (fica registrado na auditoria)
  */
+
+
+
 export const GetSegredosClienteParams = zod.object({
-  "id": zod.coerce.number()
+  "id": zod.coerce.number().min(1)
 })
 
 export const GetSegredosClienteResponse = zod.object({
@@ -279,15 +342,28 @@ export const GetSegredosClienteResponse = zod.object({
 /**
  * @summary Lista tipos de obrigação
  */
+export const listarTiposResponseNomeMax = 200;
+
+export const listarTiposResponseOrdemMin = 0;
+
+export const listarTiposResponseDiaVencimentoMax = 31;
+
+export const listarTiposResponseOffsetMesMin = 0;
+export const listarTiposResponseOffsetMesMax = 12;
+
+export const listarTiposResponseMesReferenciaMax = 12;
+
+
+
 export const ListarTiposResponseItem = zod.object({
   "id": zod.number(),
-  "nome": zod.string(),
+  "nome": zod.string().min(1).max(listarTiposResponseNomeMax),
   "descricao": zod.string().nullish(),
-  "ordem": zod.number(),
-  "diaVencimento": zod.number().nullish(),
-  "offsetMes": zod.number(),
+  "ordem": zod.number().min(listarTiposResponseOrdemMin),
+  "diaVencimento": zod.number().min(1).max(listarTiposResponseDiaVencimentoMax).nullish(),
+  "offsetMes": zod.number().min(listarTiposResponseOffsetMesMin).max(listarTiposResponseOffsetMesMax),
   "periodicidade": zod.enum(['mensal', 'bimestral', 'trimestral', 'semestral', 'anual']),
-  "mesReferencia": zod.number().nullish(),
+  "mesReferencia": zod.number().min(1).max(listarTiposResponseMesReferenciaMax).nullish(),
   "regimes": zod.array(zod.enum(['simples_nacional', 'mei', 'lucro_presumido', 'lucro_real'])).nullish(),
   "vincularAutomatico": zod.boolean(),
   "ativo": zod.boolean()
@@ -298,29 +374,55 @@ export const ListarTiposResponse = zod.array(ListarTiposResponseItem)
 /**
  * @summary Cria ou atualiza tipo de obrigação
  */
+export const salvarTipoBodyNomeMax = 200;
+
+export const salvarTipoBodyOrdemMin = 0;
+
+export const salvarTipoBodyDiaVencimentoMax = 31;
+
+export const salvarTipoBodyOffsetMesMin = 0;
+export const salvarTipoBodyOffsetMesMax = 12;
+
+export const salvarTipoBodyMesReferenciaMax = 12;
+
+
+
 export const SalvarTipoBody = zod.object({
   "id": zod.number().nullish(),
-  "nome": zod.string(),
+  "nome": zod.string().min(1).max(salvarTipoBodyNomeMax),
   "descricao": zod.string().nullish(),
-  "ordem": zod.number().optional(),
-  "diaVencimento": zod.number().nullish(),
-  "offsetMes": zod.number().optional(),
+  "ordem": zod.number().min(salvarTipoBodyOrdemMin).optional(),
+  "diaVencimento": zod.number().min(1).max(salvarTipoBodyDiaVencimentoMax).nullish(),
+  "offsetMes": zod.number().min(salvarTipoBodyOffsetMesMin).max(salvarTipoBodyOffsetMesMax).optional(),
   "periodicidade": zod.enum(['mensal', 'bimestral', 'trimestral', 'semestral', 'anual']).optional(),
-  "mesReferencia": zod.number().nullish(),
+  "mesReferencia": zod.number().min(1).max(salvarTipoBodyMesReferenciaMax).nullish(),
   "regimes": zod.array(zod.enum(['simples_nacional', 'mei', 'lucro_presumido', 'lucro_real'])).nullish(),
   "vincularAutomatico": zod.boolean().optional(),
   "ativo": zod.boolean().optional()
 })
 
+export const salvarTipoResponseNomeMax = 200;
+
+export const salvarTipoResponseOrdemMin = 0;
+
+export const salvarTipoResponseDiaVencimentoMax = 31;
+
+export const salvarTipoResponseOffsetMesMin = 0;
+export const salvarTipoResponseOffsetMesMax = 12;
+
+export const salvarTipoResponseMesReferenciaMax = 12;
+
+
+
 export const SalvarTipoResponse = zod.object({
   "id": zod.number(),
-  "nome": zod.string(),
+  "nome": zod.string().min(1).max(salvarTipoResponseNomeMax),
   "descricao": zod.string().nullish(),
-  "ordem": zod.number(),
-  "diaVencimento": zod.number().nullish(),
-  "offsetMes": zod.number(),
+  "ordem": zod.number().min(salvarTipoResponseOrdemMin),
+  "diaVencimento": zod.number().min(1).max(salvarTipoResponseDiaVencimentoMax).nullish(),
+  "offsetMes": zod.number().min(salvarTipoResponseOffsetMesMin).max(salvarTipoResponseOffsetMesMax),
   "periodicidade": zod.enum(['mensal', 'bimestral', 'trimestral', 'semestral', 'anual']),
-  "mesReferencia": zod.number().nullish(),
+  "mesReferencia": zod.number().min(1).max(salvarTipoResponseMesReferenciaMax).nullish(),
   "regimes": zod.array(zod.enum(['simples_nacional', 'mei', 'lucro_presumido', 'lucro_real'])).nullish(),
   "vincularAutomatico": zod.boolean(),
   "ativo": zod.boolean()
@@ -338,8 +440,11 @@ export const VincularAutomaticasResponse = zod.object({
 /**
  * @summary Remove tipo de obrigação
  */
+
+
+
 export const RemoverTipoParams = zod.object({
-  "id": zod.coerce.number()
+  "id": zod.coerce.number().min(1)
 })
 
 export const RemoverTipoResponse = zod.void()
@@ -353,15 +458,20 @@ export const ListarDebitosQueryParams = zod.object({
   "clienteId": zod.coerce.number().optional()
 })
 
+export const listarDebitosResponseRotuloMax = 200;
+
+export const listarDebitosResponseValorRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+
+
 export const ListarDebitosResponseItem = zod.object({
   "id": zod.number(),
   "clienteId": zod.number(),
   "clienteNome": zod.string(),
   "tipoObrigacaoId": zod.number().nullish(),
-  "rotulo": zod.string(),
+  "rotulo": zod.string().min(1).max(listarDebitosResponseRotuloMax),
   "competenciaRef": zod.string().nullish(),
-  "vencimento": zod.string().nullish(),
-  "valor": zod.string().nullish(),
+  "vencimento": zod.string().date().nullish(),
+  "valor": zod.string().regex(listarDebitosResponseValorRegExp).nullish(),
   "status": zod.enum(['em_aberto', 'parcelado', 'pago']),
   "observacao": zod.string().nullish()
 })
@@ -371,27 +481,37 @@ export const ListarDebitosResponse = zod.array(ListarDebitosResponseItem)
 /**
  * @summary Cria ou atualiza uma guia em atraso
  */
+export const salvarDebitoBodyRotuloMax = 200;
+
+export const salvarDebitoBodyValorRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+
+
 export const SalvarDebitoBody = zod.object({
   "id": zod.number().nullish(),
   "clienteId": zod.number(),
   "tipoObrigacaoId": zod.number().nullish(),
-  "rotulo": zod.string(),
+  "rotulo": zod.string().min(1).max(salvarDebitoBodyRotuloMax),
   "competenciaRef": zod.string().nullish(),
-  "vencimento": zod.string().nullish(),
-  "valor": zod.string().nullish(),
+  "vencimento": zod.string().date().nullish(),
+  "valor": zod.string().regex(salvarDebitoBodyValorRegExp).nullish(),
   "status": zod.enum(['em_aberto', 'parcelado', 'pago']).optional(),
   "observacao": zod.string().nullish()
 })
+
+export const salvarDebitoResponseRotuloMax = 200;
+
+export const salvarDebitoResponseValorRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+
 
 export const SalvarDebitoResponse = zod.object({
   "id": zod.number(),
   "clienteId": zod.number(),
   "clienteNome": zod.string(),
   "tipoObrigacaoId": zod.number().nullish(),
-  "rotulo": zod.string(),
+  "rotulo": zod.string().min(1).max(salvarDebitoResponseRotuloMax),
   "competenciaRef": zod.string().nullish(),
-  "vencimento": zod.string().nullish(),
-  "valor": zod.string().nullish(),
+  "vencimento": zod.string().date().nullish(),
+  "valor": zod.string().regex(salvarDebitoResponseValorRegExp).nullish(),
   "status": zod.enum(['em_aberto', 'parcelado', 'pago']),
   "observacao": zod.string().nullish()
 })
@@ -400,29 +520,42 @@ export const SalvarDebitoResponse = zod.object({
 /**
  * @summary Atualiza campos avulsos de uma guia em atraso
  */
+
+
+
 export const AtualizarDebitoParams = zod.object({
-  "id": zod.coerce.number()
+  "id": zod.coerce.number().min(1)
 })
+
+export const atualizarDebitoBodyRotuloMax = 200;
+
+export const atualizarDebitoBodyValorRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+
 
 export const AtualizarDebitoBody = zod.object({
   "tipoObrigacaoId": zod.number().nullish(),
-  "rotulo": zod.string().optional(),
+  "rotulo": zod.string().min(1).max(atualizarDebitoBodyRotuloMax).optional(),
   "competenciaRef": zod.string().nullish(),
-  "vencimento": zod.string().nullish(),
-  "valor": zod.string().nullish(),
+  "vencimento": zod.string().date().nullish(),
+  "valor": zod.string().regex(atualizarDebitoBodyValorRegExp).nullish(),
   "status": zod.enum(['em_aberto', 'parcelado', 'pago']).optional(),
   "observacao": zod.string().nullish()
 })
+
+export const atualizarDebitoResponseRotuloMax = 200;
+
+export const atualizarDebitoResponseValorRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+
 
 export const AtualizarDebitoResponse = zod.object({
   "id": zod.number(),
   "clienteId": zod.number(),
   "clienteNome": zod.string(),
   "tipoObrigacaoId": zod.number().nullish(),
-  "rotulo": zod.string(),
+  "rotulo": zod.string().min(1).max(atualizarDebitoResponseRotuloMax),
   "competenciaRef": zod.string().nullish(),
-  "vencimento": zod.string().nullish(),
-  "valor": zod.string().nullish(),
+  "vencimento": zod.string().date().nullish(),
+  "valor": zod.string().regex(atualizarDebitoResponseValorRegExp).nullish(),
   "status": zod.enum(['em_aberto', 'parcelado', 'pago']),
   "observacao": zod.string().nullish()
 })
@@ -431,8 +564,11 @@ export const AtualizarDebitoResponse = zod.object({
 /**
  * @summary Remove uma guia em atraso
  */
+
+
+
 export const RemoverDebitoParams = zod.object({
-  "id": zod.coerce.number()
+  "id": zod.coerce.number().min(1)
 })
 
 export const RemoverDebitoResponse = zod.void()
@@ -441,12 +577,16 @@ export const RemoverDebitoResponse = zod.void()
 /**
  * @summary Lista senhas de todos os clientes
  */
+export const listarCredenciaisResponseRotuloMax = 200;
+
+
+
 export const ListarCredenciaisResponseItem = zod.object({
   "id": zod.number(),
   "clienteId": zod.number(),
   "clienteNome": zod.string(),
   "tipoObrigacaoId": zod.number().nullish(),
-  "rotulo": zod.string(),
+  "rotulo": zod.string().min(1).max(listarCredenciaisResponseRotuloMax),
   "login": zod.string().nullish(),
   "temSenha": zod.boolean(),
   "observacao": zod.string().nullish()
@@ -457,22 +597,30 @@ export const ListarCredenciaisResponse = zod.array(ListarCredenciaisResponseItem
 /**
  * @summary Cria ou atualiza uma credencial
  */
+export const salvarCredencialBodyRotuloMax = 200;
+
+
+
 export const SalvarCredencialBody = zod.object({
   "id": zod.number().nullish(),
   "clienteId": zod.number(),
   "tipoObrigacaoId": zod.number().nullish(),
-  "rotulo": zod.string(),
+  "rotulo": zod.string().min(1).max(salvarCredencialBodyRotuloMax),
   "login": zod.string().nullish(),
   "senha": zod.string().nullish(),
   "observacao": zod.string().nullish()
 })
+
+export const salvarCredencialResponseRotuloMax = 200;
+
+
 
 export const SalvarCredencialResponse = zod.object({
   "id": zod.number(),
   "clienteId": zod.number(),
   "clienteNome": zod.string(),
   "tipoObrigacaoId": zod.number().nullish(),
-  "rotulo": zod.string(),
+  "rotulo": zod.string().min(1).max(salvarCredencialResponseRotuloMax),
   "login": zod.string().nullish(),
   "temSenha": zod.boolean(),
   "observacao": zod.string().nullish()
@@ -482,24 +630,35 @@ export const SalvarCredencialResponse = zod.object({
 /**
  * @summary Atualiza campos avulsos de uma credencial
  */
+
+
+
 export const AtualizarCredencialParams = zod.object({
-  "id": zod.coerce.number()
+  "id": zod.coerce.number().min(1)
 })
+
+export const atualizarCredencialBodyRotuloMax = 200;
+
+
 
 export const AtualizarCredencialBody = zod.object({
   "tipoObrigacaoId": zod.number().nullish(),
-  "rotulo": zod.string().optional(),
+  "rotulo": zod.string().min(1).max(atualizarCredencialBodyRotuloMax).optional(),
   "login": zod.string().nullish(),
   "senha": zod.string().nullish(),
   "observacao": zod.string().nullish()
 })
+
+export const atualizarCredencialResponseRotuloMax = 200;
+
+
 
 export const AtualizarCredencialResponse = zod.object({
   "id": zod.number(),
   "clienteId": zod.number(),
   "clienteNome": zod.string(),
   "tipoObrigacaoId": zod.number().nullish(),
-  "rotulo": zod.string(),
+  "rotulo": zod.string().min(1).max(atualizarCredencialResponseRotuloMax),
   "login": zod.string().nullish(),
   "temSenha": zod.boolean(),
   "observacao": zod.string().nullish()
@@ -509,8 +668,11 @@ export const AtualizarCredencialResponse = zod.object({
 /**
  * @summary Remove uma credencial
  */
+
+
+
 export const RemoverCredencialParams = zod.object({
-  "id": zod.coerce.number()
+  "id": zod.coerce.number().min(1)
 })
 
 export const RemoverCredencialResponse = zod.void()
@@ -519,8 +681,11 @@ export const RemoverCredencialResponse = zod.void()
 /**
  * @summary Revela a senha de um acesso (fica registrado na auditoria)
  */
+
+
+
 export const GetSenhaCredencialParams = zod.object({
-  "id": zod.coerce.number()
+  "id": zod.coerce.number().min(1)
 })
 
 export const GetSenhaCredencialResponse = zod.object({
@@ -548,7 +713,7 @@ export const ListarProcessosResponseItem = zod.object({
   "orgao": zod.string().nullish(),
   "protocolo": zod.string().nullish(),
   "abertoEm": zod.string().nullish(),
-  "prazo": zod.string().nullish(),
+  "prazo": zod.string().date().nullish(),
   "concluidoEm": zod.string().nullish(),
   "observacao": zod.string().nullish(),
   "totalEtapas": zod.number(),
@@ -570,7 +735,7 @@ export const SalvarProcessoBody = zod.object({
   "orgao": zod.string().nullish(),
   "protocolo": zod.string().nullish(),
   "abertoEm": zod.string().nullish(),
-  "prazo": zod.string().nullish(),
+  "prazo": zod.string().date().nullish(),
   "concluidoEm": zod.string().nullish(),
   "observacao": zod.string().nullish()
 })
@@ -586,7 +751,7 @@ export const SalvarProcessoResponse = zod.object({
   "orgao": zod.string().nullish(),
   "protocolo": zod.string().nullish(),
   "abertoEm": zod.string().nullish(),
-  "prazo": zod.string().nullish(),
+  "prazo": zod.string().date().nullish(),
   "concluidoEm": zod.string().nullish(),
   "observacao": zod.string().nullish(),
   "totalEtapas": zod.number(),
@@ -597,9 +762,16 @@ export const SalvarProcessoResponse = zod.object({
 /**
  * @summary Obtém um processo com suas etapas
  */
+
+
+
 export const GetProcessoParams = zod.object({
-  "id": zod.coerce.number()
+  "id": zod.coerce.number().min(1)
 })
+
+export const getProcessoResponseTwoEtapasItemOrdemMin = 0;
+
+
 
 export const GetProcessoResponse = zod.object({
   "id": zod.number(),
@@ -612,7 +784,7 @@ export const GetProcessoResponse = zod.object({
   "orgao": zod.string().nullish(),
   "protocolo": zod.string().nullish(),
   "abertoEm": zod.string().nullish(),
-  "prazo": zod.string().nullish(),
+  "prazo": zod.string().date().nullish(),
   "concluidoEm": zod.string().nullish(),
   "observacao": zod.string().nullish(),
   "totalEtapas": zod.number(),
@@ -623,7 +795,7 @@ export const GetProcessoResponse = zod.object({
   "processoId": zod.number(),
   "descricao": zod.string(),
   "feito": zod.boolean(),
-  "ordem": zod.number(),
+  "ordem": zod.number().min(getProcessoResponseTwoEtapasItemOrdemMin),
   "concluidoEm": zod.string().nullish(),
   "observacao": zod.string().nullish()
 }))
@@ -633,8 +805,11 @@ export const GetProcessoResponse = zod.object({
 /**
  * @summary Remove um processo e suas etapas
  */
+
+
+
 export const RemoverProcessoParams = zod.object({
-  "id": zod.coerce.number()
+  "id": zod.coerce.number().min(1)
 })
 
 export const RemoverProcessoResponse = zod.void()
@@ -643,8 +818,11 @@ export const RemoverProcessoResponse = zod.void()
 /**
  * @summary Adiciona uma etapa ao checklist do processo
  */
+
+
+
 export const AdicionarEtapaParams = zod.object({
-  "id": zod.coerce.number()
+  "id": zod.coerce.number().min(1)
 })
 
 export const AdicionarEtapaBody = zod.object({
@@ -652,12 +830,16 @@ export const AdicionarEtapaBody = zod.object({
   "observacao": zod.string().nullish()
 })
 
+export const adicionarEtapaResponseOrdemMin = 0;
+
+
+
 export const AdicionarEtapaResponse = zod.object({
   "id": zod.number(),
   "processoId": zod.number(),
   "descricao": zod.string(),
   "feito": zod.boolean(),
-  "ordem": zod.number(),
+  "ordem": zod.number().min(adicionarEtapaResponseOrdemMin),
   "concluidoEm": zod.string().nullish(),
   "observacao": zod.string().nullish()
 })
@@ -666,23 +848,34 @@ export const AdicionarEtapaResponse = zod.object({
 /**
  * @summary Atualiza uma etapa (marcar feito, editar texto)
  */
+
+
+
 export const AtualizarEtapaParams = zod.object({
-  "id": zod.coerce.number()
+  "id": zod.coerce.number().min(1)
 })
+
+export const atualizarEtapaBodyOrdemMin = 0;
+
+
 
 export const AtualizarEtapaBody = zod.object({
   "descricao": zod.string().optional(),
   "feito": zod.boolean().optional(),
-  "ordem": zod.number().optional(),
+  "ordem": zod.number().min(atualizarEtapaBodyOrdemMin).optional(),
   "observacao": zod.string().nullish()
 })
+
+export const atualizarEtapaResponseOrdemMin = 0;
+
+
 
 export const AtualizarEtapaResponse = zod.object({
   "id": zod.number(),
   "processoId": zod.number(),
   "descricao": zod.string(),
   "feito": zod.boolean(),
-  "ordem": zod.number(),
+  "ordem": zod.number().min(atualizarEtapaResponseOrdemMin),
   "concluidoEm": zod.string().nullish(),
   "observacao": zod.string().nullish()
 })
@@ -691,8 +884,11 @@ export const AtualizarEtapaResponse = zod.object({
 /**
  * @summary Remove uma etapa
  */
+
+
+
 export const RemoverEtapaParams = zod.object({
-  "id": zod.coerce.number()
+  "id": zod.coerce.number().min(1)
 })
 
 export const RemoverEtapaResponse = zod.void()
@@ -701,10 +897,19 @@ export const RemoverEtapaResponse = zod.void()
 /**
  * @summary Lista competências com resumo
  */
+export const listarCompetenciasResponseAnoMin = 2000;
+export const listarCompetenciasResponseAnoMax = 2100;
+
+export const listarCompetenciasResponseMesMax = 12;
+
+export const listarCompetenciasResponseResumoPagamentosRecebidoRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+export const listarCompetenciasResponseResumoPagamentosAReceberRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+
+
 export const ListarCompetenciasResponseItem = zod.object({
   "id": zod.number(),
-  "ano": zod.number(),
-  "mes": zod.number(),
+  "ano": zod.number().min(listarCompetenciasResponseAnoMin).max(listarCompetenciasResponseAnoMax),
+  "mes": zod.number().min(1).max(listarCompetenciasResponseMesMax),
   "rotulo": zod.string().nullish(),
   "resumo": zod.object({
   "obrigacoes": zod.object({
@@ -717,8 +922,8 @@ export const ListarCompetenciasResponseItem = zod.object({
   "total": zod.number(),
   "pagos": zod.number(),
   "pendentes": zod.number(),
-  "recebido": zod.string(),
-  "aReceber": zod.string()
+  "recebido": zod.string().regex(listarCompetenciasResponseResumoPagamentosRecebidoRegExp),
+  "aReceber": zod.string().regex(listarCompetenciasResponseResumoPagamentosAReceberRegExp)
 })
 })
 })
@@ -728,16 +933,30 @@ export const ListarCompetenciasResponse = zod.array(ListarCompetenciasResponseIt
 /**
  * @summary Abre uma nova competência (gera checklist e pagamentos)
  */
+export const abrirCompetenciaBodyAnoMin = 2000;
+export const abrirCompetenciaBodyAnoMax = 2100;
+
+export const abrirCompetenciaBodyMesMax = 12;
+
+
+
 export const AbrirCompetenciaBody = zod.object({
-  "ano": zod.number(),
-  "mes": zod.number(),
+  "ano": zod.number().min(abrirCompetenciaBodyAnoMin).max(abrirCompetenciaBodyAnoMax),
+  "mes": zod.number().min(1).max(abrirCompetenciaBodyMesMax),
   "somenteHonorarios": zod.boolean().optional()
 })
 
+export const abrirCompetenciaResponseAnoMin = 2000;
+export const abrirCompetenciaResponseAnoMax = 2100;
+
+export const abrirCompetenciaResponseMesMax = 12;
+
+
+
 export const AbrirCompetenciaResponse = zod.object({
   "id": zod.number(),
-  "ano": zod.number(),
-  "mes": zod.number(),
+  "ano": zod.number().min(abrirCompetenciaResponseAnoMin).max(abrirCompetenciaResponseAnoMax),
+  "mes": zod.number().min(1).max(abrirCompetenciaResponseMesMax),
   "rotulo": zod.string().nullish()
 })
 
@@ -745,14 +964,26 @@ export const AbrirCompetenciaResponse = zod.object({
 /**
  * @summary Obtém uma competência com resumo
  */
+
+
+
 export const GetCompetenciaParams = zod.object({
-  "id": zod.coerce.number()
+  "id": zod.coerce.number().min(1)
 })
+
+export const getCompetenciaResponseAnoMin = 2000;
+export const getCompetenciaResponseAnoMax = 2100;
+
+export const getCompetenciaResponseMesMax = 12;
+
+export const getCompetenciaResponseResumoPagamentosRecebidoRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+export const getCompetenciaResponseResumoPagamentosAReceberRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+
 
 export const GetCompetenciaResponse = zod.object({
   "id": zod.number(),
-  "ano": zod.number(),
-  "mes": zod.number(),
+  "ano": zod.number().min(getCompetenciaResponseAnoMin).max(getCompetenciaResponseAnoMax),
+  "mes": zod.number().min(1).max(getCompetenciaResponseMesMax),
   "rotulo": zod.string().nullish(),
   "resumo": zod.object({
   "obrigacoes": zod.object({
@@ -765,8 +996,8 @@ export const GetCompetenciaResponse = zod.object({
   "total": zod.number(),
   "pagos": zod.number(),
   "pendentes": zod.number(),
-  "recebido": zod.string(),
-  "aReceber": zod.string()
+  "recebido": zod.string().regex(getCompetenciaResponseResumoPagamentosRecebidoRegExp),
+  "aReceber": zod.string().regex(getCompetenciaResponseResumoPagamentosAReceberRegExp)
 })
 })
 })
@@ -775,8 +1006,11 @@ export const GetCompetenciaResponse = zod.object({
 /**
  * @summary Remove competência
  */
+
+
+
 export const RemoverCompetenciaParams = zod.object({
-  "id": zod.coerce.number()
+  "id": zod.coerce.number().min(1)
 })
 
 export const RemoverCompetenciaResponse = zod.void()
@@ -786,8 +1020,11 @@ export const RemoverCompetenciaResponse = zod.void()
  * Idempotente — só cria o que falta; itens e pagamentos existentes não são tocados.
  * @summary Acrescenta ao mês os clientes e obrigações incluídos depois da abertura
  */
+
+
+
 export const SincronizarCompetenciaParams = zod.object({
-  "id": zod.coerce.number()
+  "id": zod.coerce.number().min(1)
 })
 
 export const SincronizarCompetenciaResponse = zod.object({
@@ -799,20 +1036,29 @@ export const SincronizarCompetenciaResponse = zod.object({
 /**
  * @summary Lista itens do checklist da competência
  */
+
+
+
 export const ListarChecklistParams = zod.object({
-  "id": zod.coerce.number()
+  "id": zod.coerce.number().min(1)
 })
+
+export const listarChecklistResponseCodigoMin = 0;
+
+export const listarChecklistResponseOrdemMin = 0;
+
+
 
 export const ListarChecklistResponseItem = zod.object({
   "id": zod.number(),
   "status": zod.enum(['pendente', 'emitido', 'enviado', 'nao_aplica']),
   "clienteId": zod.number(),
-  "codigo": zod.number().nullish(),
+  "codigo": zod.number().min(listarChecklistResponseCodigoMin).nullish(),
   "cliente": zod.string(),
-  "vencimento": zod.string().nullish(),
+  "vencimento": zod.string().date().nullish(),
   "tipoObrigacaoId": zod.number(),
   "obrigacao": zod.string(),
-  "ordem": zod.number()
+  "ordem": zod.number().min(listarChecklistResponseOrdemMin)
 })
 export const ListarChecklistResponse = zod.array(ListarChecklistResponseItem)
 
@@ -820,20 +1066,28 @@ export const ListarChecklistResponse = zod.array(ListarChecklistResponseItem)
 /**
  * @summary Lista pagamentos da competência
  */
+
+
+
 export const ListarPagamentosParams = zod.object({
-  "id": zod.coerce.number()
+  "id": zod.coerce.number().min(1)
 })
+
+export const listarPagamentosResponseValorRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+export const listarPagamentosResponseCodigoMin = 0;
+
+
 
 export const ListarPagamentosResponseItem = zod.object({
   "id": zod.number(),
   "status": zod.enum(['pendente', 'pago', 'isento']),
-  "valor": zod.string().nullish(),
-  "dataPagamento": zod.string().nullish(),
-  "vencimento": zod.string().nullish(),
+  "valor": zod.string().regex(listarPagamentosResponseValorRegExp).nullish(),
+  "dataPagamento": zod.string().date().nullish(),
+  "vencimento": zod.string().date().nullish(),
   "forma": zod.string().nullish(),
   "observacao": zod.string().nullish(),
   "clienteId": zod.number(),
-  "codigo": zod.number().nullish(),
+  "codigo": zod.number().min(listarPagamentosResponseCodigoMin).nullish(),
   "cliente": zod.string()
 })
 export const ListarPagamentosResponse = zod.array(ListarPagamentosResponseItem)
@@ -842,76 +1096,105 @@ export const ListarPagamentosResponse = zod.array(ListarPagamentosResponseItem)
 /**
  * @summary Atualiza status de um item do checklist
  */
+
+
+
 export const AtualizarStatusChecklistParams = zod.object({
-  "id": zod.coerce.number()
+  "id": zod.coerce.number().min(1)
 })
 
 export const AtualizarStatusChecklistBody = zod.object({
   "status": zod.enum(['pendente', 'emitido', 'enviado', 'nao_aplica'])
 })
 
+export const atualizarStatusChecklistResponseCodigoMin = 0;
+
+export const atualizarStatusChecklistResponseOrdemMin = 0;
+
+
+
 export const AtualizarStatusChecklistResponse = zod.object({
   "id": zod.number(),
   "status": zod.enum(['pendente', 'emitido', 'enviado', 'nao_aplica']),
   "clienteId": zod.number(),
-  "codigo": zod.number().nullish(),
+  "codigo": zod.number().min(atualizarStatusChecklistResponseCodigoMin).nullish(),
   "cliente": zod.string(),
-  "vencimento": zod.string().nullish(),
+  "vencimento": zod.string().date().nullish(),
   "tipoObrigacaoId": zod.number(),
   "obrigacao": zod.string(),
-  "ordem": zod.number()
+  "ordem": zod.number().min(atualizarStatusChecklistResponseOrdemMin)
 })
 
 
 /**
  * @summary Atualiza vencimento de um item do checklist
  */
+
+
+
 export const AtualizarVencimentoChecklistParams = zod.object({
-  "id": zod.coerce.number()
+  "id": zod.coerce.number().min(1)
 })
 
 export const AtualizarVencimentoChecklistBody = zod.object({
-  "vencimento": zod.string().nullish()
+  "vencimento": zod.string().date().nullish()
 })
+
+export const atualizarVencimentoChecklistResponseCodigoMin = 0;
+
+export const atualizarVencimentoChecklistResponseOrdemMin = 0;
+
+
 
 export const AtualizarVencimentoChecklistResponse = zod.object({
   "id": zod.number(),
   "status": zod.enum(['pendente', 'emitido', 'enviado', 'nao_aplica']),
   "clienteId": zod.number(),
-  "codigo": zod.number().nullish(),
+  "codigo": zod.number().min(atualizarVencimentoChecklistResponseCodigoMin).nullish(),
   "cliente": zod.string(),
-  "vencimento": zod.string().nullish(),
+  "vencimento": zod.string().date().nullish(),
   "tipoObrigacaoId": zod.number(),
   "obrigacao": zod.string(),
-  "ordem": zod.number()
+  "ordem": zod.number().min(atualizarVencimentoChecklistResponseOrdemMin)
 })
 
 
 /**
  * @summary Atualiza um pagamento
  */
+
+
+
 export const AtualizarPagamentoParams = zod.object({
-  "id": zod.coerce.number()
+  "id": zod.coerce.number().min(1)
 })
+
+export const atualizarPagamentoBodyValorRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+
 
 export const AtualizarPagamentoBody = zod.object({
   "status": zod.enum(['pendente', 'pago', 'isento']).optional(),
-  "valor": zod.string().nullish(),
-  "dataPagamento": zod.string().nullish(),
+  "valor": zod.string().regex(atualizarPagamentoBodyValorRegExp).nullish(),
+  "dataPagamento": zod.string().date().nullish(),
   "forma": zod.string().nullish(),
   "observacao": zod.string().nullish()
 })
 
+export const atualizarPagamentoResponseValorRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+export const atualizarPagamentoResponseCodigoMin = 0;
+
+
+
 export const AtualizarPagamentoResponse = zod.object({
   "id": zod.number(),
   "status": zod.enum(['pendente', 'pago', 'isento']),
-  "valor": zod.string().nullish(),
-  "dataPagamento": zod.string().nullish(),
-  "vencimento": zod.string().nullish(),
+  "valor": zod.string().regex(atualizarPagamentoResponseValorRegExp).nullish(),
+  "dataPagamento": zod.string().date().nullish(),
+  "vencimento": zod.string().date().nullish(),
   "forma": zod.string().nullish(),
   "observacao": zod.string().nullish(),
   "clienteId": zod.number(),
-  "codigo": zod.number().nullish(),
+  "codigo": zod.number().min(atualizarPagamentoResponseCodigoMin).nullish(),
   "cliente": zod.string()
 })
 
@@ -919,30 +1202,47 @@ export const AtualizarPagamentoResponse = zod.object({
 /**
  * @summary Lista obrigações e pagamentos em atraso
  */
+export const listarPendenciasResponseObrigacoesItemAnoMin = 2000;
+export const listarPendenciasResponseObrigacoesItemAnoMax = 2100;
+
+export const listarPendenciasResponseObrigacoesItemMesMax = 12;
+
+export const listarPendenciasResponseObrigacoesItemCodigoMin = 0;
+
+export const listarPendenciasResponseInadimplentesItemAnoMin = 2000;
+export const listarPendenciasResponseInadimplentesItemAnoMax = 2100;
+
+export const listarPendenciasResponseInadimplentesItemMesMax = 12;
+
+export const listarPendenciasResponseInadimplentesItemValorRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+export const listarPendenciasResponseInadimplentesItemCodigoMin = 0;
+
+
+
 export const ListarPendenciasResponse = zod.object({
   "obrigacoes": zod.array(zod.object({
   "id": zod.number(),
   "competenciaId": zod.number(),
-  "ano": zod.number(),
-  "mes": zod.number(),
+  "ano": zod.number().min(listarPendenciasResponseObrigacoesItemAnoMin).max(listarPendenciasResponseObrigacoesItemAnoMax),
+  "mes": zod.number().min(1).max(listarPendenciasResponseObrigacoesItemMesMax),
   "status": zod.enum(['pendente', 'emitido']),
-  "vencimento": zod.string().nullish(),
+  "vencimento": zod.string().date().nullish(),
   "diasAtraso": zod.number(),
   "clienteId": zod.number(),
-  "codigo": zod.number().nullish(),
+  "codigo": zod.number().min(listarPendenciasResponseObrigacoesItemCodigoMin).nullish(),
   "cliente": zod.string(),
   "obrigacao": zod.string()
 })),
   "inadimplentes": zod.array(zod.object({
   "id": zod.number(),
   "competenciaId": zod.number(),
-  "ano": zod.number(),
-  "mes": zod.number(),
-  "valor": zod.string().nullish(),
-  "vencimento": zod.string().nullish(),
+  "ano": zod.number().min(listarPendenciasResponseInadimplentesItemAnoMin).max(listarPendenciasResponseInadimplentesItemAnoMax),
+  "mes": zod.number().min(1).max(listarPendenciasResponseInadimplentesItemMesMax),
+  "valor": zod.string().regex(listarPendenciasResponseInadimplentesItemValorRegExp).nullish(),
+  "vencimento": zod.string().date().nullish(),
   "diasAtraso": zod.number(),
   "clienteId": zod.number(),
-  "codigo": zod.number().nullish(),
+  "codigo": zod.number().min(listarPendenciasResponseInadimplentesItemCodigoMin).nullish(),
   "cliente": zod.string(),
   "whatsapp": zod.string().nullish(),
   "cobradoEm": zod.string().nullish()
@@ -953,8 +1253,11 @@ export const ListarPendenciasResponse = zod.object({
 /**
  * @summary Marca obrigação pendente como enviada (fim do ciclo)
  */
+
+
+
 export const MarcarObrigacaoFeitaParams = zod.object({
-  "id": zod.coerce.number()
+  "id": zod.coerce.number().min(1)
 })
 
 export const MarcarObrigacaoFeitaResponse = zod.void()
@@ -963,8 +1266,11 @@ export const MarcarObrigacaoFeitaResponse = zod.void()
 /**
  * @summary Marca pagamento pendente como pago
  */
+
+
+
 export const MarcarPagamentoPagoParams = zod.object({
-  "id": zod.coerce.number()
+  "id": zod.coerce.number().min(1)
 })
 
 export const MarcarPagamentoPagoResponse = zod.void()
@@ -987,9 +1293,12 @@ export const GetConfiguracaoParams = zod.object({
   "chave": zod.coerce.string()
 })
 
+export const getConfiguracaoResponseValorRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+
+
 export const GetConfiguracaoResponse = zod.object({
   "chave": zod.string(),
-  "valor": zod.string()
+  "valor": zod.string().regex(getConfiguracaoResponseValorRegExp)
 })
 
 
@@ -1000,22 +1309,32 @@ export const SalvarConfiguracaoParams = zod.object({
   "chave": zod.coerce.string()
 })
 
+export const salvarConfiguracaoBodyValorRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+
+
 export const SalvarConfiguracaoBody = zod.object({
-  "valor": zod.string()
+  "valor": zod.string().regex(salvarConfiguracaoBodyValorRegExp)
 })
+
+export const salvarConfiguracaoResponseValorRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+
 
 export const SalvarConfiguracaoResponse = zod.object({
   "chave": zod.string(),
-  "valor": zod.string()
+  "valor": zod.string().regex(salvarConfiguracaoResponseValorRegExp)
 })
 
 
 /**
  * @summary Dados do escritório logado
  */
+export const getPerfilResponseNomeMax = 200;
+
+
+
 export const GetPerfilResponse = zod.object({
   "id": zod.number(),
-  "nome": zod.string(),
+  "nome": zod.string().min(1).max(getPerfilResponseNomeMax),
   "cnpj": zod.string().nullish(),
   "responsavel": zod.string().nullish(),
   "crc": zod.string().nullish(),
@@ -1041,9 +1360,13 @@ export const SalvarPerfilBody = zod.object({
   "endereco": zod.string().nullish()
 })
 
+export const salvarPerfilResponseNomeMax = 200;
+
+
+
 export const SalvarPerfilResponse = zod.object({
   "id": zod.number(),
-  "nome": zod.string(),
+  "nome": zod.string().min(1).max(salvarPerfilResponseNomeMax),
   "cnpj": zod.string().nullish(),
   "responsavel": zod.string().nullish(),
   "crc": zod.string().nullish(),
@@ -1063,15 +1386,18 @@ export const ListarDespesasQueryParams = zod.object({
   "mes": zod.coerce.number().optional()
 })
 
+export const listarDespesasResponseValorRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+
+
 export const ListarDespesasResponseItem = zod.object({
   "id": zod.number(),
   "clienteId": zod.number().nullish(),
   "clienteNome": zod.string().nullish(),
-  "data": zod.string(),
+  "data": zod.string().date(),
   "categoria": zod.string(),
   "descricao": zod.string(),
-  "valor": zod.string(),
-  "vencimento": zod.string().nullish(),
+  "valor": zod.string().regex(listarDespesasResponseValorRegExp),
+  "vencimento": zod.string().date().nullish(),
   "formaPagamento": zod.string().nullish(),
   "pago": zod.boolean(),
   "observacao": zod.string().nullish()
@@ -1084,30 +1410,34 @@ export const ListarDespesasResponse = zod.array(ListarDespesasResponseItem)
  */
 
 
+export const salvarDespesaBodyValorRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
 
 
 export const SalvarDespesaBody = zod.object({
   "id": zod.number().nullish(),
   "clienteId": zod.number().nullish(),
-  "data": zod.string(),
+  "data": zod.string().date(),
   "categoria": zod.string().min(1),
   "descricao": zod.string().min(1),
-  "valor": zod.string(),
-  "vencimento": zod.string().nullish(),
+  "valor": zod.string().regex(salvarDespesaBodyValorRegExp),
+  "vencimento": zod.string().date().nullish(),
   "formaPagamento": zod.string().nullish(),
   "pago": zod.boolean().optional(),
   "observacao": zod.string().nullish()
 })
 
+export const salvarDespesaResponseValorRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+
+
 export const SalvarDespesaResponse = zod.object({
   "id": zod.number(),
   "clienteId": zod.number().nullish(),
   "clienteNome": zod.string().nullish(),
-  "data": zod.string(),
+  "data": zod.string().date(),
   "categoria": zod.string(),
   "descricao": zod.string(),
-  "valor": zod.string(),
-  "vencimento": zod.string().nullish(),
+  "valor": zod.string().regex(salvarDespesaResponseValorRegExp),
+  "vencimento": zod.string().date().nullish(),
   "formaPagamento": zod.string().nullish(),
   "pago": zod.boolean(),
   "observacao": zod.string().nullish()
@@ -1117,31 +1447,40 @@ export const SalvarDespesaResponse = zod.object({
 /**
  * @summary Atualiza campos avulsos de um gasto
  */
+
+
+
 export const AtualizarDespesaParams = zod.object({
-  "id": zod.coerce.number()
+  "id": zod.coerce.number().min(1)
 })
+
+export const atualizarDespesaBodyValorRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+
 
 export const AtualizarDespesaBody = zod.object({
   "clienteId": zod.number().nullish(),
-  "data": zod.string().optional(),
+  "data": zod.string().date().optional(),
   "categoria": zod.string().optional(),
   "descricao": zod.string().optional(),
-  "valor": zod.string().optional(),
-  "vencimento": zod.string().nullish(),
+  "valor": zod.string().regex(atualizarDespesaBodyValorRegExp).optional(),
+  "vencimento": zod.string().date().nullish(),
   "formaPagamento": zod.string().nullish(),
   "pago": zod.boolean().optional(),
   "observacao": zod.string().nullish()
 })
 
+export const atualizarDespesaResponseValorRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+
+
 export const AtualizarDespesaResponse = zod.object({
   "id": zod.number(),
   "clienteId": zod.number().nullish(),
   "clienteNome": zod.string().nullish(),
-  "data": zod.string(),
+  "data": zod.string().date(),
   "categoria": zod.string(),
   "descricao": zod.string(),
-  "valor": zod.string(),
-  "vencimento": zod.string().nullish(),
+  "valor": zod.string().regex(atualizarDespesaResponseValorRegExp),
+  "vencimento": zod.string().date().nullish(),
   "formaPagamento": zod.string().nullish(),
   "pago": zod.boolean(),
   "observacao": zod.string().nullish()
@@ -1151,8 +1490,11 @@ export const AtualizarDespesaResponse = zod.object({
 /**
  * @summary Remove um gasto
  */
+
+
+
 export const RemoverDespesaParams = zod.object({
-  "id": zod.coerce.number()
+  "id": zod.coerce.number().min(1)
 })
 
 export const RemoverDespesaResponse = zod.void()
@@ -1167,20 +1509,25 @@ export const ListarFuncionariosQueryParams = zod.object({
   "situacao": zod.enum(['ativo', 'ferias', 'afastado', 'demitido']).optional()
 })
 
+export const listarFuncionariosResponseNomeMax = 200;
+
+export const listarFuncionariosResponseSalarioRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+
+
 export const ListarFuncionariosResponseItem = zod.object({
   "id": zod.number(),
   "clienteId": zod.number().nullish(),
   "clienteNome": zod.string().nullish(),
-  "nome": zod.string(),
+  "nome": zod.string().min(1).max(listarFuncionariosResponseNomeMax),
   "cpf": zod.string().nullish(),
   "rg": zod.string().nullish(),
   "pis": zod.string().nullish(),
   "ctps": zod.string().nullish(),
-  "nascimento": zod.string().nullish(),
+  "nascimento": zod.string().date().nullish(),
   "cargo": zod.string().nullish(),
-  "admissao": zod.string().nullish(),
-  "demissao": zod.string().nullish(),
-  "salario": zod.string().nullish(),
+  "admissao": zod.string().date().nullish(),
+  "demissao": zod.string().date().nullish(),
+  "salario": zod.string().regex(listarFuncionariosResponseSalarioRegExp).nullish(),
   "situacao": zod.enum(['ativo', 'ferias', 'afastado', 'demitido']),
   "telefone": zod.string().nullish(),
   "email": zod.string().nullish(),
@@ -1194,6 +1541,7 @@ export const ListarFuncionariosResponse = zod.array(ListarFuncionariosResponseIt
  * @summary Cria ou atualiza um funcionário
  */
 
+export const salvarFuncionarioBodySalarioRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
 
 
 export const SalvarFuncionarioBody = zod.object({
@@ -1204,11 +1552,11 @@ export const SalvarFuncionarioBody = zod.object({
   "rg": zod.string().nullish(),
   "pis": zod.string().nullish(),
   "ctps": zod.string().nullish(),
-  "nascimento": zod.string().nullish(),
+  "nascimento": zod.string().date().nullish(),
   "cargo": zod.string().nullish(),
-  "admissao": zod.string().nullish(),
-  "demissao": zod.string().nullish(),
-  "salario": zod.string().nullish(),
+  "admissao": zod.string().date().nullish(),
+  "demissao": zod.string().date().nullish(),
+  "salario": zod.string().regex(salvarFuncionarioBodySalarioRegExp).nullish(),
   "situacao": zod.enum(['ativo', 'ferias', 'afastado', 'demitido']).optional(),
   "telefone": zod.string().nullish(),
   "email": zod.string().nullish(),
@@ -1216,20 +1564,25 @@ export const SalvarFuncionarioBody = zod.object({
   "observacao": zod.string().nullish()
 })
 
+export const salvarFuncionarioResponseNomeMax = 200;
+
+export const salvarFuncionarioResponseSalarioRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+
+
 export const SalvarFuncionarioResponse = zod.object({
   "id": zod.number(),
   "clienteId": zod.number().nullish(),
   "clienteNome": zod.string().nullish(),
-  "nome": zod.string(),
+  "nome": zod.string().min(1).max(salvarFuncionarioResponseNomeMax),
   "cpf": zod.string().nullish(),
   "rg": zod.string().nullish(),
   "pis": zod.string().nullish(),
   "ctps": zod.string().nullish(),
-  "nascimento": zod.string().nullish(),
+  "nascimento": zod.string().date().nullish(),
   "cargo": zod.string().nullish(),
-  "admissao": zod.string().nullish(),
-  "demissao": zod.string().nullish(),
-  "salario": zod.string().nullish(),
+  "admissao": zod.string().date().nullish(),
+  "demissao": zod.string().date().nullish(),
+  "salario": zod.string().regex(salvarFuncionarioResponseSalarioRegExp).nullish(),
   "situacao": zod.enum(['ativo', 'ferias', 'afastado', 'demitido']),
   "telefone": zod.string().nullish(),
   "email": zod.string().nullish(),
@@ -1241,25 +1594,45 @@ export const SalvarFuncionarioResponse = zod.object({
 /**
  * @summary Ficha do funcionário com folha e férias
  */
+
+
+
 export const GetFuncionarioParams = zod.object({
-  "id": zod.coerce.number()
+  "id": zod.coerce.number().min(1)
 })
+
+export const getFuncionarioResponseFuncionarioNomeMax = 200;
+
+export const getFuncionarioResponseFuncionarioSalarioRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+export const getFuncionarioResponseFolhaItemAnoMin = 2000;
+export const getFuncionarioResponseFolhaItemAnoMax = 2100;
+
+export const getFuncionarioResponseFolhaItemMesMax = 12;
+
+export const getFuncionarioResponseFolhaItemSalarioBaseRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+export const getFuncionarioResponseFolhaItemDescontosRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+export const getFuncionarioResponseFolhaItemInssRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+export const getFuncionarioResponseFolhaItemFgtsRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+export const getFuncionarioResponseFolhaItemIrrfRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+export const getFuncionarioResponseFolhaItemLiquidoRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+export const getFuncionarioResponseFeriasItemValorRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+
 
 export const GetFuncionarioResponse = zod.object({
   "funcionario": zod.object({
   "id": zod.number(),
   "clienteId": zod.number().nullish(),
   "clienteNome": zod.string().nullish(),
-  "nome": zod.string(),
+  "nome": zod.string().min(1).max(getFuncionarioResponseFuncionarioNomeMax),
   "cpf": zod.string().nullish(),
   "rg": zod.string().nullish(),
   "pis": zod.string().nullish(),
   "ctps": zod.string().nullish(),
-  "nascimento": zod.string().nullish(),
+  "nascimento": zod.string().date().nullish(),
   "cargo": zod.string().nullish(),
-  "admissao": zod.string().nullish(),
-  "demissao": zod.string().nullish(),
-  "salario": zod.string().nullish(),
+  "admissao": zod.string().date().nullish(),
+  "demissao": zod.string().date().nullish(),
+  "salario": zod.string().regex(getFuncionarioResponseFuncionarioSalarioRegExp).nullish(),
   "situacao": zod.enum(['ativo', 'ferias', 'afastado', 'demitido']),
   "telefone": zod.string().nullish(),
   "email": zod.string().nullish(),
@@ -1272,16 +1645,16 @@ export const GetFuncionarioResponse = zod.object({
   "funcionarioNome": zod.string(),
   "clienteId": zod.number().nullish(),
   "clienteNome": zod.string().nullish(),
-  "ano": zod.number(),
-  "mes": zod.number(),
+  "ano": zod.number().min(getFuncionarioResponseFolhaItemAnoMin).max(getFuncionarioResponseFolhaItemAnoMax),
+  "mes": zod.number().min(1).max(getFuncionarioResponseFolhaItemMesMax),
   "tipo": zod.enum(['mensal', 'ferias', 'decimo_terceiro']),
-  "salarioBase": zod.string().nullish(),
+  "salarioBase": zod.string().regex(getFuncionarioResponseFolhaItemSalarioBaseRegExp).nullish(),
   "proventos": zod.string().nullish(),
-  "descontos": zod.string().nullish(),
-  "inss": zod.string().nullish(),
-  "fgts": zod.string().nullish(),
-  "irrf": zod.string().nullish(),
-  "liquido": zod.string().nullish(),
+  "descontos": zod.string().regex(getFuncionarioResponseFolhaItemDescontosRegExp).nullish(),
+  "inss": zod.string().regex(getFuncionarioResponseFolhaItemInssRegExp).nullish(),
+  "fgts": zod.string().regex(getFuncionarioResponseFolhaItemFgtsRegExp).nullish(),
+  "irrf": zod.string().regex(getFuncionarioResponseFolhaItemIrrfRegExp).nullish(),
+  "liquido": zod.string().regex(getFuncionarioResponseFolhaItemLiquidoRegExp).nullish(),
   "pago": zod.boolean(),
   "pagoEm": zod.string().nullish(),
   "observacao": zod.string().nullish()
@@ -1292,16 +1665,16 @@ export const GetFuncionarioResponse = zod.object({
   "funcionarioNome": zod.string(),
   "clienteId": zod.number().nullish(),
   "clienteNome": zod.string().nullish(),
-  "aquisitivoInicio": zod.string(),
-  "aquisitivoFim": zod.string(),
-  "gozoInicio": zod.string().nullish(),
-  "gozoFim": zod.string().nullish(),
-  "limiteGozo": zod.string(),
+  "aquisitivoInicio": zod.string().date(),
+  "aquisitivoFim": zod.string().date(),
+  "gozoInicio": zod.string().date().nullish(),
+  "gozoFim": zod.string().date().nullish(),
+  "limiteGozo": zod.string().date(),
   "vencendo": zod.boolean(),
   "vencida": zod.boolean(),
   "situacao": zod.enum(['gozada', 'vencida', 'vencendo', 'a_vencer']),
   "diasVendidos": zod.number(),
-  "valor": zod.string().nullish(),
+  "valor": zod.string().regex(getFuncionarioResponseFeriasItemValorRegExp).nullish(),
   "observacao": zod.string().nullish()
 }))
 })
@@ -1310,22 +1683,30 @@ export const GetFuncionarioResponse = zod.object({
 /**
  * @summary Atualiza campos avulsos de um funcionário
  */
+
+
+
 export const AtualizarFuncionarioParams = zod.object({
-  "id": zod.coerce.number()
+  "id": zod.coerce.number().min(1)
 })
+
+export const atualizarFuncionarioBodyNomeMax = 200;
+
+export const atualizarFuncionarioBodySalarioRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+
 
 export const AtualizarFuncionarioBody = zod.object({
   "clienteId": zod.number().nullish(),
-  "nome": zod.string().optional(),
+  "nome": zod.string().min(1).max(atualizarFuncionarioBodyNomeMax).optional(),
   "cpf": zod.string().nullish(),
   "rg": zod.string().nullish(),
   "pis": zod.string().nullish(),
   "ctps": zod.string().nullish(),
-  "nascimento": zod.string().nullish(),
+  "nascimento": zod.string().date().nullish(),
   "cargo": zod.string().nullish(),
-  "admissao": zod.string().nullish(),
-  "demissao": zod.string().nullish(),
-  "salario": zod.string().nullish(),
+  "admissao": zod.string().date().nullish(),
+  "demissao": zod.string().date().nullish(),
+  "salario": zod.string().regex(atualizarFuncionarioBodySalarioRegExp).nullish(),
   "situacao": zod.enum(['ativo', 'ferias', 'afastado', 'demitido']).optional(),
   "telefone": zod.string().nullish(),
   "email": zod.string().nullish(),
@@ -1333,20 +1714,25 @@ export const AtualizarFuncionarioBody = zod.object({
   "observacao": zod.string().nullish()
 })
 
+export const atualizarFuncionarioResponseNomeMax = 200;
+
+export const atualizarFuncionarioResponseSalarioRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+
+
 export const AtualizarFuncionarioResponse = zod.object({
   "id": zod.number(),
   "clienteId": zod.number().nullish(),
   "clienteNome": zod.string().nullish(),
-  "nome": zod.string(),
+  "nome": zod.string().min(1).max(atualizarFuncionarioResponseNomeMax),
   "cpf": zod.string().nullish(),
   "rg": zod.string().nullish(),
   "pis": zod.string().nullish(),
   "ctps": zod.string().nullish(),
-  "nascimento": zod.string().nullish(),
+  "nascimento": zod.string().date().nullish(),
   "cargo": zod.string().nullish(),
-  "admissao": zod.string().nullish(),
-  "demissao": zod.string().nullish(),
-  "salario": zod.string().nullish(),
+  "admissao": zod.string().date().nullish(),
+  "demissao": zod.string().date().nullish(),
+  "salario": zod.string().regex(atualizarFuncionarioResponseSalarioRegExp).nullish(),
   "situacao": zod.enum(['ativo', 'ferias', 'afastado', 'demitido']),
   "telefone": zod.string().nullish(),
   "email": zod.string().nullish(),
@@ -1358,8 +1744,11 @@ export const AtualizarFuncionarioResponse = zod.object({
 /**
  * @summary Remove um funcionário
  */
+
+
+
 export const RemoverFuncionarioParams = zod.object({
-  "id": zod.coerce.number()
+  "id": zod.coerce.number().min(1)
 })
 
 export const RemoverFuncionarioResponse = zod.void()
@@ -1375,22 +1764,35 @@ export const ListarFolhaQueryParams = zod.object({
   "clienteId": zod.coerce.number().optional()
 })
 
+export const listarFolhaResponseAnoMin = 2000;
+export const listarFolhaResponseAnoMax = 2100;
+
+export const listarFolhaResponseMesMax = 12;
+
+export const listarFolhaResponseSalarioBaseRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+export const listarFolhaResponseDescontosRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+export const listarFolhaResponseInssRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+export const listarFolhaResponseFgtsRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+export const listarFolhaResponseIrrfRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+export const listarFolhaResponseLiquidoRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+
+
 export const ListarFolhaResponseItem = zod.object({
   "id": zod.number(),
   "funcionarioId": zod.number(),
   "funcionarioNome": zod.string(),
   "clienteId": zod.number().nullish(),
   "clienteNome": zod.string().nullish(),
-  "ano": zod.number(),
-  "mes": zod.number(),
+  "ano": zod.number().min(listarFolhaResponseAnoMin).max(listarFolhaResponseAnoMax),
+  "mes": zod.number().min(1).max(listarFolhaResponseMesMax),
   "tipo": zod.enum(['mensal', 'ferias', 'decimo_terceiro']),
-  "salarioBase": zod.string().nullish(),
+  "salarioBase": zod.string().regex(listarFolhaResponseSalarioBaseRegExp).nullish(),
   "proventos": zod.string().nullish(),
-  "descontos": zod.string().nullish(),
-  "inss": zod.string().nullish(),
-  "fgts": zod.string().nullish(),
-  "irrf": zod.string().nullish(),
-  "liquido": zod.string().nullish(),
+  "descontos": zod.string().regex(listarFolhaResponseDescontosRegExp).nullish(),
+  "inss": zod.string().regex(listarFolhaResponseInssRegExp).nullish(),
+  "fgts": zod.string().regex(listarFolhaResponseFgtsRegExp).nullish(),
+  "irrf": zod.string().regex(listarFolhaResponseIrrfRegExp).nullish(),
+  "liquido": zod.string().regex(listarFolhaResponseLiquidoRegExp).nullish(),
   "pago": zod.boolean(),
   "pagoEm": zod.string().nullish(),
   "observacao": zod.string().nullish()
@@ -1401,27 +1803,49 @@ export const ListarFolhaResponse = zod.array(ListarFolhaResponseItem)
 /**
  * @summary Cria ou atualiza um lançamento de folha
  */
+export const salvarLancamentoFolhaBodyAnoMin = 2000;
+export const salvarLancamentoFolhaBodyAnoMax = 2100;
+
 export const salvarLancamentoFolhaBodyMesMax = 12;
 
+export const salvarLancamentoFolhaBodySalarioBaseRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+export const salvarLancamentoFolhaBodyDescontosRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+export const salvarLancamentoFolhaBodyInssRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+export const salvarLancamentoFolhaBodyFgtsRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+export const salvarLancamentoFolhaBodyIrrfRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+export const salvarLancamentoFolhaBodyLiquidoRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
 
 
 export const SalvarLancamentoFolhaBody = zod.object({
   "id": zod.number().nullish(),
   "funcionarioId": zod.number(),
-  "ano": zod.number(),
+  "ano": zod.number().min(salvarLancamentoFolhaBodyAnoMin).max(salvarLancamentoFolhaBodyAnoMax),
   "mes": zod.number().min(1).max(salvarLancamentoFolhaBodyMesMax),
   "tipo": zod.enum(['mensal', 'ferias', 'decimo_terceiro']).optional(),
-  "salarioBase": zod.string().nullish(),
+  "salarioBase": zod.string().regex(salvarLancamentoFolhaBodySalarioBaseRegExp).nullish(),
   "proventos": zod.string().nullish(),
-  "descontos": zod.string().nullish(),
-  "inss": zod.string().nullish(),
-  "fgts": zod.string().nullish(),
-  "irrf": zod.string().nullish(),
-  "liquido": zod.string().nullish(),
+  "descontos": zod.string().regex(salvarLancamentoFolhaBodyDescontosRegExp).nullish(),
+  "inss": zod.string().regex(salvarLancamentoFolhaBodyInssRegExp).nullish(),
+  "fgts": zod.string().regex(salvarLancamentoFolhaBodyFgtsRegExp).nullish(),
+  "irrf": zod.string().regex(salvarLancamentoFolhaBodyIrrfRegExp).nullish(),
+  "liquido": zod.string().regex(salvarLancamentoFolhaBodyLiquidoRegExp).nullish(),
   "pago": zod.boolean().optional(),
   "pagoEm": zod.string().nullish(),
   "observacao": zod.string().nullish()
 })
+
+export const salvarLancamentoFolhaResponseAnoMin = 2000;
+export const salvarLancamentoFolhaResponseAnoMax = 2100;
+
+export const salvarLancamentoFolhaResponseMesMax = 12;
+
+export const salvarLancamentoFolhaResponseSalarioBaseRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+export const salvarLancamentoFolhaResponseDescontosRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+export const salvarLancamentoFolhaResponseInssRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+export const salvarLancamentoFolhaResponseFgtsRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+export const salvarLancamentoFolhaResponseIrrfRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+export const salvarLancamentoFolhaResponseLiquidoRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+
 
 export const SalvarLancamentoFolhaResponse = zod.object({
   "id": zod.number(),
@@ -1429,16 +1853,16 @@ export const SalvarLancamentoFolhaResponse = zod.object({
   "funcionarioNome": zod.string(),
   "clienteId": zod.number().nullish(),
   "clienteNome": zod.string().nullish(),
-  "ano": zod.number(),
-  "mes": zod.number(),
+  "ano": zod.number().min(salvarLancamentoFolhaResponseAnoMin).max(salvarLancamentoFolhaResponseAnoMax),
+  "mes": zod.number().min(1).max(salvarLancamentoFolhaResponseMesMax),
   "tipo": zod.enum(['mensal', 'ferias', 'decimo_terceiro']),
-  "salarioBase": zod.string().nullish(),
+  "salarioBase": zod.string().regex(salvarLancamentoFolhaResponseSalarioBaseRegExp).nullish(),
   "proventos": zod.string().nullish(),
-  "descontos": zod.string().nullish(),
-  "inss": zod.string().nullish(),
-  "fgts": zod.string().nullish(),
-  "irrf": zod.string().nullish(),
-  "liquido": zod.string().nullish(),
+  "descontos": zod.string().regex(salvarLancamentoFolhaResponseDescontosRegExp).nullish(),
+  "inss": zod.string().regex(salvarLancamentoFolhaResponseInssRegExp).nullish(),
+  "fgts": zod.string().regex(salvarLancamentoFolhaResponseFgtsRegExp).nullish(),
+  "irrf": zod.string().regex(salvarLancamentoFolhaResponseIrrfRegExp).nullish(),
+  "liquido": zod.string().regex(salvarLancamentoFolhaResponseLiquidoRegExp).nullish(),
   "pago": zod.boolean(),
   "pagoEm": zod.string().nullish(),
   "observacao": zod.string().nullish()
@@ -1448,22 +1872,46 @@ export const SalvarLancamentoFolhaResponse = zod.object({
 /**
  * @summary Atualiza campos avulsos de um lançamento
  */
+
+
+
 export const AtualizarLancamentoFolhaParams = zod.object({
-  "id": zod.coerce.number()
+  "id": zod.coerce.number().min(1)
 })
 
+export const atualizarLancamentoFolhaBodySalarioBaseRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+export const atualizarLancamentoFolhaBodyDescontosRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+export const atualizarLancamentoFolhaBodyInssRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+export const atualizarLancamentoFolhaBodyFgtsRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+export const atualizarLancamentoFolhaBodyIrrfRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+export const atualizarLancamentoFolhaBodyLiquidoRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+
+
 export const AtualizarLancamentoFolhaBody = zod.object({
-  "salarioBase": zod.string().nullish(),
+  "salarioBase": zod.string().regex(atualizarLancamentoFolhaBodySalarioBaseRegExp).nullish(),
   "proventos": zod.string().nullish(),
-  "descontos": zod.string().nullish(),
-  "inss": zod.string().nullish(),
-  "fgts": zod.string().nullish(),
-  "irrf": zod.string().nullish(),
-  "liquido": zod.string().nullish(),
+  "descontos": zod.string().regex(atualizarLancamentoFolhaBodyDescontosRegExp).nullish(),
+  "inss": zod.string().regex(atualizarLancamentoFolhaBodyInssRegExp).nullish(),
+  "fgts": zod.string().regex(atualizarLancamentoFolhaBodyFgtsRegExp).nullish(),
+  "irrf": zod.string().regex(atualizarLancamentoFolhaBodyIrrfRegExp).nullish(),
+  "liquido": zod.string().regex(atualizarLancamentoFolhaBodyLiquidoRegExp).nullish(),
   "pago": zod.boolean().optional(),
   "pagoEm": zod.string().nullish(),
   "observacao": zod.string().nullish()
 })
+
+export const atualizarLancamentoFolhaResponseAnoMin = 2000;
+export const atualizarLancamentoFolhaResponseAnoMax = 2100;
+
+export const atualizarLancamentoFolhaResponseMesMax = 12;
+
+export const atualizarLancamentoFolhaResponseSalarioBaseRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+export const atualizarLancamentoFolhaResponseDescontosRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+export const atualizarLancamentoFolhaResponseInssRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+export const atualizarLancamentoFolhaResponseFgtsRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+export const atualizarLancamentoFolhaResponseIrrfRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+export const atualizarLancamentoFolhaResponseLiquidoRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+
 
 export const AtualizarLancamentoFolhaResponse = zod.object({
   "id": zod.number(),
@@ -1471,16 +1919,16 @@ export const AtualizarLancamentoFolhaResponse = zod.object({
   "funcionarioNome": zod.string(),
   "clienteId": zod.number().nullish(),
   "clienteNome": zod.string().nullish(),
-  "ano": zod.number(),
-  "mes": zod.number(),
+  "ano": zod.number().min(atualizarLancamentoFolhaResponseAnoMin).max(atualizarLancamentoFolhaResponseAnoMax),
+  "mes": zod.number().min(1).max(atualizarLancamentoFolhaResponseMesMax),
   "tipo": zod.enum(['mensal', 'ferias', 'decimo_terceiro']),
-  "salarioBase": zod.string().nullish(),
+  "salarioBase": zod.string().regex(atualizarLancamentoFolhaResponseSalarioBaseRegExp).nullish(),
   "proventos": zod.string().nullish(),
-  "descontos": zod.string().nullish(),
-  "inss": zod.string().nullish(),
-  "fgts": zod.string().nullish(),
-  "irrf": zod.string().nullish(),
-  "liquido": zod.string().nullish(),
+  "descontos": zod.string().regex(atualizarLancamentoFolhaResponseDescontosRegExp).nullish(),
+  "inss": zod.string().regex(atualizarLancamentoFolhaResponseInssRegExp).nullish(),
+  "fgts": zod.string().regex(atualizarLancamentoFolhaResponseFgtsRegExp).nullish(),
+  "irrf": zod.string().regex(atualizarLancamentoFolhaResponseIrrfRegExp).nullish(),
+  "liquido": zod.string().regex(atualizarLancamentoFolhaResponseLiquidoRegExp).nullish(),
   "pago": zod.boolean(),
   "pagoEm": zod.string().nullish(),
   "observacao": zod.string().nullish()
@@ -1490,8 +1938,11 @@ export const AtualizarLancamentoFolhaResponse = zod.object({
 /**
  * @summary Remove um lançamento de folha
  */
+
+
+
 export const RemoverLancamentoFolhaParams = zod.object({
-  "id": zod.coerce.number()
+  "id": zod.coerce.number().min(1)
 })
 
 export const RemoverLancamentoFolhaResponse = zod.void()
@@ -1506,22 +1957,25 @@ export const ListarFeriasQueryParams = zod.object({
   "funcionarioId": zod.coerce.number().optional()
 })
 
+export const listarFeriasResponseValorRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+
+
 export const ListarFeriasResponseItem = zod.object({
   "id": zod.number(),
   "funcionarioId": zod.number(),
   "funcionarioNome": zod.string(),
   "clienteId": zod.number().nullish(),
   "clienteNome": zod.string().nullish(),
-  "aquisitivoInicio": zod.string(),
-  "aquisitivoFim": zod.string(),
-  "gozoInicio": zod.string().nullish(),
-  "gozoFim": zod.string().nullish(),
-  "limiteGozo": zod.string(),
+  "aquisitivoInicio": zod.string().date(),
+  "aquisitivoFim": zod.string().date(),
+  "gozoInicio": zod.string().date().nullish(),
+  "gozoFim": zod.string().date().nullish(),
+  "limiteGozo": zod.string().date(),
   "vencendo": zod.boolean(),
   "vencida": zod.boolean(),
   "situacao": zod.enum(['gozada', 'vencida', 'vencendo', 'a_vencer']),
   "diasVendidos": zod.number(),
-  "valor": zod.string().nullish(),
+  "valor": zod.string().regex(listarFeriasResponseValorRegExp).nullish(),
   "observacao": zod.string().nullish()
 })
 export const ListarFeriasResponse = zod.array(ListarFeriasResponseItem)
@@ -1533,19 +1987,23 @@ export const ListarFeriasResponse = zod.array(ListarFeriasResponseItem)
 export const salvarFeriasBodyDiasVendidosMin = 0;
 export const salvarFeriasBodyDiasVendidosMax = 10;
 
+export const salvarFeriasBodyValorRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
 
 
 export const SalvarFeriasBody = zod.object({
   "id": zod.number().nullish(),
   "funcionarioId": zod.number(),
-  "aquisitivoInicio": zod.string(),
-  "aquisitivoFim": zod.string(),
-  "gozoInicio": zod.string().nullish(),
-  "gozoFim": zod.string().nullish(),
+  "aquisitivoInicio": zod.string().date(),
+  "aquisitivoFim": zod.string().date(),
+  "gozoInicio": zod.string().date().nullish(),
+  "gozoFim": zod.string().date().nullish(),
   "diasVendidos": zod.number().min(salvarFeriasBodyDiasVendidosMin).max(salvarFeriasBodyDiasVendidosMax).optional(),
-  "valor": zod.string().nullish(),
+  "valor": zod.string().regex(salvarFeriasBodyValorRegExp).nullish(),
   "observacao": zod.string().nullish()
 })
+
+export const salvarFeriasResponseValorRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+
 
 export const SalvarFeriasResponse = zod.object({
   "id": zod.number(),
@@ -1553,16 +2011,16 @@ export const SalvarFeriasResponse = zod.object({
   "funcionarioNome": zod.string(),
   "clienteId": zod.number().nullish(),
   "clienteNome": zod.string().nullish(),
-  "aquisitivoInicio": zod.string(),
-  "aquisitivoFim": zod.string(),
-  "gozoInicio": zod.string().nullish(),
-  "gozoFim": zod.string().nullish(),
-  "limiteGozo": zod.string(),
+  "aquisitivoInicio": zod.string().date(),
+  "aquisitivoFim": zod.string().date(),
+  "gozoInicio": zod.string().date().nullish(),
+  "gozoFim": zod.string().date().nullish(),
+  "limiteGozo": zod.string().date(),
   "vencendo": zod.boolean(),
   "vencida": zod.boolean(),
   "situacao": zod.enum(['gozada', 'vencida', 'vencendo', 'a_vencer']),
   "diasVendidos": zod.number(),
-  "valor": zod.string().nullish(),
+  "valor": zod.string().regex(salvarFeriasResponseValorRegExp).nullish(),
   "observacao": zod.string().nullish()
 })
 
@@ -1570,24 +2028,31 @@ export const SalvarFeriasResponse = zod.object({
 /**
  * @summary Atualiza campos avulsos de um período de férias
  */
+
+
+
 export const AtualizarFeriasParams = zod.object({
-  "id": zod.coerce.number()
+  "id": zod.coerce.number().min(1)
 })
 
 export const atualizarFeriasBodyDiasVendidosMin = 0;
 export const atualizarFeriasBodyDiasVendidosMax = 10;
 
+export const atualizarFeriasBodyValorRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
 
 
 export const AtualizarFeriasBody = zod.object({
-  "aquisitivoInicio": zod.string().optional(),
-  "aquisitivoFim": zod.string().optional(),
-  "gozoInicio": zod.string().nullish(),
-  "gozoFim": zod.string().nullish(),
+  "aquisitivoInicio": zod.string().date().optional(),
+  "aquisitivoFim": zod.string().date().optional(),
+  "gozoInicio": zod.string().date().nullish(),
+  "gozoFim": zod.string().date().nullish(),
   "diasVendidos": zod.number().min(atualizarFeriasBodyDiasVendidosMin).max(atualizarFeriasBodyDiasVendidosMax).optional(),
-  "valor": zod.string().nullish(),
+  "valor": zod.string().regex(atualizarFeriasBodyValorRegExp).nullish(),
   "observacao": zod.string().nullish()
 })
+
+export const atualizarFeriasResponseValorRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+
 
 export const AtualizarFeriasResponse = zod.object({
   "id": zod.number(),
@@ -1595,16 +2060,16 @@ export const AtualizarFeriasResponse = zod.object({
   "funcionarioNome": zod.string(),
   "clienteId": zod.number().nullish(),
   "clienteNome": zod.string().nullish(),
-  "aquisitivoInicio": zod.string(),
-  "aquisitivoFim": zod.string(),
-  "gozoInicio": zod.string().nullish(),
-  "gozoFim": zod.string().nullish(),
-  "limiteGozo": zod.string(),
+  "aquisitivoInicio": zod.string().date(),
+  "aquisitivoFim": zod.string().date(),
+  "gozoInicio": zod.string().date().nullish(),
+  "gozoFim": zod.string().date().nullish(),
+  "limiteGozo": zod.string().date(),
   "vencendo": zod.boolean(),
   "vencida": zod.boolean(),
   "situacao": zod.enum(['gozada', 'vencida', 'vencendo', 'a_vencer']),
   "diasVendidos": zod.number(),
-  "valor": zod.string().nullish(),
+  "valor": zod.string().regex(atualizarFeriasResponseValorRegExp).nullish(),
   "observacao": zod.string().nullish()
 })
 
@@ -1612,8 +2077,11 @@ export const AtualizarFeriasResponse = zod.object({
 /**
  * @summary Remove um período de férias
  */
+
+
+
 export const RemoverFeriasParams = zod.object({
-  "id": zod.coerce.number()
+  "id": zod.coerce.number().min(1)
 })
 
 export const RemoverFeriasResponse = zod.void()
@@ -1629,8 +2097,8 @@ export const ListarUsuariosResponseItem = zod.object({
   "email": zod.string().nullable(),
   "papel": zod.enum(['admin', 'contador', 'auxiliar']),
   "ativo": zod.boolean(),
-  "ultimoAcessoEm": zod.coerce.date().nullable(),
-  "criadoEm": zod.coerce.date()
+  "ultimoAcessoEm": zod.string().datetime({"offset":true}).nullable(),
+  "criadoEm": zod.string().datetime({"offset":true})
 })
 export const ListarUsuariosResponse = zod.array(ListarUsuariosResponseItem)
 
@@ -1661,16 +2129,19 @@ export const CriarUsuarioResponse = zod.object({
   "email": zod.string().nullable(),
   "papel": zod.enum(['admin', 'contador', 'auxiliar']),
   "ativo": zod.boolean(),
-  "ultimoAcessoEm": zod.coerce.date().nullable(),
-  "criadoEm": zod.coerce.date()
+  "ultimoAcessoEm": zod.string().datetime({"offset":true}).nullable(),
+  "criadoEm": zod.string().datetime({"offset":true})
 })
 
 
 /**
  * @summary Altera nome, e-mail, papel ou situação de um usuário (só admin)
  */
+
+
+
 export const AtualizarUsuarioParams = zod.object({
-  "id": zod.coerce.number()
+  "id": zod.coerce.number().min(1)
 })
 
 export const AtualizarUsuarioBody = zod.object({
@@ -1687,16 +2158,19 @@ export const AtualizarUsuarioResponse = zod.object({
   "email": zod.string().nullable(),
   "papel": zod.enum(['admin', 'contador', 'auxiliar']),
   "ativo": zod.boolean(),
-  "ultimoAcessoEm": zod.coerce.date().nullable(),
-  "criadoEm": zod.coerce.date()
+  "ultimoAcessoEm": zod.string().datetime({"offset":true}).nullable(),
+  "criadoEm": zod.string().datetime({"offset":true})
 })
 
 
 /**
  * @summary Define uma nova senha para o usuário e derruba as sessões dele (só admin)
  */
+
+
+
 export const RedefinirSenhaUsuarioParams = zod.object({
-  "id": zod.coerce.number()
+  "id": zod.coerce.number().min(1)
 })
 
 export const redefinirSenhaUsuarioBodyNovaSenhaMin = 8;
@@ -1722,18 +2196,22 @@ export const ListarArquivosQueryParams = zod.object({
   "entidadeId": zod.coerce.number().min(1)
 })
 
+export const listarArquivosResponseNomeMax = 200;
+
+
+
 export const ListarArquivosResponseItem = zod.object({
   "id": zod.number(),
   "clienteId": zod.number().nullable(),
   "entidade": zod.enum(['checklist_item', 'processo', 'pagamento', 'cliente', 'solicitacao']),
   "entidadeId": zod.number(),
-  "nome": zod.string(),
+  "nome": zod.string().min(1).max(listarArquivosResponseNomeMax),
   "mime": zod.string(),
   "tamanho": zod.number(),
   "sha256": zod.string().nullable(),
   "origem": zod.string(),
   "confirmado": zod.boolean(),
-  "criadoEm": zod.coerce.date()
+  "criadoEm": zod.string().datetime({"offset":true})
 })
 export const ListarArquivosResponse = zod.array(ListarArquivosResponseItem)
 
@@ -1756,25 +2234,29 @@ export const CriarArquivoBody = zod.object({
   "tamanho": zod.number().min(1)
 })
 
+export const criarArquivoResponseArquivoNomeMax = 200;
+
+
+
 export const CriarArquivoResponse = zod.object({
   "arquivo": zod.object({
   "id": zod.number(),
   "clienteId": zod.number().nullable(),
   "entidade": zod.enum(['checklist_item', 'processo', 'pagamento', 'cliente', 'solicitacao']),
   "entidadeId": zod.number(),
-  "nome": zod.string(),
+  "nome": zod.string().min(1).max(criarArquivoResponseArquivoNomeMax),
   "mime": zod.string(),
   "tamanho": zod.number(),
   "sha256": zod.string().nullable(),
   "origem": zod.string(),
   "confirmado": zod.boolean(),
-  "criadoEm": zod.coerce.date()
+  "criadoEm": zod.string().datetime({"offset":true})
 }),
   "upload": zod.object({
   "url": zod.string(),
   "metodo": zod.enum(['PUT']),
   "cabecalhos": zod.record(zod.string(), zod.string()).optional(),
-  "expiraEm": zod.coerce.date()
+  "expiraEm": zod.string().datetime({"offset":true})
 }).nullable(),
   "urlConteudo": zod.string()
 })
@@ -1783,30 +2265,40 @@ export const CriarArquivoResponse = zod.object({
 /**
  * @summary Sobe o conteúdo pela API (quando não há URL assinada)
  */
+
+
+
 export const EnviarConteudoArquivoParams = zod.object({
-  "id": zod.coerce.number()
+  "id": zod.coerce.number().min(1)
 })
+
+export const enviarConteudoArquivoResponseNomeMax = 200;
+
+
 
 export const EnviarConteudoArquivoResponse = zod.object({
   "id": zod.number(),
   "clienteId": zod.number().nullable(),
   "entidade": zod.enum(['checklist_item', 'processo', 'pagamento', 'cliente', 'solicitacao']),
   "entidadeId": zod.number(),
-  "nome": zod.string(),
+  "nome": zod.string().min(1).max(enviarConteudoArquivoResponseNomeMax),
   "mime": zod.string(),
   "tamanho": zod.number(),
   "sha256": zod.string().nullable(),
   "origem": zod.string(),
   "confirmado": zod.boolean(),
-  "criadoEm": zod.coerce.date()
+  "criadoEm": zod.string().datetime({"offset":true})
 })
 
 
 /**
  * @summary Baixa o conteúdo pela API (quando não há URL assinada)
  */
+
+
+
 export const BaixarConteudoArquivoParams = zod.object({
-  "id": zod.coerce.number()
+  "id": zod.coerce.number().min(1)
 })
 
 export const BaixarConteudoArquivoResponse = zod.unknown()
@@ -1815,43 +2307,56 @@ export const BaixarConteudoArquivoResponse = zod.unknown()
 /**
  * @summary Confirma que o upload direto (URL assinada) terminou
  */
+
+
+
 export const ConfirmarArquivoParams = zod.object({
-  "id": zod.coerce.number()
+  "id": zod.coerce.number().min(1)
 })
+
+export const confirmarArquivoResponseNomeMax = 200;
+
+
 
 export const ConfirmarArquivoResponse = zod.object({
   "id": zod.number(),
   "clienteId": zod.number().nullable(),
   "entidade": zod.enum(['checklist_item', 'processo', 'pagamento', 'cliente', 'solicitacao']),
   "entidadeId": zod.number(),
-  "nome": zod.string(),
+  "nome": zod.string().min(1).max(confirmarArquivoResponseNomeMax),
   "mime": zod.string(),
   "tamanho": zod.number(),
   "sha256": zod.string().nullable(),
   "origem": zod.string(),
   "confirmado": zod.boolean(),
-  "criadoEm": zod.coerce.date()
+  "criadoEm": zod.string().datetime({"offset":true})
 })
 
 
 /**
  * @summary URL para baixar o arquivo (assinada, ou a rota da API)
  */
+
+
+
 export const GetUrlDownloadArquivoParams = zod.object({
-  "id": zod.coerce.number()
+  "id": zod.coerce.number().min(1)
 })
 
 export const GetUrlDownloadArquivoResponse = zod.object({
   "url": zod.string(),
-  "expiraEm": zod.coerce.date().nullable()
+  "expiraEm": zod.string().datetime({"offset":true}).nullable()
 })
 
 
 /**
  * @summary Remove o arquivo do armazenamento e do registro
  */
+
+
+
 export const RemoverArquivoParams = zod.object({
-  "id": zod.coerce.number()
+  "id": zod.coerce.number().min(1)
 })
 
 export const RemoverArquivoResponse = zod.void()
@@ -1880,8 +2385,8 @@ export const ListarAvisosResponseItem = zod.object({
   "erro": zod.string().nullable(),
   "referenciaEntidade": zod.string().nullish(),
   "referenciaId": zod.number().nullish(),
-  "enviadoEm": zod.coerce.date().nullable(),
-  "criadoEm": zod.coerce.date()
+  "enviadoEm": zod.string().datetime({"offset":true}).nullable(),
+  "criadoEm": zod.string().datetime({"offset":true})
 })
 export const ListarAvisosResponse = zod.array(ListarAvisosResponseItem)
 
@@ -1918,16 +2423,19 @@ export const CriarAvisoResponse = zod.object({
   "erro": zod.string().nullable(),
   "referenciaEntidade": zod.string().nullish(),
   "referenciaId": zod.number().nullish(),
-  "enviadoEm": zod.coerce.date().nullable(),
-  "criadoEm": zod.coerce.date()
+  "enviadoEm": zod.string().datetime({"offset":true}).nullable(),
+  "criadoEm": zod.string().datetime({"offset":true})
 })
 
 
 /**
  * @summary Põe um aviso que falhou de volta na fila
  */
+
+
+
 export const ReenviarAvisoParams = zod.object({
-  "id": zod.coerce.number()
+  "id": zod.coerce.number().min(1)
 })
 
 export const ReenviarAvisoResponse = zod.object({
@@ -1945,8 +2453,8 @@ export const ReenviarAvisoResponse = zod.object({
   "erro": zod.string().nullable(),
   "referenciaEntidade": zod.string().nullish(),
   "referenciaId": zod.number().nullish(),
-  "enviadoEm": zod.coerce.date().nullable(),
-  "criadoEm": zod.coerce.date()
+  "enviadoEm": zod.string().datetime({"offset":true}).nullable(),
+  "criadoEm": zod.string().datetime({"offset":true})
 })
 
 
@@ -1966,11 +2474,11 @@ export const ListarJobsResponseItem = zod.object({
   "status": zod.enum(['pendente', 'executando', 'concluido', 'falhou']),
   "tentativas": zod.number(),
   "maxTentativas": zod.number(),
-  "executarEm": zod.coerce.date(),
-  "iniciadoEm": zod.coerce.date().nullable(),
-  "concluidoEm": zod.coerce.date().nullable(),
+  "executarEm": zod.string().datetime({"offset":true}),
+  "iniciadoEm": zod.string().datetime({"offset":true}).nullable(),
+  "concluidoEm": zod.string().datetime({"offset":true}).nullable(),
   "erro": zod.string().nullable(),
-  "criadoEm": zod.coerce.date()
+  "criadoEm": zod.string().datetime({"offset":true})
 })
 export const ListarJobsResponse = zod.array(ListarJobsResponseItem)
 

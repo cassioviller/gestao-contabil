@@ -10,12 +10,17 @@ import {
   useSalvarFerias,
   useSalvarLancamentoFolha,
 } from "@workspace/api-client-react";
-import type {
-  FichaFuncionario,
-  LancamentoFolha,
-  PeriodoFerias,
-} from "@workspace/api-client-react";
-import { MESES, formatarData, formatarMoeda, formatarNumeroBR, hojeBR, mesAtualBR, nomeMes, paraDecimalAPI } from "@/lib/formato";
+import type { FichaFuncionario, LancamentoFolha, PeriodoFerias } from "@workspace/api-client-react";
+import {
+  MESES,
+  formatarData,
+  formatarMoeda,
+  formatarNumeroBR,
+  hojeBR,
+  mesAtualBR,
+  nomeMes,
+  paraDecimalAPI,
+} from "@/lib/formato";
 import { TIPOS_FOLHA, liquidoSugerido, rotuloTipoFolha } from "@/lib/pessoal";
 
 /** Campos do cadastro completo — o que a lista não mostra fica aqui. */
@@ -202,8 +207,7 @@ export default function FuncionarioDetalhe() {
         <div>
           <h1 className="text-2xl font-bold">{f.nome}</h1>
           <p className="text-sm text-neutral-500">
-            {f.cargo ?? "Sem cargo"} ·{" "}
-            {f.clienteNome ?? "Funcionário do escritório"} · salário{" "}
+            {f.cargo ?? "Sem cargo"} · {f.clienteNome ?? "Funcionário do escritório"} · salário{" "}
             {formatarMoeda(f.salario)}
           </p>
         </div>
@@ -211,7 +215,10 @@ export default function FuncionarioDetalhe() {
       </div>
 
       {erro && (
-        <p role="alert" className="mb-4 rounded-lg bg-red-600/10 px-3 py-2 text-sm text-red-700 dark:text-red-400">
+        <p
+          role="alert"
+          className="mb-4 rounded-lg bg-red-600/10 px-3 py-2 text-sm text-red-700 dark:text-red-400"
+        >
           {erro}
         </p>
       )}
@@ -398,9 +405,7 @@ export default function FuncionarioDetalhe() {
             <input
               type="date"
               value={novasFerias.aquisitivoInicio}
-              onChange={(e) =>
-                setNovasFerias((v) => ({ ...v, aquisitivoInicio: e.target.value }))
-              }
+              onChange={(e) => setNovasFerias((v) => ({ ...v, aquisitivoInicio: e.target.value }))}
               className={`${campoForm} mt-1 block`}
               required
             />

@@ -29,11 +29,21 @@ export const MIMES_PERMITIDOS = new Set([
   "application/zip",
 ]);
 
-export type EntidadeArquivo = "checklist_item" | "processo" | "pagamento" | "cliente" | "solicitacao";
+export type EntidadeArquivo =
+  | "checklist_item"
+  | "processo"
+  | "pagamento"
+  | "cliente"
+  | "solicitacao";
 
 export function validarArquivo(dados: { nome: string; mime: string; tamanho: number }): void {
   if (!MIMES_PERMITIDOS.has(dados.mime)) {
-    throw new HttpError(400, `Tipo de arquivo não permitido: ${dados.mime}.`, undefined, "tipo_arquivo");
+    throw new HttpError(
+      400,
+      `Tipo de arquivo não permitido: ${dados.mime}.`,
+      undefined,
+      "tipo_arquivo",
+    );
   }
   if (dados.tamanho > TAMANHO_MAXIMO) {
     throw new HttpError(400, "Arquivo maior que 20 MB.", undefined, "arquivo_grande");

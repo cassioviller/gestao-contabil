@@ -9,15 +9,29 @@
 export interface Inadimplente {
   id: number;
   competenciaId: number;
+  /**
+     * @minimum 2000
+     * @maximum 2100
+     */
   ano: number;
+  /**
+     * @minimum 1
+     * @maximum 12
+     */
   mes: number;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   valor?: string | null;
   /** @nullable */
   vencimento?: string | null;
   diasAtraso: number;
   clienteId: number;
-  /** @nullable */
+  /**
+     * @minimum 0
+     * @nullable
+     */
   codigo?: number | null;
   cliente: string;
   /** @nullable */

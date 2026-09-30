@@ -28,7 +28,11 @@ test("cria processo, monta checklist e acompanha o progresso", async ({ page, re
   await linha.getByRole("link", { name: "Abrir" }).click();
   await expect(page.getByRole("heading", { name: TIPO, level: 1 })).toBeVisible();
 
-  const etapas = ["Pegar contrato social atualizado", "Protocolar alteração na JUCESP", "Atualizar cadastro na Receita"];
+  const etapas = [
+    "Pegar contrato social atualizado",
+    "Protocolar alteração na JUCESP",
+    "Atualizar cadastro na Receita",
+  ];
   for (const e of etapas) {
     await page.locator('input[name="novaEtapa"]').fill(e);
     await page.getByRole("button", { name: "Adicionar" }).click();
@@ -94,7 +98,9 @@ test("falha ao salvar vira aviso na tela, não página de erro", async ({ page, 
   await page.goto("/processos");
   // Simula a API fora do ar (foi o que aconteceu com o servidor no bundle antigo).
   await page.route("**/api/processos", (rota) =>
-    rota.request().method() === "POST" ? rota.fulfill({ status: 500, body: "{}" }) : rota.continue()
+    rota.request().method() === "POST"
+      ? rota.fulfill({ status: 500, body: "{}" })
+      : rota.continue(),
   );
 
   await page.getByRole("button", { name: "+ Novo processo" }).click();

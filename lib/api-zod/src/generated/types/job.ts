@@ -19,12 +19,12 @@ export interface Job {
   status: StatusJob;
   tentativas: number;
   maxTentativas: number;
-  executarEm: Date;
+  executarEm: string;
   /** @nullable */
-  iniciadoEm: Date | null;
+  iniciadoEm: string | null;
   /** @nullable */
-  concluidoEm: Date | null;
+  concluidoEm: string | null;
   /** @nullable */
   erro: string | null;
-  criadoEm: Date;
+  criadoEm: string;
 }

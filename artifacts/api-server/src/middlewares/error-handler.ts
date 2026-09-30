@@ -49,7 +49,9 @@ function codigoPg(err: unknown): string | undefined {
 export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
   if (err instanceof ZodError) {
     req.log?.warn({ issues: err.issues }, "request validation failed");
-    res.status(400).json({ error: "Dados inválidos.", codigo: "dados_invalidos", issues: err.issues });
+    res
+      .status(400)
+      .json({ error: "Dados inválidos.", codigo: "dados_invalidos", issues: err.issues });
     return;
   }
 
@@ -60,7 +62,9 @@ export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
 
   // Malformed JSON body (thrown by express.json()).
   if (err && typeof err === "object" && (err as { type?: string }).type === "entity.parse.failed") {
-    res.status(400).json({ error: "JSON inválido no corpo da requisição.", codigo: "json_invalido" });
+    res
+      .status(400)
+      .json({ error: "JSON inválido no corpo da requisição.", codigo: "json_invalido" });
     return;
   }
 

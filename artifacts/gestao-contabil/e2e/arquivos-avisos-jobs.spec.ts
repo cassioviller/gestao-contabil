@@ -13,7 +13,13 @@ test.describe("arquivos", () => {
 
     const conteudo = Buffer.from("%PDF-1.4 conteúdo de teste");
     const registro = await request.post("/api/arquivos", {
-      data: { entidade: "cliente", entidadeId: clienteId, nome: "contrato ç.pdf", mime: "application/pdf", tamanho: conteudo.length },
+      data: {
+        entidade: "cliente",
+        entidadeId: clienteId,
+        nome: "contrato ç.pdf",
+        mime: "application/pdf",
+        tamanho: conteudo.length,
+      },
     });
     expect(registro.status(), await registro.text()).toBe(200);
     const { arquivo, upload, urlConteudo } = await registro.json();
@@ -24,7 +30,9 @@ test.describe("arquivos", () => {
     expect(urlConteudo).toBe(`/api/arquivos/${arquivo.id}/conteudo`);
 
     // Antes do upload o arquivo não aparece nem baixa.
-    const antes = await (await request.get(`/api/arquivos?entidade=cliente&entidadeId=${clienteId}`)).json();
+    const antes = await (
+      await request.get(`/api/arquivos?entidade=cliente&entidadeId=${clienteId}`)
+    ).json();
     expect(antes).toEqual([]);
     expect((await request.get(`/api/arquivos/${arquivo.id}/download-url`)).status()).toBe(400);
 
@@ -38,7 +46,9 @@ test.describe("arquivos", () => {
     expect(confirmado.tamanho).toBe(conteudo.length);
     expect(confirmado.sha256).toMatch(/^[0-9a-f]{64}$/);
 
-    const lista = await (await request.get(`/api/arquivos?entidade=cliente&entidadeId=${clienteId}`)).json();
+    const lista = await (
+      await request.get(`/api/arquivos?entidade=cliente&entidadeId=${clienteId}`)
+    ).json();
     expect(lista.map((a: { id: number }) => a.id)).toEqual([arquivo.id]);
 
     const url = await (await request.get(`/api/arquivos/${arquivo.id}/download-url`)).json();
@@ -48,25 +58,49 @@ test.describe("arquivos", () => {
     expect(baixado.status()).toBe(200);
     expect(baixado.headers()["content-type"]).toContain("application/pdf");
     expect(baixado.headers()["content-disposition"]).toContain("attachment");
-    expect(baixado.headers()["content-disposition"]).toContain("filename*=UTF-8''contrato%20%C3%A7.pdf");
+    expect(baixado.headers()["content-disposition"]).toContain(
+      "filename*=UTF-8''contrato%20%C3%A7.pdf",
+    );
     expect(Buffer.from(await baixado.body()).equals(conteudo)).toBe(true);
 
     expect((await request.delete(`/api/arquivos/${arquivo.id}`)).status()).toBe(204);
     expect((await request.get(urlConteudo)).status()).toBe(404);
   });
 
-  test("recusa tipo não permitido, tamanho acima do limite e entidade de outra conta", async ({ request }) => {
-    const { id: clienteId } = await (await request.post("/api/clientes", { data: { razaoSocial: "Anexos Inválidos" } })).json();
+  test("recusa tipo não permitido, tamanho acima do limite e entidade de outra conta", async ({
+    request,
+  }) => {
+    const { id: clienteId } = await (
+      await request.post("/api/clientes", { data: { razaoSocial: "Anexos Inválidos" } })
+    ).json();
     const exe = await request.post("/api/arquivos", {
-      data: { entidade: "cliente", entidadeId: clienteId, nome: "virus.exe", mime: "application/x-msdownload", tamanho: 10 },
+      data: {
+        entidade: "cliente",
+        entidadeId: clienteId,
+        nome: "virus.exe",
+        mime: "application/x-msdownload",
+        tamanho: 10,
+      },
     });
     expect(exe.status()).toBe(400);
     const grande = await request.post("/api/arquivos", {
-      data: { entidade: "cliente", entidadeId: clienteId, nome: "g.pdf", mime: "application/pdf", tamanho: 21 * 1024 * 1024 },
+      data: {
+        entidade: "cliente",
+        entidadeId: clienteId,
+        nome: "g.pdf",
+        mime: "application/pdf",
+        tamanho: 21 * 1024 * 1024,
+      },
     });
     expect(grande.status()).toBe(400);
     const alheio = await request.post("/api/arquivos", {
-      data: { entidade: "checklist_item", entidadeId: 999999, nome: "x.pdf", mime: "application/pdf", tamanho: 10 },
+      data: {
+        entidade: "checklist_item",
+        entidadeId: 999999,
+        nome: "x.pdf",
+        mime: "application/pdf",
+        tamanho: 10,
+      },
     });
     expect(alheio.status()).toBe(404);
     await request.delete(`/api/clientes/${clienteId}`);
@@ -76,7 +110,11 @@ test.describe("arquivos", () => {
 test.describe("avisos e fila de jobs", () => {
   test("a fila só roda com o token de serviço", async ({ request }) => {
     expect((await request.post("/api/jobs/executar")).status()).toBe(401);
-    expect((await request.post("/api/jobs/executar", { headers: { authorization: "Bearer errado" } })).status()).toBe(401);
+    expect(
+      (
+        await request.post("/api/jobs/executar", { headers: { authorization: "Bearer errado" } })
+      ).status(),
+    ).toBe(401);
   });
 
   test("aviso avulso entra na fila e o worker o envia", async ({ request }) => {
@@ -92,7 +130,12 @@ test.describe("avisos e fila de jobs", () => {
     expect((await semWhats.json()).codigo).toBe("sem_destino");
 
     const aviso = await request.post("/api/avisos", {
-      data: { clienteId, canal: "email", assunto: "Guia disponível", corpo: "Sua guia do mês está pronta." },
+      data: {
+        clienteId,
+        canal: "email",
+        assunto: "Guia disponível",
+        corpo: "Sua guia do mês está pronta.",
+      },
     });
     expect(aviso.status(), await aviso.text()).toBe(200);
     const pendente = await aviso.json();
@@ -108,7 +151,9 @@ test.describe("avisos e fila de jobs", () => {
     const resultado = await rodada.json();
     expect(resultado.executados).toBeGreaterThanOrEqual(1);
 
-    const enviados = await (await request.get(`/api/avisos?clienteId=${clienteId}&status=enviado`)).json();
+    const enviados = await (
+      await request.get(`/api/avisos?clienteId=${clienteId}&status=enviado`)
+    ).json();
     expect(enviados.map((a: { id: number }) => a.id)).toContain(pendente.id);
     expect(enviados[0].provedorId).toMatch(/^memoria-email-/);
     expect(enviados[0].enviadoEm).toBeTruthy();
@@ -116,7 +161,10 @@ test.describe("avisos e fila de jobs", () => {
     // Reenviar volta para a fila; a rodada seguinte manda de novo.
     const reenviado = await (await request.post(`/api/avisos/${pendente.id}/reenviar`)).json();
     expect(reenviado.status).toBe("pendente");
-    await request.post("/api/jobs/executar", { headers: { authorization: `Bearer ${TOKEN}` }, data: { limiteMs: 10000 } });
+    await request.post("/api/jobs/executar", {
+      headers: { authorization: `Bearer ${TOKEN}` },
+      data: { limiteMs: 10000 },
+    });
     const deNovo = await (await request.get(`/api/avisos?clienteId=${clienteId}`)).json();
     expect(deNovo[0].status).toBe("enviado");
 

@@ -1,12 +1,11 @@
-import type { Query, QueryClient } from "@tanstack/react-query";
+import type { QueryClient } from "@tanstack/react-query";
 import { getGetSessaoAtualQueryKey, type SessaoAtual } from "@workspace/api-client-react";
 
 /** Chave da query de sessão: a raiz do app (`Autenticado`) observa esta query. */
 export const CHAVE_SESSAO = getGetSessaoAtualQueryKey();
 
-type QualquerQuery = Query<unknown, unknown, unknown, readonly unknown[]>;
-
-export function ehSessao(query?: QualquerQuery): boolean {
+/** Estrutural de propósito: serve para qualquer Query, seja qual for o tipo do erro. */
+export function ehSessao(query?: { queryKey?: readonly unknown[] }): boolean {
   return query?.queryKey?.[0] === CHAVE_SESSAO[0];
 }
 

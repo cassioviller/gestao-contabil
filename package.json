@@ -7,14 +7,23 @@
     "build": "pnpm run typecheck && pnpm -r --if-present run build",
     "typecheck:libs": "tsc --build",
     "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck",
-    "test": "pnpm -r --if-present run test"
+    "test": "pnpm -r --if-present run test",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "private": true,
   "devDependencies": {
+    "@eslint/js": "^9.30.0",
+    "@vitest/coverage-v8": "^5.0.0",
+    "eslint": "^9.30.0",
+    "eslint-plugin-jsx-a11y": "^6.10.0",
+    "eslint-plugin-react-hooks": "^7.0.0",
+    "globals": "^16.0.0",
     "prettier": "^3.8.4",
     "typescript": "~5.9.3",
-    "vitest": "^5.0.0",
-    "@vitest/coverage-v8": "^5.0.0"
+    "typescript-eslint": "^8.40.0",
+    "vitest": "^5.0.0"
   },
   "packageManager": "pnpm@10.33.0",
   "engines": {

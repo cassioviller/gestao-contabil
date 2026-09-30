@@ -29,7 +29,10 @@ describe("comVencimento", () => {
   });
 
   test("já gozada nunca vence, mesmo com a data no passado", () => {
-    const r = comVencimento({ aquisitivoFim: "2025-02-28", gozoInicio: "2025-07-01" }, "2027-01-01");
+    const r = comVencimento(
+      { aquisitivoFim: "2025-02-28", gozoInicio: "2025-07-01" },
+      "2027-01-01",
+    );
     expect(r.situacao).toBe("gozada");
     expect(r.vencendo).toBe(false);
     expect(r.vencida).toBe(false);

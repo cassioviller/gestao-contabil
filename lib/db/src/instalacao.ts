@@ -15,7 +15,11 @@ const CHAVE_LOCK = 7_140_331;
 const SCHEMA_MIGRACOES = "drizzle";
 const TABELA_MIGRACOES = "__drizzle_migrations";
 
-async function tabelaExiste(cliente: PoolClient, nome: string, schema = "public"): Promise<boolean> {
+async function tabelaExiste(
+  cliente: PoolClient,
+  nome: string,
+  schema = "public",
+): Promise<boolean> {
   const { rows } = await cliente.query(
     `select 1 from information_schema.tables where table_schema = $1 and table_name = $2`,
     [schema, nome],

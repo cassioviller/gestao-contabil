@@ -45,7 +45,13 @@ export default function Usuarios() {
   const atualizar = useAtualizarUsuario();
   const redefinir = useRedefinirSenhaUsuario();
 
-  const [form, setForm] = useState({ login: "", nome: "", email: "", papel: "contador" as Papel, senha: "" });
+  const [form, setForm] = useState({
+    login: "",
+    nome: "",
+    email: "",
+    papel: "contador" as Papel,
+    senha: "",
+  });
   const [erro, setErro] = useState<string | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
 
@@ -83,13 +89,18 @@ export default function Usuarios() {
   }
 
   async function redefinirSenha(u: Usuario) {
-    const nova = prompt(`Nova senha para "${u.login}" (mínimo 8 caracteres). As sessões dele(a) serão encerradas.`);
+    const nova = prompt(
+      `Nova senha para "${u.login}" (mínimo 8 caracteres). As sessões dele(a) serão encerradas.`,
+    );
     if (nova === null) return;
     if (nova.length < 8) {
       setErro("A senha precisa ter ao menos 8 caracteres.");
       return;
     }
-    await comAviso(() => redefinir.mutateAsync({ id: u.id, data: { novaSenha: nova } }), "Senha redefinida.");
+    await comAviso(
+      () => redefinir.mutateAsync({ id: u.id, data: { novaSenha: nova } }),
+      "Senha redefinida.",
+    );
   }
 
   const campo =
@@ -109,34 +120,85 @@ export default function Usuarios() {
       </div>
 
       {erro && (
-        <p role="alert" className="mb-4 rounded-lg bg-red-600/10 px-3 py-2 text-sm text-red-700 dark:text-red-400">
+        <p
+          role="alert"
+          className="mb-4 rounded-lg bg-red-600/10 px-3 py-2 text-sm text-red-700 dark:text-red-400"
+        >
           {erro}
         </p>
       )}
       {aviso && <p className="mb-4 text-sm text-green-600">✓ {aviso}</p>}
       {erroLista && (
-        <p role="alert" className="mb-4 rounded-lg bg-red-600/10 px-3 py-2 text-sm text-red-700 dark:text-red-400">
+        <p
+          role="alert"
+          className="mb-4 rounded-lg bg-red-600/10 px-3 py-2 text-sm text-red-700 dark:text-red-400"
+        >
           {mensagemDeErro(erroLista)}
         </p>
       )}
 
-      <form onSubmit={adicionar} className="mb-6 grid gap-3 rounded-xl border border-black/10 p-4 sm:grid-cols-6 dark:border-white/10">
-        <input name="login" value={form.login} onChange={(e) => setForm({ ...form, login: e.target.value })}
-          placeholder="login" required minLength={2} autoComplete="off" className={campo} aria-label="Login" />
-        <input name="nome" value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })}
-          placeholder="Nome" className={campo} aria-label="Nome" />
-        <input name="email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })}
-          placeholder="E-mail (opcional)" className={campo} aria-label="E-mail" />
-        <select name="papel" value={form.papel} onChange={(e) => setForm({ ...form, papel: e.target.value as Papel })}
-          className={selecao} aria-label="Papel">
+      <form
+        onSubmit={adicionar}
+        className="mb-6 grid gap-3 rounded-xl border border-black/10 p-4 sm:grid-cols-6 dark:border-white/10"
+      >
+        <input
+          name="login"
+          value={form.login}
+          onChange={(e) => setForm({ ...form, login: e.target.value })}
+          placeholder="login"
+          required
+          minLength={2}
+          autoComplete="off"
+          className={campo}
+          aria-label="Login"
+        />
+        <input
+          name="nome"
+          value={form.nome}
+          onChange={(e) => setForm({ ...form, nome: e.target.value })}
+          placeholder="Nome"
+          className={campo}
+          aria-label="Nome"
+        />
+        <input
+          name="email"
+          type="email"
+          value={form.email}
+          onChange={(e) => setForm({ ...form, email: e.target.value })}
+          placeholder="E-mail (opcional)"
+          className={campo}
+          aria-label="E-mail"
+        />
+        <select
+          name="papel"
+          value={form.papel}
+          onChange={(e) => setForm({ ...form, papel: e.target.value as Papel })}
+          className={selecao}
+          aria-label="Papel"
+        >
           {PAPEIS.map((p) => (
-            <option key={p.valor} value={p.valor} className="bg-neutral-900 text-white">{p.rotulo}</option>
+            <option key={p.valor} value={p.valor} className="bg-neutral-900 text-white">
+              {p.rotulo}
+            </option>
           ))}
         </select>
-        <input name="senha" type="password" value={form.senha} onChange={(e) => setForm({ ...form, senha: e.target.value })}
-          placeholder="Senha inicial (8+)" required minLength={8} autoComplete="new-password" className={campo} aria-label="Senha inicial" />
-        <button type="submit" disabled={criar.isPending || !form.login.trim() || form.senha.length < 8}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+        <input
+          name="senha"
+          type="password"
+          value={form.senha}
+          onChange={(e) => setForm({ ...form, senha: e.target.value })}
+          placeholder="Senha inicial (8+)"
+          required
+          minLength={8}
+          autoComplete="new-password"
+          className={campo}
+          aria-label="Senha inicial"
+        />
+        <button
+          type="submit"
+          disabled={criar.isPending || !form.login.trim() || form.senha.length < 8}
+          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+        >
           + Adicionar usuário
         </button>
         <p className="text-xs text-neutral-500 sm:col-span-6">
@@ -172,34 +234,62 @@ export default function Usuarios() {
                     <td className="px-3 py-2">{u.nome ?? "—"}</td>
                     <td className="px-3 py-2">{u.email ?? "—"}</td>
                     <td className="px-3 py-2">
-                      <select value={u.papel} disabled={souEu} aria-label={`Papel de ${u.login}`}
+                      <select
+                        value={u.papel}
+                        disabled={souEu}
+                        aria-label={`Papel de ${u.login}`}
                         onChange={(e) =>
                           comAviso(
-                            () => atualizar.mutateAsync({ id: u.id, data: { papel: e.target.value as Papel } }),
+                            () =>
+                              atualizar.mutateAsync({
+                                id: u.id,
+                                data: { papel: e.target.value as Papel },
+                              }),
                             `Papel de ${u.login}: ${rotuloPapel(e.target.value as Papel)}.`,
                           )
                         }
-                        className={`${selecao} disabled:opacity-60`}>
+                        className={`${selecao} disabled:opacity-60`}
+                      >
                         {PAPEIS.map((p) => (
-                          <option key={p.valor} value={p.valor} className="bg-neutral-900 text-white">{p.rotulo}</option>
+                          <option
+                            key={p.valor}
+                            value={p.valor}
+                            className="bg-neutral-900 text-white"
+                          >
+                            {p.rotulo}
+                          </option>
                         ))}
                       </select>
                     </td>
                     <td className="px-3 py-2 text-center">
-                      <input type="checkbox" checked={u.ativo} disabled={souEu} aria-label={`Ativo: ${u.login}`}
+                      <input
+                        type="checkbox"
+                        checked={u.ativo}
+                        disabled={souEu}
+                        aria-label={`Ativo: ${u.login}`}
                         onChange={(e) =>
                           comAviso(
-                            () => atualizar.mutateAsync({ id: u.id, data: { ativo: e.target.checked } }),
-                            e.target.checked ? `${u.login} reativado(a).` : `${u.login} desativado(a); as sessões caíram.`,
+                            () =>
+                              atualizar.mutateAsync({
+                                id: u.id,
+                                data: { ativo: e.target.checked },
+                              }),
+                            e.target.checked
+                              ? `${u.login} reativado(a).`
+                              : `${u.login} desativado(a); as sessões caíram.`,
                           )
-                        } />
+                        }
+                      />
                     </td>
                     <td className="px-3 py-2 text-neutral-500">
                       {u.ultimoAcessoEm ? formatarData(u.ultimoAcessoEm.slice(0, 10)) : "nunca"}
                     </td>
                     <td className="px-3 py-2 text-right">
-                      <button type="button" onClick={() => redefinirSenha(u)}
-                        className="rounded-lg border border-black/15 px-3 py-1 text-xs dark:border-white/15">
+                      <button
+                        type="button"
+                        onClick={() => redefinirSenha(u)}
+                        className="rounded-lg border border-black/15 px-3 py-1 text-xs dark:border-white/15"
+                      >
                         Redefinir senha
                       </button>
                     </td>
@@ -208,7 +298,9 @@ export default function Usuarios() {
               })}
               {lista.length === 0 && !erroLista && (
                 <tr>
-                  <td colSpan={7} className="px-3 py-8 text-center text-neutral-500">Nenhum usuário.</td>
+                  <td colSpan={7} className="px-3 py-8 text-center text-neutral-500">
+                    Nenhum usuário.
+                  </td>
                 </tr>
               )}
             </tbody>

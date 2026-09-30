@@ -44,7 +44,11 @@ describe("cifra", () => {
   });
 
   test("aceita chave em hex, base64url de 32 bytes e texto livre", () => {
-    for (const chave of ["c".repeat(64), Buffer.alloc(32, 7).toString("base64url"), "frase humana"]) {
+    for (const chave of [
+      "c".repeat(64),
+      Buffer.alloc(32, 7).toString("base64url"),
+      "frase humana",
+    ]) {
       process.env.CHAVE_CIFRA = chave;
       _limparChaveCache();
       expect(decifrar(cifrar("ok"))).toBe("ok");

@@ -12,7 +12,15 @@ import type { Resumo } from './resumo';
  */
 export type PainelCompetenciaAtual = {
   id?: number;
+  /**
+     * @minimum 2000
+     * @maximum 2100
+     */
   ano?: number;
+  /**
+     * @minimum 1
+     * @maximum 12
+     */
   mes?: number;
   resumo?: Resumo;
 } | null;

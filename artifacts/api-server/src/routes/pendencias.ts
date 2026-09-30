@@ -1,7 +1,14 @@
 import { Router } from "express";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@workspace/db";
-import { checklistItens, clientes, cobrancas, competencias, pagamentos, tiposObrigacao } from "@workspace/db";
+import {
+  checklistItens,
+  clientes,
+  cobrancas,
+  competencias,
+  pagamentos,
+  tiposObrigacao,
+} from "@workspace/db";
 import { hojeBR } from "@workspace/dominio";
 import {
   MarcarObrigacaoFeitaParams,
@@ -38,14 +45,16 @@ router.get("/", async (req, res) => {
     .innerJoin(clientes, eq(clientes.id, checklistItens.clienteId))
     .innerJoin(tiposObrigacao, eq(tiposObrigacao.id, checklistItens.tipoObrigacaoId))
     .innerJoin(competencias, eq(competencias.id, checklistItens.competenciaId))
-    .where(and(
-      eq(checklistItens.contaId, contaId),
-      // Emitida e não enviada também está atrasada — é justamente a guia que
-      // ficou parada na mesa depois de pronta.
-      inArray(checklistItens.status, ["pendente", "emitido"]),
-      sql`${checklistItens.vencimento} is not null`,
-      sql`${checklistItens.vencimento} < ${hoje}::date`,
-    ))
+    .where(
+      and(
+        eq(checklistItens.contaId, contaId),
+        // Emitida e não enviada também está atrasada — é justamente a guia que
+        // ficou parada na mesa depois de pronta.
+        inArray(checklistItens.status, ["pendente", "emitido"]),
+        sql`${checklistItens.vencimento} is not null`,
+        sql`${checklistItens.vencimento} < ${hoje}::date`,
+      ),
+    )
     .orderBy(sql`(${hoje}::date - ${checklistItens.vencimento}) desc`);
 
   const inadimplentes = await db
@@ -67,13 +76,15 @@ router.get("/", async (req, res) => {
     .innerJoin(clientes, eq(clientes.id, pagamentos.clienteId))
     .innerJoin(competencias, eq(competencias.id, pagamentos.competenciaId))
     .leftJoin(cobrancas, eq(cobrancas.pagamentoId, pagamentos.id))
-    .where(and(
-      eq(pagamentos.contaId, contaId),
-      eq(pagamentos.status, "pendente"),
-      sql`${pagamentos.valor} is not null`,
-      sql`${pagamentos.vencimento} is not null`,
-      sql`${pagamentos.vencimento} < ${hoje}::date`,
-    ))
+    .where(
+      and(
+        eq(pagamentos.contaId, contaId),
+        eq(pagamentos.status, "pendente"),
+        sql`${pagamentos.valor} is not null`,
+        sql`${pagamentos.vencimento} is not null`,
+        sql`${pagamentos.vencimento} < ${hoje}::date`,
+      ),
+    )
     .groupBy(pagamentos.id, clientes.id, competencias.id)
     .orderBy(sql`(${hoje}::date - ${pagamentos.vencimento}) desc`);
 

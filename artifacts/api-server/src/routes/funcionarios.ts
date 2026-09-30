@@ -69,10 +69,10 @@ router.get("/:id", async (req, res) => {
   const [funcionario] = await consulta(contaId, eq(funcionarios.id, id));
   if (!funcionario) throw new HttpError(404, "Funcionário não encontrado.");
 
-  const folha = await consultaFolha(
-    contaId,
-    eq(folhaLancamentos.funcionarioId, id),
-  ).orderBy(desc(folhaLancamentos.ano), desc(folhaLancamentos.mes));
+  const folha = await consultaFolha(contaId, eq(folhaLancamentos.funcionarioId, id)).orderBy(
+    desc(folhaLancamentos.ano),
+    desc(folhaLancamentos.mes),
+  );
 
   const periodos = await consultaFerias(contaId, eq(ferias.funcionarioId, id)).orderBy(
     desc(ferias.aquisitivoFim),
@@ -115,9 +115,7 @@ router.patch("/:id", async (req, res) => {
   const { id } = AtualizarFuncionarioParams.parse(req.params);
   const body = AtualizarFuncionarioBody.parse(req.body);
 
-  const mudancas = Object.fromEntries(
-    Object.entries(body).filter(([, v]) => v !== undefined),
-  );
+  const mudancas = Object.fromEntries(Object.entries(body).filter(([, v]) => v !== undefined));
   if (Object.keys(mudancas).length === 0) {
     throw new HttpError(400, "Nenhum campo para atualizar.");
   }

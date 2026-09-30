@@ -125,7 +125,12 @@ export async function gerarItensDaCompetencia(
               clienteId: v.clienteId,
               tipoObrigacaoId: v.tipoObrigacaoId,
               status: "pendente" as const,
-              vencimento: calcularVencimento(comp.ano, comp.mes, tipo.diaVencimento, tipo.offsetMes),
+              vencimento: calcularVencimento(
+                comp.ano,
+                comp.mes,
+                tipo.diaVencimento,
+                tipo.offsetMes,
+              ),
             };
           }),
         )

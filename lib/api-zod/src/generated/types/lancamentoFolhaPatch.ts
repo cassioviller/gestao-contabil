@@ -7,19 +7,37 @@
  */
 
 export interface LancamentoFolhaPatch {
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   salarioBase?: string | null;
   /** @nullable */
   proventos?: string | null;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   descontos?: string | null;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   inss?: string | null;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   fgts?: string | null;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   irrf?: string | null;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   liquido?: string | null;
   pago?: boolean;
   /** @nullable */

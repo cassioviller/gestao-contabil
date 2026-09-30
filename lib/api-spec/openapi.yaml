@@ -62,7 +62,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/SessaoAtual"
         "401":
-          description: Login ou senha inválidos
+          $ref: "#/components/responses/Erro"
 
   /auth/sair:
     post:
@@ -86,7 +86,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/SessaoAtual"
         "401":
-          description: Sem sessão
+          $ref: "#/components/responses/Erro"
 
   /auth/trocar-senha:
     post:
@@ -103,7 +103,7 @@ paths:
         "204":
           description: Senha trocada
         "400":
-          description: Senha atual não confere
+          $ref: "#/components/responses/Erro"
 
   /auth/sair-de-todos:
     post:
@@ -183,6 +183,7 @@ paths:
           required: true
           schema:
             type: integer
+            minimum: 1
       requestBody:
         required: true
         content:
@@ -206,6 +207,7 @@ paths:
           required: true
           schema:
             type: integer
+            minimum: 1
       responses:
         "204":
           description: Removido
@@ -221,6 +223,7 @@ paths:
           required: true
           schema:
             type: integer
+            minimum: 1
       responses:
         "200":
           description: Senhas em claro
@@ -229,9 +232,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/SegredosCliente"
         "403":
-          description: O papel do usuário não pode revelar senhas
+          $ref: "#/components/responses/Erro"
         "404":
-          description: Cliente não encontrado
+          $ref: "#/components/responses/Erro"
 
   /tipos:
     get:
@@ -289,6 +292,7 @@ paths:
           required: true
           schema:
             type: integer
+            minimum: 1
       responses:
         "204":
           description: Removido
@@ -347,6 +351,7 @@ paths:
           required: true
           schema:
             type: integer
+            minimum: 1
       requestBody:
         required: true
         content:
@@ -370,6 +375,7 @@ paths:
           required: true
           schema:
             type: integer
+            minimum: 1
       responses:
         "204":
           description: Removida
@@ -417,6 +423,7 @@ paths:
           required: true
           schema:
             type: integer
+            minimum: 1
       requestBody:
         required: true
         content:
@@ -440,6 +447,7 @@ paths:
           required: true
           schema:
             type: integer
+            minimum: 1
       responses:
         "204":
           description: Removida
@@ -455,6 +463,7 @@ paths:
           required: true
           schema:
             type: integer
+            minimum: 1
       responses:
         "200":
           description: Senha em claro
@@ -463,9 +472,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/SenhaRevelada"
         "403":
-          description: O papel do usuário não pode revelar senhas
+          $ref: "#/components/responses/Erro"
         "404":
-          description: Credencial não encontrada
+          $ref: "#/components/responses/Erro"
 
   /processos:
     get:
@@ -526,6 +535,7 @@ paths:
           required: true
           schema:
             type: integer
+            minimum: 1
       responses:
         "200":
           description: Processo
@@ -534,7 +544,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ProcessoComEtapas"
         "404":
-          description: Não encontrado
+          $ref: "#/components/responses/Erro"
     delete:
       operationId: removerProcesso
       tags: [processos]
@@ -545,6 +555,7 @@ paths:
           required: true
           schema:
             type: integer
+            minimum: 1
       responses:
         "204":
           description: Removido
@@ -560,6 +571,7 @@ paths:
           required: true
           schema:
             type: integer
+            minimum: 1
       requestBody:
         required: true
         content:
@@ -585,6 +597,7 @@ paths:
           required: true
           schema:
             type: integer
+            minimum: 1
       requestBody:
         required: true
         content:
@@ -608,6 +621,7 @@ paths:
           required: true
           schema:
             type: integer
+            minimum: 1
       responses:
         "204":
           description: Removida
@@ -655,6 +669,7 @@ paths:
           required: true
           schema:
             type: integer
+            minimum: 1
       responses:
         "200":
           description: Competência
@@ -663,7 +678,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/CompetenciaComResumo"
         "404":
-          description: Não encontrado
+          $ref: "#/components/responses/Erro"
     delete:
       operationId: removerCompetencia
       tags: [competencias]
@@ -674,6 +689,7 @@ paths:
           required: true
           schema:
             type: integer
+            minimum: 1
       responses:
         "204":
           description: Removida
@@ -690,6 +706,7 @@ paths:
           required: true
           schema:
             type: integer
+            minimum: 1
       responses:
         "200":
           description: O que foi acrescentado
@@ -698,7 +715,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ResultadoSincronizacao"
         "404":
-          description: Competência não encontrada
+          $ref: "#/components/responses/Erro"
 
   /competencias/{id}/checklist:
     get:
@@ -711,6 +728,7 @@ paths:
           required: true
           schema:
             type: integer
+            minimum: 1
       responses:
         "200":
           description: Itens do checklist
@@ -732,6 +750,7 @@ paths:
           required: true
           schema:
             type: integer
+            minimum: 1
       responses:
         "200":
           description: Pagamentos
@@ -753,6 +772,7 @@ paths:
           required: true
           schema:
             type: integer
+            minimum: 1
       requestBody:
         required: true
         content:
@@ -778,6 +798,7 @@ paths:
           required: true
           schema:
             type: integer
+            minimum: 1
       requestBody:
         required: true
         content:
@@ -803,6 +824,7 @@ paths:
           required: true
           schema:
             type: integer
+            minimum: 1
       requestBody:
         required: true
         content:
@@ -841,6 +863,7 @@ paths:
           required: true
           schema:
             type: integer
+            minimum: 1
       responses:
         "204":
           description: Marcado
@@ -856,6 +879,7 @@ paths:
           required: true
           schema:
             type: integer
+            minimum: 1
       responses:
         "204":
           description: Marcado
@@ -1011,6 +1035,7 @@ paths:
           required: true
           schema:
             type: integer
+            minimum: 1
       requestBody:
         required: true
         content:
@@ -1034,6 +1059,7 @@ paths:
           required: true
           schema:
             type: integer
+            minimum: 1
       responses:
         "204":
           description: Removida
@@ -1097,6 +1123,7 @@ paths:
           required: true
           schema:
             type: integer
+            minimum: 1
       responses:
         "200":
           description: Ficha do funcionário
@@ -1114,6 +1141,7 @@ paths:
           required: true
           schema:
             type: integer
+            minimum: 1
       requestBody:
         required: true
         content:
@@ -1137,6 +1165,7 @@ paths:
           required: true
           schema:
             type: integer
+            minimum: 1
       responses:
         "204":
           description: Removido
@@ -1205,6 +1234,7 @@ paths:
           required: true
           schema:
             type: integer
+            minimum: 1
       requestBody:
         required: true
         content:
@@ -1228,6 +1258,7 @@ paths:
           required: true
           schema:
             type: integer
+            minimum: 1
       responses:
         "204":
           description: Removido
@@ -1291,6 +1322,7 @@ paths:
           required: true
           schema:
             type: integer
+            minimum: 1
       requestBody:
         required: true
         content:
@@ -1314,6 +1346,7 @@ paths:
           required: true
           schema:
             type: integer
+            minimum: 1
       responses:
         "204":
           description: Removido
@@ -1349,7 +1382,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Usuario"
         "409":
-          description: Já existe um usuário com esse login
+          $ref: "#/components/responses/Erro"
 
   /usuarios/{id}:
     patch:
@@ -1362,6 +1395,7 @@ paths:
           required: true
           schema:
             type: integer
+            minimum: 1
       requestBody:
         required: true
         content:
@@ -1376,9 +1410,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/Usuario"
         "400":
-          description: A alteração deixaria o escritório sem administrador ativo
+          $ref: "#/components/responses/Erro"
         "404":
-          description: Usuário não encontrado
+          $ref: "#/components/responses/Erro"
 
   /usuarios/{id}/redefinir-senha:
     post:
@@ -1391,6 +1425,7 @@ paths:
           required: true
           schema:
             type: integer
+            minimum: 1
       requestBody:
         required: true
         content:
@@ -1401,7 +1436,7 @@ paths:
         "204":
           description: Senha redefinida
         "404":
-          description: Usuário não encontrado
+          $ref: "#/components/responses/Erro"
 
 
   /arquivos:
@@ -1448,7 +1483,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ArquivoCriado"
         "400":
-          description: Tipo ou tamanho não permitido, ou entidade inexistente
+          $ref: "#/components/responses/Erro"
 
   /arquivos/{id}/conteudo:
     put:
@@ -1461,6 +1496,7 @@ paths:
           required: true
           schema:
             type: integer
+            minimum: 1
       requestBody:
         required: true
         content:
@@ -1485,6 +1521,7 @@ paths:
           required: true
           schema:
             type: integer
+            minimum: 1
       responses:
         "200":
           description: O arquivo, como anexo
@@ -1505,6 +1542,7 @@ paths:
           required: true
           schema:
             type: integer
+            minimum: 1
       responses:
         "200":
           description: Arquivo confirmado
@@ -1513,7 +1551,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Arquivo"
         "400":
-          description: O conteúdo não está no armazenamento
+          $ref: "#/components/responses/Erro"
 
   /arquivos/{id}/download-url:
     get:
@@ -1526,6 +1564,7 @@ paths:
           required: true
           schema:
             type: integer
+            minimum: 1
       responses:
         "200":
           description: URL de download
@@ -1545,6 +1584,7 @@ paths:
           required: true
           schema:
             type: integer
+            minimum: 1
       responses:
         "204":
           description: Removido
@@ -1592,7 +1632,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Aviso"
         "400":
-          description: O cliente não tem destino para esse canal
+          $ref: "#/components/responses/Erro"
 
   /avisos/{id}/reenviar:
     post:
@@ -1605,6 +1645,7 @@ paths:
           required: true
           schema:
             type: integer
+            minimum: 1
       responses:
         "200":
           description: Aviso de volta na fila
@@ -1655,7 +1696,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ResultadoJobs"
         "401":
-          description: Token de serviço ausente ou inválido
+          $ref: "#/components/responses/Erro"
 
 
 components:
@@ -1664,7 +1705,27 @@ components:
       type: http
       scheme: bearer
       description: "`Authorization: Bearer ${TOKEN_JOBS}`"
+  responses:
+    Erro:
+      description: Erro tratado pela API
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Erro"
   schemas:
+    # Toda resposta de erro tem este formato (middlewares/error-handler.ts);
+    # `codigo` é estável para a tela decidir o que fazer.
+    Erro:
+      type: object
+      required: [error, codigo]
+      properties:
+        error: { type: string }
+        codigo: { type: string }
+        details: {}
+        issues:
+          type: array
+          items: { type: object, additionalProperties: true }
+
     HealthStatus:
       type: object
       required: [status]
@@ -1697,7 +1758,7 @@ components:
         clienteId: { type: ["integer", "null"] }
         entidade: { $ref: "#/components/schemas/EntidadeArquivo" }
         entidadeId: { type: integer }
-        nome: { type: string }
+        nome: { type: string, minLength: 1, maxLength: 200 }
         mime: { type: string }
         tamanho: { type: integer }
         sha256: { type: ["string", "null"] }
@@ -1911,8 +1972,8 @@ components:
             total: { type: integer }
             pagos: { type: integer }
             pendentes: { type: integer }
-            recebido: { type: string }
-            aReceber: { type: string }
+            recebido: { type: string, pattern: '^-?\d+(\.\d{1,2})?$' }
+            aReceber: { type: string, pattern: '^-?\d+(\.\d{1,2})?$' }
 
     Painel:
       type: object
@@ -1924,8 +1985,8 @@ components:
           type: ["object", "null"]
           properties:
             id: { type: integer }
-            ano: { type: integer }
-            mes: { type: integer }
+            ano: { type: integer, minimum: 2000, maximum: 2100 }
+            mes: { type: integer, minimum: 1, maximum: 12 }
             resumo:
               $ref: "#/components/schemas/Resumo"
 
@@ -1934,8 +1995,8 @@ components:
       required: [id, razaoSocial, ativo, obrigacoes, temSenhaGov, temSenhaNfse]
       properties:
         id: { type: integer }
-        codigo: { type: ["integer", "null"] }
-        razaoSocial: { type: string }
+        codigo: { type: ["integer", "null"], minimum: 0 }
+        razaoSocial: { type: string, minLength: 1, maxLength: 200 }
         cnpj: { type: ["string", "null"] }
         cnaePrincipal: { type: ["string", "null"] }
         regime: { $ref: "#/components/schemas/RegimeTributario" }
@@ -1943,15 +2004,15 @@ components:
         inscricaoMunicipal: { type: ["string", "null"] }
         formaEnvio: { type: ["string", "null"] }
         procuracao: { type: ["string", "null"] }
-        procuracaoVencimento: { type: ["string", "null"] }
+        procuracaoVencimento: { type: ["string", "null"], format: date }
         socioNome: { type: ["string", "null"] }
         socioCpf: { type: ["string", "null"] }
         # As senhas nunca saem na listagem: só por /clientes/{id}/segredos, com auditoria.
         temSenhaGov: { type: boolean }
         temSenhaNfse: { type: boolean }
         observacao: { type: ["string", "null"] }
-        valorHonorario: { type: ["string", "null"] }
-        diaVencimentoHonorario: { type: ["integer", "null"] }
+        valorHonorario: { type: ["string", "null"], pattern: '^-?\d+(\.\d{1,2})?$' }
+        diaVencimentoHonorario: { type: ["integer", "null"], minimum: 1, maximum: 31 }
         contatoNome: { type: ["string", "null"] }
         whatsapp: { type: ["string", "null"] }
         email: { type: ["string", "null"] }
@@ -1965,8 +2026,8 @@ components:
       required: [razaoSocial]
       properties:
         id: { type: ["integer", "null"] }
-        codigo: { type: ["integer", "null"] }
-        razaoSocial: { type: string }
+        codigo: { type: ["integer", "null"], minimum: 0 }
+        razaoSocial: { type: string, minLength: 1, maxLength: 200 }
         cnpj: { type: ["string", "null"] }
         cnaePrincipal: { type: ["string", "null"] }
         regime: { $ref: "#/components/schemas/RegimeTributario" }
@@ -1974,14 +2035,14 @@ components:
         inscricaoMunicipal: { type: ["string", "null"] }
         formaEnvio: { type: ["string", "null"] }
         procuracao: { type: ["string", "null"] }
-        procuracaoVencimento: { type: ["string", "null"] }
+        procuracaoVencimento: { type: ["string", "null"], format: date }
         socioNome: { type: ["string", "null"] }
         socioCpf: { type: ["string", "null"] }
         senhaGov: { type: ["string", "null"] }
         senhaNfse: { type: ["string", "null"] }
         observacao: { type: ["string", "null"] }
-        valorHonorario: { type: ["string", "null"] }
-        diaVencimentoHonorario: { type: ["integer", "null"] }
+        valorHonorario: { type: ["string", "null"], pattern: '^-?\d+(\.\d{1,2})?$' }
+        diaVencimentoHonorario: { type: ["integer", "null"], minimum: 1, maximum: 31 }
         contatoNome: { type: ["string", "null"] }
         whatsapp: { type: ["string", "null"] }
         email: { type: ["string", "null"] }
@@ -1999,8 +2060,8 @@ components:
     ClientePatch:
       type: object
       properties:
-        codigo: { type: ["integer", "null"] }
-        razaoSocial: { type: string }
+        codigo: { type: ["integer", "null"], minimum: 0 }
+        razaoSocial: { type: string, minLength: 1, maxLength: 200 }
         cnpj: { type: ["string", "null"] }
         cnaePrincipal: { type: ["string", "null"] }
         regime: { $ref: "#/components/schemas/RegimeTributario" }
@@ -2008,14 +2069,14 @@ components:
         inscricaoMunicipal: { type: ["string", "null"] }
         formaEnvio: { type: ["string", "null"] }
         procuracao: { type: ["string", "null"] }
-        procuracaoVencimento: { type: ["string", "null"] }
+        procuracaoVencimento: { type: ["string", "null"], format: date }
         socioNome: { type: ["string", "null"] }
         socioCpf: { type: ["string", "null"] }
         senhaGov: { type: ["string", "null"] }
         senhaNfse: { type: ["string", "null"] }
         observacao: { type: ["string", "null"] }
-        valorHonorario: { type: ["string", "null"] }
-        diaVencimentoHonorario: { type: ["integer", "null"] }
+        valorHonorario: { type: ["string", "null"], pattern: '^-?\d+(\.\d{1,2})?$' }
+        diaVencimentoHonorario: { type: ["integer", "null"], minimum: 1, maximum: 31 }
         contatoNome: { type: ["string", "null"] }
         whatsapp: { type: ["string", "null"] }
         email: { type: ["string", "null"] }
@@ -2035,13 +2096,13 @@ components:
       required: [id, nome, ordem, offsetMes, periodicidade, ativo, vincularAutomatico]
       properties:
         id: { type: integer }
-        nome: { type: string }
+        nome: { type: string, minLength: 1, maxLength: 200 }
         descricao: { type: ["string", "null"] }
-        ordem: { type: integer }
-        diaVencimento: { type: ["integer", "null"] }
-        offsetMes: { type: integer }
+        ordem: { type: integer, minimum: 0 }
+        diaVencimento: { type: ["integer", "null"], minimum: 1, maximum: 31 }
+        offsetMes: { type: integer, minimum: 0, maximum: 12 }
         periodicidade: { $ref: "#/components/schemas/Periodicidade" }
-        mesReferencia: { type: ["integer", "null"] }
+        mesReferencia: { type: ["integer", "null"], minimum: 1, maximum: 12 }
         # Lista vazia ou ausente = a obrigação vale para todos os regimes.
         regimes:
           type: ["array", "null"]
@@ -2057,13 +2118,13 @@ components:
       required: [nome]
       properties:
         id: { type: ["integer", "null"] }
-        nome: { type: string }
+        nome: { type: string, minLength: 1, maxLength: 200 }
         descricao: { type: ["string", "null"] }
-        ordem: { type: integer }
-        diaVencimento: { type: ["integer", "null"] }
-        offsetMes: { type: integer }
+        ordem: { type: integer, minimum: 0 }
+        diaVencimento: { type: ["integer", "null"], minimum: 1, maximum: 31 }
+        offsetMes: { type: integer, minimum: 0, maximum: 12 }
         periodicidade: { $ref: "#/components/schemas/Periodicidade" }
-        mesReferencia: { type: ["integer", "null"] }
+        mesReferencia: { type: ["integer", "null"], minimum: 1, maximum: 12 }
         # Lista vazia ou ausente = a obrigação vale para todos os regimes.
         regimes:
           type: ["array", "null"]
@@ -2089,10 +2150,10 @@ components:
         clienteId: { type: integer }
         clienteNome: { type: string }
         tipoObrigacaoId: { type: ["integer", "null"] }
-        rotulo: { type: string }
+        rotulo: { type: string, minLength: 1, maxLength: 200 }
         competenciaRef: { type: ["string", "null"] }
-        vencimento: { type: ["string", "null"] }
-        valor: { type: ["string", "null"] }
+        vencimento: { type: ["string", "null"], format: date }
+        valor: { type: ["string", "null"], pattern: '^-?\d+(\.\d{1,2})?$' }
         status: { $ref: "#/components/schemas/StatusDebito" }
         observacao: { type: ["string", "null"] }
 
@@ -2103,10 +2164,10 @@ components:
         id: { type: ["integer", "null"] }
         clienteId: { type: integer }
         tipoObrigacaoId: { type: ["integer", "null"] }
-        rotulo: { type: string }
+        rotulo: { type: string, minLength: 1, maxLength: 200 }
         competenciaRef: { type: ["string", "null"] }
-        vencimento: { type: ["string", "null"] }
-        valor: { type: ["string", "null"] }
+        vencimento: { type: ["string", "null"], format: date }
+        valor: { type: ["string", "null"], pattern: '^-?\d+(\.\d{1,2})?$' }
         status: { $ref: "#/components/schemas/StatusDebito" }
         observacao: { type: ["string", "null"] }
 
@@ -2114,10 +2175,10 @@ components:
       type: object
       properties:
         tipoObrigacaoId: { type: ["integer", "null"] }
-        rotulo: { type: string }
+        rotulo: { type: string, minLength: 1, maxLength: 200 }
         competenciaRef: { type: ["string", "null"] }
-        vencimento: { type: ["string", "null"] }
-        valor: { type: ["string", "null"] }
+        vencimento: { type: ["string", "null"], format: date }
+        valor: { type: ["string", "null"], pattern: '^-?\d+(\.\d{1,2})?$' }
         status: { $ref: "#/components/schemas/StatusDebito" }
         observacao: { type: ["string", "null"] }
 
@@ -2129,7 +2190,7 @@ components:
         clienteId: { type: integer }
         clienteNome: { type: string }
         tipoObrigacaoId: { type: ["integer", "null"] }
-        rotulo: { type: string }
+        rotulo: { type: string, minLength: 1, maxLength: 200 }
         login: { type: ["string", "null"] }
         # A senha só sai por /credenciais/{id}/senha, com auditoria.
         temSenha: { type: boolean }
@@ -2142,7 +2203,7 @@ components:
         id: { type: ["integer", "null"] }
         clienteId: { type: integer }
         tipoObrigacaoId: { type: ["integer", "null"] }
-        rotulo: { type: string }
+        rotulo: { type: string, minLength: 1, maxLength: 200 }
         login: { type: ["string", "null"] }
         senha: { type: ["string", "null"] }
         observacao: { type: ["string", "null"] }
@@ -2151,7 +2212,7 @@ components:
       type: object
       properties:
         tipoObrigacaoId: { type: ["integer", "null"] }
-        rotulo: { type: string }
+        rotulo: { type: string, minLength: 1, maxLength: 200 }
         login: { type: ["string", "null"] }
         senha: { type: ["string", "null"] }
         observacao: { type: ["string", "null"] }
@@ -2178,7 +2239,7 @@ components:
         orgao: { type: ["string", "null"] }
         protocolo: { type: ["string", "null"] }
         abertoEm: { type: ["string", "null"] }
-        prazo: { type: ["string", "null"] }
+        prazo: { type: ["string", "null"], format: date }
         concluidoEm: { type: ["string", "null"] }
         observacao: { type: ["string", "null"] }
         totalEtapas: { type: integer }
@@ -2208,7 +2269,7 @@ components:
         orgao: { type: ["string", "null"] }
         protocolo: { type: ["string", "null"] }
         abertoEm: { type: ["string", "null"] }
-        prazo: { type: ["string", "null"] }
+        prazo: { type: ["string", "null"], format: date }
         concluidoEm: { type: ["string", "null"] }
         observacao: { type: ["string", "null"] }
 
@@ -2220,7 +2281,7 @@ components:
         processoId: { type: integer }
         descricao: { type: string }
         feito: { type: boolean }
-        ordem: { type: integer }
+        ordem: { type: integer, minimum: 0 }
         concluidoEm: { type: ["string", "null"] }
         observacao: { type: ["string", "null"] }
 
@@ -2236,7 +2297,7 @@ components:
       properties:
         descricao: { type: string }
         feito: { type: boolean }
-        ordem: { type: integer }
+        ordem: { type: integer, minimum: 0 }
         observacao: { type: ["string", "null"] }
 
     Competencia:
@@ -2244,8 +2305,8 @@ components:
       required: [id, ano, mes]
       properties:
         id: { type: integer }
-        ano: { type: integer }
-        mes: { type: integer }
+        ano: { type: integer, minimum: 2000, maximum: 2100 }
+        mes: { type: integer, minimum: 1, maximum: 12 }
         rotulo: { type: ["string", "null"] }
 
     CompetenciaComResumo:
@@ -2253,8 +2314,8 @@ components:
       required: [id, ano, mes, resumo]
       properties:
         id: { type: integer }
-        ano: { type: integer }
-        mes: { type: integer }
+        ano: { type: integer, minimum: 2000, maximum: 2100 }
+        mes: { type: integer, minimum: 1, maximum: 12 }
         rotulo: { type: ["string", "null"] }
         resumo:
           $ref: "#/components/schemas/Resumo"
@@ -2263,8 +2324,8 @@ components:
       type: object
       required: [ano, mes]
       properties:
-        ano: { type: integer }
-        mes: { type: integer }
+        ano: { type: integer, minimum: 2000, maximum: 2100 }
+        mes: { type: integer, minimum: 1, maximum: 12 }
         # Para meses anteriores ao início do uso do sistema: gera só os
         # honorários (pagamentos), sem o checklist de obrigações daquele mês.
         somenteHonorarios: { type: boolean }
@@ -2285,12 +2346,12 @@ components:
           type: string
           enum: [pendente, emitido, enviado, nao_aplica]
         clienteId: { type: integer }
-        codigo: { type: ["integer", "null"] }
+        codigo: { type: ["integer", "null"], minimum: 0 }
         cliente: { type: string }
-        vencimento: { type: ["string", "null"] }
+        vencimento: { type: ["string", "null"], format: date }
         tipoObrigacaoId: { type: integer }
         obrigacao: { type: string }
-        ordem: { type: integer }
+        ordem: { type: integer, minimum: 0 }
 
     StatusChecklistInput:
       type: object
@@ -2303,7 +2364,7 @@ components:
     VencimentoInput:
       type: object
       properties:
-        vencimento: { type: ["string", "null"] }
+        vencimento: { type: ["string", "null"], format: date }
 
     Pagamento:
       type: object
@@ -2313,13 +2374,13 @@ components:
         status:
           type: string
           enum: [pendente, pago, isento]
-        valor: { type: ["string", "null"] }
-        dataPagamento: { type: ["string", "null"] }
-        vencimento: { type: ["string", "null"] }
+        valor: { type: ["string", "null"], pattern: '^-?\d+(\.\d{1,2})?$' }
+        dataPagamento: { type: ["string", "null"], format: date }
+        vencimento: { type: ["string", "null"], format: date }
         forma: { type: ["string", "null"] }
         observacao: { type: ["string", "null"] }
         clienteId: { type: integer }
-        codigo: { type: ["integer", "null"] }
+        codigo: { type: ["integer", "null"], minimum: 0 }
         cliente: { type: string }
 
     PagamentoInput:
@@ -2328,8 +2389,8 @@ components:
         status:
           type: string
           enum: [pendente, pago, isento]
-        valor: { type: ["string", "null"] }
-        dataPagamento: { type: ["string", "null"] }
+        valor: { type: ["string", "null"], pattern: '^-?\d+(\.\d{1,2})?$' }
+        dataPagamento: { type: ["string", "null"], format: date }
         forma: { type: ["string", "null"] }
         observacao: { type: ["string", "null"] }
 
@@ -2339,16 +2400,16 @@ components:
       properties:
         id: { type: integer }
         competenciaId: { type: integer }
-        ano: { type: integer }
-        mes: { type: integer }
+        ano: { type: integer, minimum: 2000, maximum: 2100 }
+        mes: { type: integer, minimum: 1, maximum: 12 }
         # `pendente` = nem emitida; `emitido` = pronta, mas não chegou ao cliente.
         status:
           type: string
           enum: [pendente, emitido]
-        vencimento: { type: ["string", "null"] }
+        vencimento: { type: ["string", "null"], format: date }
         diasAtraso: { type: integer }
         clienteId: { type: integer }
-        codigo: { type: ["integer", "null"] }
+        codigo: { type: ["integer", "null"], minimum: 0 }
         cliente: { type: string }
         obrigacao: { type: string }
 
@@ -2358,13 +2419,13 @@ components:
       properties:
         id: { type: integer }
         competenciaId: { type: integer }
-        ano: { type: integer }
-        mes: { type: integer }
-        valor: { type: ["string", "null"] }
-        vencimento: { type: ["string", "null"] }
+        ano: { type: integer, minimum: 2000, maximum: 2100 }
+        mes: { type: integer, minimum: 1, maximum: 12 }
+        valor: { type: ["string", "null"], pattern: '^-?\d+(\.\d{1,2})?$' }
+        vencimento: { type: ["string", "null"], format: date }
         diasAtraso: { type: integer }
         clienteId: { type: integer }
-        codigo: { type: ["integer", "null"] }
+        codigo: { type: ["integer", "null"], minimum: 0 }
         cliente: { type: string }
         whatsapp: { type: ["string", "null"] }
         cobradoEm: { type: ["string", "null"] }
@@ -2393,13 +2454,13 @@ components:
       required: [chave, valor]
       properties:
         chave: { type: string }
-        valor: { type: string }
+        valor: { type: string, pattern: '^-?\d+(\.\d{1,2})?$' }
 
     ConfiguracaoInput:
       type: object
       required: [valor]
       properties:
-        valor: { type: string }
+        valor: { type: string, pattern: '^-?\d+(\.\d{1,2})?$' }
 
     # Filtro dos registros que existem para o escritório e para os clientes:
     # `escritorio` = só os sem cliente, `clientes` = só os com cliente.
@@ -2412,7 +2473,7 @@ components:
       required: [id, nome]
       properties:
         id: { type: integer }
-        nome: { type: string }
+        nome: { type: string, minLength: 1, maxLength: 200 }
         cnpj: { type: ["string", "null"] }
         responsavel: { type: ["string", "null"] }
         crc: { type: ["string", "null"] }
@@ -2439,11 +2500,11 @@ components:
         id: { type: integer }
         clienteId: { type: ["integer", "null"] }
         clienteNome: { type: ["string", "null"] }
-        data: { type: string }
+        data: { type: string, format: date }
         categoria: { type: string }
         descricao: { type: string }
-        valor: { type: string }
-        vencimento: { type: ["string", "null"] }
+        valor: { type: string, pattern: '^-?\d+(\.\d{1,2})?$' }
+        vencimento: { type: ["string", "null"], format: date }
         formaPagamento: { type: ["string", "null"] }
         pago: { type: boolean }
         observacao: { type: ["string", "null"] }
@@ -2454,11 +2515,11 @@ components:
       properties:
         id: { type: ["integer", "null"] }
         clienteId: { type: ["integer", "null"] }
-        data: { type: string }
+        data: { type: string, format: date }
         categoria: { type: string, minLength: 1 }
         descricao: { type: string, minLength: 1 }
-        valor: { type: string }
-        vencimento: { type: ["string", "null"] }
+        valor: { type: string, pattern: '^-?\d+(\.\d{1,2})?$' }
+        vencimento: { type: ["string", "null"], format: date }
         formaPagamento: { type: ["string", "null"] }
         pago: { type: boolean }
         observacao: { type: ["string", "null"] }
@@ -2467,11 +2528,11 @@ components:
       type: object
       properties:
         clienteId: { type: ["integer", "null"] }
-        data: { type: string }
+        data: { type: string, format: date }
         categoria: { type: string }
         descricao: { type: string }
-        valor: { type: string }
-        vencimento: { type: ["string", "null"] }
+        valor: { type: string, pattern: '^-?\d+(\.\d{1,2})?$' }
+        vencimento: { type: ["string", "null"], format: date }
         formaPagamento: { type: ["string", "null"] }
         pago: { type: boolean }
         observacao: { type: ["string", "null"] }
@@ -2487,16 +2548,16 @@ components:
         id: { type: integer }
         clienteId: { type: ["integer", "null"] }
         clienteNome: { type: ["string", "null"] }
-        nome: { type: string }
+        nome: { type: string, minLength: 1, maxLength: 200 }
         cpf: { type: ["string", "null"] }
         rg: { type: ["string", "null"] }
         pis: { type: ["string", "null"] }
         ctps: { type: ["string", "null"] }
-        nascimento: { type: ["string", "null"] }
+        nascimento: { type: ["string", "null"], format: date }
         cargo: { type: ["string", "null"] }
-        admissao: { type: ["string", "null"] }
-        demissao: { type: ["string", "null"] }
-        salario: { type: ["string", "null"] }
+        admissao: { type: ["string", "null"], format: date }
+        demissao: { type: ["string", "null"], format: date }
+        salario: { type: ["string", "null"], pattern: '^-?\d+(\.\d{1,2})?$' }
         situacao: { $ref: "#/components/schemas/SituacaoFuncionario" }
         telefone: { type: ["string", "null"] }
         email: { type: ["string", "null"] }
@@ -2514,11 +2575,11 @@ components:
         rg: { type: ["string", "null"] }
         pis: { type: ["string", "null"] }
         ctps: { type: ["string", "null"] }
-        nascimento: { type: ["string", "null"] }
+        nascimento: { type: ["string", "null"], format: date }
         cargo: { type: ["string", "null"] }
-        admissao: { type: ["string", "null"] }
-        demissao: { type: ["string", "null"] }
-        salario: { type: ["string", "null"] }
+        admissao: { type: ["string", "null"], format: date }
+        demissao: { type: ["string", "null"], format: date }
+        salario: { type: ["string", "null"], pattern: '^-?\d+(\.\d{1,2})?$' }
         situacao: { $ref: "#/components/schemas/SituacaoFuncionario" }
         telefone: { type: ["string", "null"] }
         email: { type: ["string", "null"] }
@@ -2529,16 +2590,16 @@ components:
       type: object
       properties:
         clienteId: { type: ["integer", "null"] }
-        nome: { type: string }
+        nome: { type: string, minLength: 1, maxLength: 200 }
         cpf: { type: ["string", "null"] }
         rg: { type: ["string", "null"] }
         pis: { type: ["string", "null"] }
         ctps: { type: ["string", "null"] }
-        nascimento: { type: ["string", "null"] }
+        nascimento: { type: ["string", "null"], format: date }
         cargo: { type: ["string", "null"] }
-        admissao: { type: ["string", "null"] }
-        demissao: { type: ["string", "null"] }
-        salario: { type: ["string", "null"] }
+        admissao: { type: ["string", "null"], format: date }
+        demissao: { type: ["string", "null"], format: date }
+        salario: { type: ["string", "null"], pattern: '^-?\d+(\.\d{1,2})?$' }
         situacao: { $ref: "#/components/schemas/SituacaoFuncionario" }
         telefone: { type: ["string", "null"] }
         email: { type: ["string", "null"] }
@@ -2558,16 +2619,16 @@ components:
         funcionarioNome: { type: string }
         clienteId: { type: ["integer", "null"] }
         clienteNome: { type: ["string", "null"] }
-        ano: { type: integer }
-        mes: { type: integer }
+        ano: { type: integer, minimum: 2000, maximum: 2100 }
+        mes: { type: integer, minimum: 1, maximum: 12 }
         tipo: { $ref: "#/components/schemas/TipoFolha" }
-        salarioBase: { type: ["string", "null"] }
+        salarioBase: { type: ["string", "null"], pattern: '^-?\d+(\.\d{1,2})?$' }
         proventos: { type: ["string", "null"] }
-        descontos: { type: ["string", "null"] }
-        inss: { type: ["string", "null"] }
-        fgts: { type: ["string", "null"] }
-        irrf: { type: ["string", "null"] }
-        liquido: { type: ["string", "null"] }
+        descontos: { type: ["string", "null"], pattern: '^-?\d+(\.\d{1,2})?$' }
+        inss: { type: ["string", "null"], pattern: '^-?\d+(\.\d{1,2})?$' }
+        fgts: { type: ["string", "null"], pattern: '^-?\d+(\.\d{1,2})?$' }
+        irrf: { type: ["string", "null"], pattern: '^-?\d+(\.\d{1,2})?$' }
+        liquido: { type: ["string", "null"], pattern: '^-?\d+(\.\d{1,2})?$' }
         pago: { type: boolean }
         pagoEm: { type: ["string", "null"] }
         observacao: { type: ["string", "null"] }
@@ -2578,16 +2639,16 @@ components:
       properties:
         id: { type: ["integer", "null"] }
         funcionarioId: { type: integer }
-        ano: { type: integer }
+        ano: { type: integer, minimum: 2000, maximum: 2100 }
         mes: { type: integer, minimum: 1, maximum: 12 }
         tipo: { $ref: "#/components/schemas/TipoFolha" }
-        salarioBase: { type: ["string", "null"] }
+        salarioBase: { type: ["string", "null"], pattern: '^-?\d+(\.\d{1,2})?$' }
         proventos: { type: ["string", "null"] }
-        descontos: { type: ["string", "null"] }
-        inss: { type: ["string", "null"] }
-        fgts: { type: ["string", "null"] }
-        irrf: { type: ["string", "null"] }
-        liquido: { type: ["string", "null"] }
+        descontos: { type: ["string", "null"], pattern: '^-?\d+(\.\d{1,2})?$' }
+        inss: { type: ["string", "null"], pattern: '^-?\d+(\.\d{1,2})?$' }
+        fgts: { type: ["string", "null"], pattern: '^-?\d+(\.\d{1,2})?$' }
+        irrf: { type: ["string", "null"], pattern: '^-?\d+(\.\d{1,2})?$' }
+        liquido: { type: ["string", "null"], pattern: '^-?\d+(\.\d{1,2})?$' }
         pago: { type: boolean }
         pagoEm: { type: ["string", "null"] }
         observacao: { type: ["string", "null"] }
@@ -2595,13 +2656,13 @@ components:
     LancamentoFolhaPatch:
       type: object
       properties:
-        salarioBase: { type: ["string", "null"] }
+        salarioBase: { type: ["string", "null"], pattern: '^-?\d+(\.\d{1,2})?$' }
         proventos: { type: ["string", "null"] }
-        descontos: { type: ["string", "null"] }
-        inss: { type: ["string", "null"] }
-        fgts: { type: ["string", "null"] }
-        irrf: { type: ["string", "null"] }
-        liquido: { type: ["string", "null"] }
+        descontos: { type: ["string", "null"], pattern: '^-?\d+(\.\d{1,2})?$' }
+        inss: { type: ["string", "null"], pattern: '^-?\d+(\.\d{1,2})?$' }
+        fgts: { type: ["string", "null"], pattern: '^-?\d+(\.\d{1,2})?$' }
+        irrf: { type: ["string", "null"], pattern: '^-?\d+(\.\d{1,2})?$' }
+        liquido: { type: ["string", "null"], pattern: '^-?\d+(\.\d{1,2})?$' }
         pago: { type: boolean }
         pagoEm: { type: ["string", "null"] }
         observacao: { type: ["string", "null"] }
@@ -2615,13 +2676,13 @@ components:
         funcionarioNome: { type: string }
         clienteId: { type: ["integer", "null"] }
         clienteNome: { type: ["string", "null"] }
-        aquisitivoInicio: { type: string }
-        aquisitivoFim: { type: string }
-        gozoInicio: { type: ["string", "null"] }
-        gozoFim: { type: ["string", "null"] }
+        aquisitivoInicio: { type: string, format: date }
+        aquisitivoFim: { type: string, format: date }
+        gozoInicio: { type: ["string", "null"], format: date }
+        gozoFim: { type: ["string", "null"], format: date }
         # Calculado pela API: um ano depois do fim do aquisitivo, o prazo legal
         # para conceder as férias.
-        limiteGozo: { type: string }
+        limiteGozo: { type: string, format: date }
         # true quando o período ainda não foi gozado e o limite está a 90 dias
         # ou já passou.
         vencendo: { type: boolean }
@@ -2631,7 +2692,7 @@ components:
           type: string
           enum: [gozada, vencida, vencendo, a_vencer]
         diasVendidos: { type: integer }
-        valor: { type: ["string", "null"] }
+        valor: { type: ["string", "null"], pattern: '^-?\d+(\.\d{1,2})?$' }
         observacao: { type: ["string", "null"] }
 
     FeriasInput:
@@ -2640,23 +2701,23 @@ components:
       properties:
         id: { type: ["integer", "null"] }
         funcionarioId: { type: integer }
-        aquisitivoInicio: { type: string }
-        aquisitivoFim: { type: string }
-        gozoInicio: { type: ["string", "null"] }
-        gozoFim: { type: ["string", "null"] }
+        aquisitivoInicio: { type: string, format: date }
+        aquisitivoFim: { type: string, format: date }
+        gozoInicio: { type: ["string", "null"], format: date }
+        gozoFim: { type: ["string", "null"], format: date }
         diasVendidos: { type: integer, minimum: 0, maximum: 10 }
-        valor: { type: ["string", "null"] }
+        valor: { type: ["string", "null"], pattern: '^-?\d+(\.\d{1,2})?$' }
         observacao: { type: ["string", "null"] }
 
     FeriasPatch:
       type: object
       properties:
-        aquisitivoInicio: { type: string }
-        aquisitivoFim: { type: string }
-        gozoInicio: { type: ["string", "null"] }
-        gozoFim: { type: ["string", "null"] }
+        aquisitivoInicio: { type: string, format: date }
+        aquisitivoFim: { type: string, format: date }
+        gozoInicio: { type: ["string", "null"], format: date }
+        gozoFim: { type: ["string", "null"], format: date }
         diasVendidos: { type: integer, minimum: 0, maximum: 10 }
-        valor: { type: ["string", "null"] }
+        valor: { type: ["string", "null"], pattern: '^-?\d+(\.\d{1,2})?$' }
         observacao: { type: ["string", "null"] }
 
     FichaFuncionario:

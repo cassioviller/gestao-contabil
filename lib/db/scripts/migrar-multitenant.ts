@@ -77,9 +77,7 @@ try {
       expira_em timestamptz not null
     )
   `);
-  await cliente.query(
-    `create index if not exists ix_sessoes_usuario on sessoes (usuario_id)`,
-  );
+  await cliente.query(`create index if not exists ix_sessoes_usuario on sessoes (usuario_id)`);
 
   // ------------------------------------------------------------- conta inicial
   // A conta só é criada se ainda não existe nenhuma: numa base já migrada, os
@@ -131,9 +129,7 @@ try {
 
     // Adiciona nula, preenche as linhas antigas e só então trava como NOT NULL:
     // ADD COLUMN ... NOT NULL direto quebraria com dados já na tabela.
-    await cliente.query(
-      `alter table ${tabela} add column if not exists conta_id integer`,
-    );
+    await cliente.query(`alter table ${tabela} add column if not exists conta_id integer`);
     const { rowCount } = await cliente.query(
       `update ${tabela} set conta_id = $1 where conta_id is null`,
       [contaId],
@@ -146,9 +142,7 @@ try {
           foreign key (conta_id) references contas(id) on delete cascade;
       exception when duplicate_object then null; end $$
     `);
-    await cliente.query(
-      `create index if not exists ix_${tabela}_conta on ${tabela} (conta_id)`,
-    );
+    await cliente.query(`create index if not exists ix_${tabela}_conta on ${tabela} (conta_id)`);
     console.log(`${tabela}: ${rowCount ?? 0} linha(s) adotadas pela conta #${contaId}.`);
   }
 
@@ -158,12 +152,8 @@ try {
     `select 1 from information_schema.tables where table_schema = 'public' and table_name = 'configuracoes'`,
   );
   if (temConfig.length) {
-    await cliente.query(
-      `alter table configuracoes add column if not exists conta_id integer`,
-    );
-    await cliente.query(`update configuracoes set conta_id = $1 where conta_id is null`, [
-      contaId,
-    ]);
+    await cliente.query(`alter table configuracoes add column if not exists conta_id integer`);
+    await cliente.query(`update configuracoes set conta_id = $1 where conta_id is null`, [contaId]);
     await cliente.query(`alter table configuracoes alter column conta_id set not null`);
     await cliente.query(`
       do $$ begin

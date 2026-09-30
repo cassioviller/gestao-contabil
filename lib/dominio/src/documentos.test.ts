@@ -36,7 +36,13 @@ describe("CPF", () => {
 describe("folha", () => {
   test("líquido sugerido soma proventos e subtrai descontos, sem FGTS", () => {
     expect(
-      liquidoSugerido({ salarioBase: "3000.00", proventos: "500.00", descontos: "100.00", inss: "300.00", irrf: "50.00" }),
+      liquidoSugerido({
+        salarioBase: "3000.00",
+        proventos: "500.00",
+        descontos: "100.00",
+        inss: "300.00",
+        irrf: "50.00",
+      }),
     ).toBe(3050);
     expect(liquidoSugerido({ salarioBase: "0.10", proventos: "0.20" })).toBe(0.3);
     expect(liquidoSugerido({})).toBe(0);
@@ -46,10 +52,10 @@ describe("folha", () => {
 describe("csv", () => {
   test("escapa aspas e neutraliza fórmulas", () => {
     expect(escaparCelulaCsv('a"b')).toBe('"a""b"');
-    expect(escaparCelulaCsv("=HYPERLINK(\"x\")")).toBe("\"'=HYPERLINK(\"\"x\"\")\"");
-    expect(escaparCelulaCsv("+55 11")).toBe("\"'+55 11\"");
-    expect(escaparCelulaCsv("-10")).toBe("\"'-10\"");
-    expect(escaparCelulaCsv("@user")).toBe("\"'@user\"");
+    expect(escaparCelulaCsv('=HYPERLINK("x")')).toBe('"\'=HYPERLINK(""x"")"');
+    expect(escaparCelulaCsv("+55 11")).toBe('"\'+55 11"');
+    expect(escaparCelulaCsv("-10")).toBe('"\'-10"');
+    expect(escaparCelulaCsv("@user")).toBe('"\'@user"');
     expect(escaparCelulaCsv(null)).toBe('""');
   });
 

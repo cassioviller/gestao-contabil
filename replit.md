@@ -7,6 +7,8 @@ _Gestão de obrigações contábeis: o contador acompanha, mês a mês (competê
 - `pnpm --filter @workspace/api-server run dev` — builda e sobe a API (`PORT` obrigatória; `.env.example` usa 8080). No boot a API **aplica as migrations que faltam** (`garantirBanco`), com advisory lock para o autoscale.
 - `pnpm run typecheck` — typecheck de todos os pacotes (`tsc --build` nas libs + `tsc --noEmit` nos artifacts)
 - `pnpm run test` — testes unitários (Vitest) das libs: `lib/dominio` (regras de negócio) e `lib/db` (cifra)
+- `pnpm run lint` / `pnpm run format:check` / `pnpm run format` — ESLint (flat config em `eslint.config.mjs`: typescript-eslint, react-hooks, jsx-a11y) e Prettier (`.prettierrc`; `components/ui` do shadcn e os gerados ficam fora do lint). O CI exige os dois limpos.
+- CI: `.github/workflows/ci.yml` — typecheck, lint, formato, unitários, build, `drizzle-kit check`, e2e com Postgres 16 e Chromium, e `pnpm audit --prod` (alto/crítico bloqueia). Reproduza localmente com os mesmos scripts.
 - `pnpm run build` — typecheck + build de todos os pacotes
 - `pnpm --filter @workspace/gestao-contabil run e2e` — suíte Playwright (builda API + front, sobe os dois, roda os testes). Exige `E2E_DATABASE_URL` apontando para um banco cujo nome contenha `test` ou `e2e`: **a suíte apaga todas as tabelas** desse banco.
 - `pnpm --filter @workspace/api-spec run codegen` — regenera hooks e schemas Zod a partir do OpenAPI
@@ -65,7 +67,8 @@ _Gestão de obrigações contábeis: o contador acompanha, mês a mês (competê
 
 ## Architecture decisions
 
-- Validação de request reutiliza os schemas gerados em `@workspace/api-zod` (`*Body`/`*Params`) — fonte única com o contrato OpenAPI. `*Params` usa `zod.coerce.number()`.
+- Validação de request reutiliza os schemas gerados em `@workspace/api-zod` (`*Body`/`*Params`) — fonte única com o contrato OpenAPI. `*Params` usa `zod.coerce.number()`. O contrato é estrito: ids `minimum: 1`, `mes` 1–12, `ano` 2000–2100, dias 1–31, dinheiro com `pattern` (`^-?\d+(\.\d{1,2})?$`, ponto decimal), datas com `format: date` (AAAA-MM-DD, viram `zod.string().date()` — o orval **não** coage para `Date`, de propósito), nomes com `minLength: 1`, e um schema `Erro` (`components/responses/Erro`) para os 4xx.
+- `tsconfig.base.json` está em `strict: true` (com `noImplicitOverride`); código novo nasce sob ele.
 - Erros passam por um handler central (`middlewares/error-handler.ts`): `ZodError`→400, `HttpError`→seu status, JSON malformado→400, corpo grande→413, erro do Postgres mapeado por código (`23505`→409 `duplicado`, `23503`→409, `22P02`/`22007`/`22003`→400), resto→500 sem vazar detalhe. Resposta sempre `{ error, codigo, ... }`; o front usa `mensagemDeErro`.
 - Borda: `helmet` (CSP `default-src 'none'`, HSTS em produção), `trust proxy`, `x-request-id` propagado, JSON limitado a 256 kB, sem CORS (front e API no mesmo host). Login com rate limit por IP e por login (`LOGIN_TENTATIVAS_*`) e scrypt fictício quando o usuário não existe (tempo constante).
 - Processo: `SIGTERM`/`SIGINT` fecham o servidor e o pool (10 s de limite); pool com `idleTimeout`, `connectionTimeout`, `statement_timeout` e listener de `error` (sem ele um cliente ocioso derrubado mata o processo).

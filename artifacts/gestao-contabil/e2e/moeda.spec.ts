@@ -40,7 +40,9 @@ test("valores digitados em pt-BR, com milhar, persistem e voltam formatados", as
   const { id } = await criado.json();
 
   await page.goto("/cadastro");
-  const linha = page.locator("tbody tr").filter({ has: page.locator('input[value="Milhar LTDA"]') });
+  const linha = page
+    .locator("tbody tr")
+    .filter({ has: page.locator('input[value="Milhar LTDA"]') });
   await linha.locator('input[name="valorHonorario"]').fill("1.234,56");
   await linha.locator('input[name="valorHonorario"]').press("Enter");
   await expect(page.getByText("✓ salvo")).toBeVisible();
@@ -75,7 +77,9 @@ test("a API responde 409 para nome de obrigação repetido, não 500", async ({ 
   await request.delete(`/api/tipos/${(await primeira.json()).id}`);
 });
 
-test("abrir o mesmo mês duas vezes responde 409 e não deixa o mês pela metade", async ({ request }) => {
+test("abrir o mesmo mês duas vezes responde 409 e não deixa o mês pela metade", async ({
+  request,
+}) => {
   const primeira = await request.post("/api/competencias", { data: { ano: 2094, mes: 1 } });
   expect(primeira.status()).toBe(200);
   const segunda = await request.post("/api/competencias", { data: { ano: 2094, mes: 1 } });
@@ -86,9 +90,13 @@ test("abrir o mesmo mês duas vezes responde 409 e não deixa o mês pela metade
 });
 
 test("POST /clientes com id e sem obrigações mantém os vínculos", async ({ request }) => {
-  const tipo = await (await request.post("/api/tipos", { data: { nome: "Vínculo Mantido" } })).json();
+  const tipo = await (
+    await request.post("/api/tipos", { data: { nome: "Vínculo Mantido" } })
+  ).json();
   const cliente = await (
-    await request.post("/api/clientes", { data: { razaoSocial: "Vinculada LTDA", obrigacoes: [tipo.id] } })
+    await request.post("/api/clientes", {
+      data: { razaoSocial: "Vinculada LTDA", obrigacoes: [tipo.id] },
+    })
   ).json();
   expect(cliente.obrigacoes).toEqual([tipo.id]);
 
@@ -114,9 +122,15 @@ test("POST /clientes com id e sem obrigações mantém os vínculos", async ({ r
 
 test("PATCH parcial no pagamento não zera os outros campos", async ({ request }) => {
   const cliente = await (
-    await request.post("/api/clientes", { data: { razaoSocial: "Parcial LTDA", valorHonorario: "500.00" } })
+    await request.post("/api/clientes", {
+      data: { razaoSocial: "Parcial LTDA", valorHonorario: "500.00" },
+    })
   ).json();
-  const comp = await (await request.post("/api/competencias", { data: { ano: 2093, mes: 2, somenteHonorarios: true } })).json();
+  const comp = await (
+    await request.post("/api/competencias", {
+      data: { ano: 2093, mes: 2, somenteHonorarios: true },
+    })
+  ).json();
   const pagamentos = await (await request.get(`/api/competencias/${comp.id}/pagamentos`)).json();
   const meu = pagamentos.find((p: { clienteId: number }) => p.clienteId === cliente.id);
   expect(meu.valor).toBe("500.00");

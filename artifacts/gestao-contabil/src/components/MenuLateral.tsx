@@ -1,10 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
-import {
-  getGetSessaoAtualQueryKey,
-  useGetSessaoAtual,
-  useSair,
-} from "@workspace/api-client-react";
+import { getGetSessaoAtualQueryKey, useGetSessaoAtual, useSair } from "@workspace/api-client-react";
 import { encerrarSessaoLocal } from "@/lib/sessao";
 
 const itens: { href: string; rotulo: string; icone: string; somenteAdmin?: boolean }[] = [
@@ -57,26 +53,25 @@ export default function MenuLateral() {
         <p className="text-xs text-neutral-500">ContaFácil · gestão contábil</p>
       </div>
       <nav className="flex flex-col gap-1">
-        {itens.filter((item) => !item.somenteAdmin || sessao?.papel === "admin").map((item) => {
-          const ativo =
-            item.href === "/"
-              ? caminho === "/"
-              : caminho.startsWith(item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
-                ativo
-                  ? "bg-blue-600 text-white"
-                  : "text-neutral-700 hover:bg-black/5 dark:text-neutral-300 dark:hover:bg-white/10"
-              }`}
-            >
-              <span>{item.icone}</span>
-              <span>{item.rotulo}</span>
-            </Link>
-          );
-        })}
+        {itens
+          .filter((item) => !item.somenteAdmin || sessao?.papel === "admin")
+          .map((item) => {
+            const ativo = item.href === "/" ? caminho === "/" : caminho.startsWith(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
+                  ativo
+                    ? "bg-blue-600 text-white"
+                    : "text-neutral-700 hover:bg-black/5 dark:text-neutral-300 dark:hover:bg-white/10"
+                }`}
+              >
+                <span>{item.icone}</span>
+                <span>{item.rotulo}</span>
+              </Link>
+            );
+          })}
       </nav>
 
       <div className="mt-auto border-t border-black/10 px-2 pt-4 dark:border-white/10">
@@ -87,7 +82,10 @@ export default function MenuLateral() {
           {sessao?.login ?? ""}
           {sessao?.papel ? ` · ${PAPEL[sessao.papel] ?? sessao.papel}` : ""}
         </p>
-        <Link href="/minha-conta" className="mt-1 block text-xs text-blue-600 hover:underline dark:text-blue-400">
+        <Link
+          href="/minha-conta"
+          className="mt-1 block text-xs text-blue-600 hover:underline dark:text-blue-400"
+        >
           Minha conta (trocar senha)
         </Link>
         <button

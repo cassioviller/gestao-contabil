@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   getGetPerfilQueryKey,
@@ -25,33 +25,24 @@ export default function Perfil() {
   const { data: perfil, isLoading } = useGetPerfil();
   const salvar = useSalvarPerfil();
 
-  const [form, setForm] = useState<Record<Campo, string>>({
-    nome: "",
-    cnpj: "",
-    responsavel: "",
-    crc: "",
-    telefone: "",
-    email: "",
-    endereco: "",
-  });
+  // O que a contadora digitou por cima do perfil salvo. Derivado (perfil +
+  // edições) em vez de copiado por efeito: o formulário mostra o perfil assim
+  // que ele chega e nunca fica controlado por "undefined".
+  const [edicoes, setEdicoes] = useState<Partial<Record<Campo, string>> | null>(null);
   const [salvo, setSalvo] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
-  // O formulário só é preenchido quando o perfil chega — antes disso os campos
-  // ficariam controlados por "undefined" e o React reclamaria da troca.
-  useEffect(() => {
-    if (!perfil) return;
-    const p = perfil as PerfilDados;
-    setForm({
-      nome: p.nome ?? "",
-      cnpj: p.cnpj ?? "",
-      responsavel: p.responsavel ?? "",
-      crc: p.crc ?? "",
-      telefone: p.telefone ?? "",
-      email: p.email ?? "",
-      endereco: p.endereco ?? "",
-    });
-  }, [perfil]);
+  const p = (perfil ?? {}) as Partial<PerfilDados>;
+  const form: Record<Campo, string> = {
+    nome: p.nome ?? "",
+    cnpj: p.cnpj ?? "",
+    responsavel: p.responsavel ?? "",
+    crc: p.crc ?? "",
+    telefone: p.telefone ?? "",
+    email: p.email ?? "",
+    endereco: p.endereco ?? "",
+    ...(edicoes ?? {}),
+  };
 
   async function enviar(evento: FormEvent) {
     evento.preventDefault();
@@ -67,6 +58,8 @@ export default function Perfil() {
       // O menu mostra o nome do escritório vindo da sessão — sem isto ele só
       // mudaria no próximo login.
       qc.invalidateQueries({ queryKey: getGetSessaoAtualQueryKey() });
+      // Salvo: o formulário volta a espelhar o perfil (que acabou de mudar).
+      setEdicoes(null);
       setSalvo(true);
       window.setTimeout(() => setSalvo(false), 2000);
     } catch (e) {
@@ -89,7 +82,10 @@ export default function Perfil() {
       </div>
 
       {erro && (
-        <p role="alert" className="mb-4 rounded-lg bg-red-600/10 px-3 py-2 text-sm text-red-700 dark:text-red-400">
+        <p
+          role="alert"
+          className="mb-4 rounded-lg bg-red-600/10 px-3 py-2 text-sm text-red-700 dark:text-red-400"
+        >
           {erro}
         </p>
       )}
@@ -104,7 +100,9 @@ export default function Perfil() {
             <input
               name={c.nome}
               value={form[c.nome]}
-              onChange={(e) => setForm((f) => ({ ...f, [c.nome]: e.target.value }))}
+              onChange={(e) =>
+                setEdicoes((atual) => ({ ...(atual ?? {}), [c.nome]: e.target.value }))
+              }
               placeholder={c.dica}
               required={"obrigatorio" in c && c.obrigatorio}
               className={campo}

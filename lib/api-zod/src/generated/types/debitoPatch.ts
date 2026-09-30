@@ -10,12 +10,19 @@ import type { StatusDebito } from './statusDebito';
 export interface DebitoPatch {
   /** @nullable */
   tipoObrigacaoId?: number | null;
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
   rotulo?: string;
   /** @nullable */
   competenciaRef?: string | null;
   /** @nullable */
   vencimento?: string | null;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   valor?: string | null;
   status?: StatusDebito;
   /** @nullable */

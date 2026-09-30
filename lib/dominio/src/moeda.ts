@@ -19,7 +19,7 @@ export function paraNumeroBR(texto: string | number | null | undefined): number 
   if (texto === null || texto === undefined) return null;
   if (typeof texto === "number") return Number.isFinite(texto) ? texto : null;
 
-  let limpo = texto.replace(/[^\d,.\-]/g, "").trim();
+  let limpo = texto.replace(/[^\d,.-]/g, "").trim();
   if (!limpo || limpo === "-" || limpo === "." || limpo === ",") return null;
 
   const negativo = limpo.startsWith("-");
@@ -44,9 +44,7 @@ export function paraNumeroBR(texto: string | number | null | undefined): number 
       // se o último grupo tiver 3 dígitos; senão o último ponto é decimal.
       const ultimo = pontos[pontos.length - 1];
       normalizado =
-        ultimo.length === 3
-          ? pontos.join("")
-          : pontos.slice(0, -1).join("") + "." + ultimo;
+        ultimo.length === 3 ? pontos.join("") : pontos.slice(0, -1).join("") + "." + ultimo;
     }
   }
 

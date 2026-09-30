@@ -14,7 +14,9 @@ if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL must be set.");
 }
 if (!process.env.CHAVE_CIFRA) {
-  throw new Error("CHAVE_CIFRA must be set: cifrar com a chave de desenvolvimento perderia as senhas.");
+  throw new Error(
+    "CHAVE_CIFRA must be set: cifrar com a chave de desenvolvimento perderia as senhas.",
+  );
 }
 
 const dry = process.argv.includes("--dry");
@@ -47,9 +49,15 @@ try {
       }
       if (!sets.length) continue;
       valores.push(linha.id);
-      if (!dry) await client.query(`update ${tabela} set ${sets.join(", ")} where id = $${valores.length}`, valores);
+      if (!dry)
+        await client.query(
+          `update ${tabela} set ${sets.join(", ")} where id = $${valores.length}`,
+          valores,
+        );
     }
-    console.log(`[cifrar-segredos] ${tabela}: ${rows.length} linha(s), ${cifradas} valor(es) ${dry ? "a cifrar (dry)" : "cifrado(s)"}`);
+    console.log(
+      `[cifrar-segredos] ${tabela}: ${rows.length} linha(s), ${cifradas} valor(es) ${dry ? "a cifrar (dry)" : "cifrado(s)"}`,
+    );
   }
 } finally {
   await client.end();

@@ -9,16 +9,17 @@ export function mensagemDeErro(erro: unknown, padrao = "Não foi possível concl
       const corpo = data as { mensagem?: unknown; error?: unknown; issues?: unknown[] };
       if (typeof corpo.mensagem === "string" && corpo.mensagem) return corpo.mensagem;
       if (typeof corpo.error === "string" && corpo.error) {
-        const detalhe = Array.isArray(corpo.issues) && corpo.issues.length
-          ? ` (${corpo.issues
-              .map((i) => {
-                const issue = i as { path?: unknown[]; message?: string };
-                const caminho = Array.isArray(issue.path) ? issue.path.join(".") : "";
-                return caminho ? `${caminho}: ${issue.message ?? ""}` : issue.message ?? "";
-              })
-              .filter(Boolean)
-              .join("; ")})`
-          : "";
+        const detalhe =
+          Array.isArray(corpo.issues) && corpo.issues.length
+            ? ` (${corpo.issues
+                .map((i) => {
+                  const issue = i as { path?: unknown[]; message?: string };
+                  const caminho = Array.isArray(issue.path) ? issue.path.join(".") : "";
+                  return caminho ? `${caminho}: ${issue.message ?? ""}` : (issue.message ?? "");
+                })
+                .filter(Boolean)
+                .join("; ")})`
+            : "";
         return `${corpo.error}${detalhe}`;
       }
     }

@@ -15,22 +15,48 @@ export interface LancamentoFolha {
   clienteId?: number | null;
   /** @nullable */
   clienteNome?: string | null;
+  /**
+     * @minimum 2000
+     * @maximum 2100
+     */
   ano: number;
+  /**
+     * @minimum 1
+     * @maximum 12
+     */
   mes: number;
   tipo: TipoFolha;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   salarioBase?: string | null;
   /** @nullable */
   proventos?: string | null;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   descontos?: string | null;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   inss?: string | null;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   fgts?: string | null;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   irrf?: string | null;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   liquido?: string | null;
   pago: boolean;
   /** @nullable */

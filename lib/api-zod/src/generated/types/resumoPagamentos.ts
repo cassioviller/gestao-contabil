@@ -10,6 +10,8 @@ export type ResumoPagamentos = {
   total: number;
   pagos: number;
   pendentes: number;
+  /** @pattern ^-?\d+(\.\d{1,2})?$ */
   recebido: string;
+  /** @pattern ^-?\d+(\.\d{1,2})?$ */
   aReceber: string;
 };

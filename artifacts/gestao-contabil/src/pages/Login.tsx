@@ -32,9 +32,7 @@ export default function Login() {
         className="w-full max-w-sm rounded-xl border border-black/10 bg-white p-8 dark:border-white/10 dark:bg-neutral-950"
       >
         <p className="text-2xl font-bold">ContaFácil</p>
-        <p className="mt-1 mb-6 text-sm text-neutral-500">
-          Entre com o acesso do seu escritório
-        </p>
+        <p className="mt-1 mb-6 text-sm text-neutral-500">Entre com o acesso do seu escritório</p>
 
         <label className="mb-1 block text-sm font-medium" htmlFor="login">
           Login

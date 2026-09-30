@@ -6,7 +6,10 @@ const SO_PRESUMIDO = "DIFAL presumido";
 const TODOS = "INSS geral";
 const EMPRESA = "Regime Obrig LTDA";
 
-test("obrigação restrita some do cadastro de cliente de outro regime", async ({ page, request }) => {
+test("obrigação restrita some do cadastro de cliente de outro regime", async ({
+  page,
+  request,
+}) => {
   await request.post("/api/tipos", { data: { nome: TODOS } });
   await request.post("/api/tipos", { data: { nome: SO_PRESUMIDO, regimes: ["lucro_presumido"] } });
 
@@ -41,7 +44,11 @@ test("obrigação vinculada não some ao trocar o regime", async ({ page }) => {
   // O cliente do teste anterior ficou com a DIFAL vinculada. Mudar para Simples
   // não pode esconder o checkbox marcado — sumir equivaleria a desvincular.
   await page.goto("/clientes");
-  await page.locator("tbody tr").filter({ hasText: EMPRESA }).getByRole("button", { name: "Editar" }).click();
+  await page
+    .locator("tbody tr")
+    .filter({ hasText: EMPRESA })
+    .getByRole("button", { name: "Editar" })
+    .click();
   await page.locator('select[name="regime"]').selectOption("simples_nacional");
 
   const linha = page.locator("label").filter({ hasText: SO_PRESUMIDO });
@@ -61,8 +68,12 @@ test("grade de Tipos mostra e edita a restrição de regime", async ({ page }) =
   });
 
   // Restrita: só o Lucro Presumido marcado. Livre: nenhum, e diz "todos".
-  await expect(linhaRestrita.getByRole("checkbox", { name: `${SO_PRESUMIDO}: Lucro Presumido` })).toBeChecked();
-  await expect(linhaRestrita.getByRole("checkbox", { name: `${SO_PRESUMIDO}: MEI` })).not.toBeChecked();
+  await expect(
+    linhaRestrita.getByRole("checkbox", { name: `${SO_PRESUMIDO}: Lucro Presumido` }),
+  ).toBeChecked();
+  await expect(
+    linhaRestrita.getByRole("checkbox", { name: `${SO_PRESUMIDO}: MEI` }),
+  ).not.toBeChecked();
   await expect(linhaLivre).toContainText("todos");
 });
 

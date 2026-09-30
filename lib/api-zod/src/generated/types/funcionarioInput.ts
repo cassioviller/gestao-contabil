@@ -30,7 +30,10 @@ export interface FuncionarioInput {
   admissao?: string | null;
   /** @nullable */
   demissao?: string | null;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   salario?: string | null;
   situacao?: SituacaoFuncionario;
   /** @nullable */

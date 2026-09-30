@@ -5,6 +5,15 @@
  * ContaFácil API — gestão contábil
  * OpenAPI spec version: 0.1.0
  */
+export type ErroIssuesItem = { [key: string]: unknown };
+
+export interface Erro {
+  error: string;
+  codigo: string;
+  details?: unknown;
+  issues?: ErroIssuesItem[];
+}
+
 export interface HealthStatus {
   status: string;
 }
@@ -33,6 +42,10 @@ export interface Arquivo {
   clienteId: number | null;
   entidade: EntidadeArquivo;
   entidadeId: number;
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
   nome: string;
   mime: string;
   tamanho: number;
@@ -301,7 +314,9 @@ export type ResumoPagamentos = {
   total: number;
   pagos: number;
   pendentes: number;
+  /** @pattern ^-?\d+(\.\d{1,2})?$ */
   recebido: string;
+  /** @pattern ^-?\d+(\.\d{1,2})?$ */
   aReceber: string;
 };
 
@@ -315,7 +330,15 @@ export interface Resumo {
  */
 export type PainelCompetenciaAtual = {
   id?: number;
+  /**
+     * @minimum 2000
+     * @maximum 2100
+     */
   ano?: number;
+  /**
+     * @minimum 1
+     * @maximum 12
+     */
   mes?: number;
   resumo?: Resumo;
 } | null;
@@ -341,8 +364,15 @@ export const RegimeTributario = {
 
 export interface Cliente {
   id: number;
-  /** @nullable */
+  /**
+     * @minimum 0
+     * @nullable
+     */
   codigo?: number | null;
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
   razaoSocial: string;
   /** @nullable */
   cnpj?: string | null;
@@ -367,9 +397,16 @@ export interface Cliente {
   temSenhaNfse: boolean;
   /** @nullable */
   observacao?: string | null;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   valorHonorario?: string | null;
-  /** @nullable */
+  /**
+     * @minimum 1
+     * @maximum 31
+     * @nullable
+     */
   diaVencimentoHonorario?: number | null;
   /** @nullable */
   contatoNome?: string | null;
@@ -384,8 +421,15 @@ export interface Cliente {
 export interface ClienteInput {
   /** @nullable */
   id?: number | null;
-  /** @nullable */
+  /**
+     * @minimum 0
+     * @nullable
+     */
   codigo?: number | null;
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
   razaoSocial: string;
   /** @nullable */
   cnpj?: string | null;
@@ -412,9 +456,16 @@ export interface ClienteInput {
   senhaNfse?: string | null;
   /** @nullable */
   observacao?: string | null;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   valorHonorario?: string | null;
-  /** @nullable */
+  /**
+     * @minimum 1
+     * @maximum 31
+     * @nullable
+     */
   diaVencimentoHonorario?: number | null;
   /** @nullable */
   contatoNome?: string | null;
@@ -427,8 +478,15 @@ export interface ClienteInput {
 }
 
 export interface ClientePatch {
-  /** @nullable */
+  /**
+     * @minimum 0
+     * @nullable
+     */
   codigo?: number | null;
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
   razaoSocial?: string;
   /** @nullable */
   cnpj?: string | null;
@@ -455,9 +513,16 @@ export interface ClientePatch {
   senhaNfse?: string | null;
   /** @nullable */
   observacao?: string | null;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   valorHonorario?: string | null;
-  /** @nullable */
+  /**
+     * @minimum 1
+     * @maximum 31
+     * @nullable
+     */
   diaVencimentoHonorario?: number | null;
   /** @nullable */
   contatoNome?: string | null;
@@ -491,15 +556,32 @@ export const RegimeValor = {
 
 export interface TipoObrigacao {
   id: number;
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
   nome: string;
   /** @nullable */
   descricao?: string | null;
+  /** @minimum 0 */
   ordem: number;
-  /** @nullable */
+  /**
+     * @minimum 1
+     * @maximum 31
+     * @nullable
+     */
   diaVencimento?: number | null;
+  /**
+     * @minimum 0
+     * @maximum 12
+     */
   offsetMes: number;
   periodicidade: Periodicidade;
-  /** @nullable */
+  /**
+     * @minimum 1
+     * @maximum 12
+     * @nullable
+     */
   mesReferencia?: number | null;
   /** @nullable */
   regimes?: RegimeValor[] | null;
@@ -510,15 +592,32 @@ export interface TipoObrigacao {
 export interface TipoObrigacaoInput {
   /** @nullable */
   id?: number | null;
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
   nome: string;
   /** @nullable */
   descricao?: string | null;
+  /** @minimum 0 */
   ordem?: number;
-  /** @nullable */
+  /**
+     * @minimum 1
+     * @maximum 31
+     * @nullable
+     */
   diaVencimento?: number | null;
+  /**
+     * @minimum 0
+     * @maximum 12
+     */
   offsetMes?: number;
   periodicidade?: Periodicidade;
-  /** @nullable */
+  /**
+     * @minimum 1
+     * @maximum 12
+     * @nullable
+     */
   mesReferencia?: number | null;
   /** @nullable */
   regimes?: RegimeValor[] | null;
@@ -545,12 +644,19 @@ export interface Debito {
   clienteNome: string;
   /** @nullable */
   tipoObrigacaoId?: number | null;
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
   rotulo: string;
   /** @nullable */
   competenciaRef?: string | null;
   /** @nullable */
   vencimento?: string | null;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   valor?: string | null;
   status: StatusDebito;
   /** @nullable */
@@ -563,12 +669,19 @@ export interface DebitoInput {
   clienteId: number;
   /** @nullable */
   tipoObrigacaoId?: number | null;
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
   rotulo: string;
   /** @nullable */
   competenciaRef?: string | null;
   /** @nullable */
   vencimento?: string | null;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   valor?: string | null;
   status?: StatusDebito;
   /** @nullable */
@@ -578,12 +691,19 @@ export interface DebitoInput {
 export interface DebitoPatch {
   /** @nullable */
   tipoObrigacaoId?: number | null;
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
   rotulo?: string;
   /** @nullable */
   competenciaRef?: string | null;
   /** @nullable */
   vencimento?: string | null;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   valor?: string | null;
   status?: StatusDebito;
   /** @nullable */
@@ -596,6 +716,10 @@ export interface Credencial {
   clienteNome: string;
   /** @nullable */
   tipoObrigacaoId?: number | null;
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
   rotulo: string;
   /** @nullable */
   login?: string | null;
@@ -610,6 +734,10 @@ export interface CredencialInput {
   clienteId: number;
   /** @nullable */
   tipoObrigacaoId?: number | null;
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
   rotulo: string;
   /** @nullable */
   login?: string | null;
@@ -622,6 +750,10 @@ export interface CredencialInput {
 export interface CredencialPatch {
   /** @nullable */
   tipoObrigacaoId?: number | null;
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
   rotulo?: string;
   /** @nullable */
   login?: string | null;
@@ -679,6 +811,7 @@ export interface ProcessoEtapa {
   processoId: number;
   descricao: string;
   feito: boolean;
+  /** @minimum 0 */
   ordem: number;
   /** @nullable */
   concluidoEm?: string | null;
@@ -722,6 +855,7 @@ export interface EtapaInput {
 export interface EtapaPatch {
   descricao?: string;
   feito?: boolean;
+  /** @minimum 0 */
   ordem?: number;
   /** @nullable */
   observacao?: string | null;
@@ -729,7 +863,15 @@ export interface EtapaPatch {
 
 export interface Competencia {
   id: number;
+  /**
+     * @minimum 2000
+     * @maximum 2100
+     */
   ano: number;
+  /**
+     * @minimum 1
+     * @maximum 12
+     */
   mes: number;
   /** @nullable */
   rotulo?: string | null;
@@ -737,7 +879,15 @@ export interface Competencia {
 
 export interface CompetenciaComResumo {
   id: number;
+  /**
+     * @minimum 2000
+     * @maximum 2100
+     */
   ano: number;
+  /**
+     * @minimum 1
+     * @maximum 12
+     */
   mes: number;
   /** @nullable */
   rotulo?: string | null;
@@ -745,7 +895,15 @@ export interface CompetenciaComResumo {
 }
 
 export interface AbrirCompetenciaInput {
+  /**
+     * @minimum 2000
+     * @maximum 2100
+     */
   ano: number;
+  /**
+     * @minimum 1
+     * @maximum 12
+     */
   mes: number;
   somenteHonorarios?: boolean;
 }
@@ -769,13 +927,17 @@ export interface ChecklistItem {
   id: number;
   status: ChecklistItemStatus;
   clienteId: number;
-  /** @nullable */
+  /**
+     * @minimum 0
+     * @nullable
+     */
   codigo?: number | null;
   cliente: string;
   /** @nullable */
   vencimento?: string | null;
   tipoObrigacaoId: number;
   obrigacao: string;
+  /** @minimum 0 */
   ordem: number;
 }
 
@@ -810,7 +972,10 @@ export const PagamentoStatus = {
 export interface Pagamento {
   id: number;
   status: PagamentoStatus;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   valor?: string | null;
   /** @nullable */
   dataPagamento?: string | null;
@@ -821,7 +986,10 @@ export interface Pagamento {
   /** @nullable */
   observacao?: string | null;
   clienteId: number;
-  /** @nullable */
+  /**
+     * @minimum 0
+     * @nullable
+     */
   codigo?: number | null;
   cliente: string;
 }
@@ -837,7 +1005,10 @@ export const PagamentoInputStatus = {
 
 export interface PagamentoInput {
   status?: PagamentoInputStatus;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   valor?: string | null;
   /** @nullable */
   dataPagamento?: string | null;
@@ -858,14 +1029,25 @@ export const ObrigacaoAtrasadaStatus = {
 export interface ObrigacaoAtrasada {
   id: number;
   competenciaId: number;
+  /**
+     * @minimum 2000
+     * @maximum 2100
+     */
   ano: number;
+  /**
+     * @minimum 1
+     * @maximum 12
+     */
   mes: number;
   status: ObrigacaoAtrasadaStatus;
   /** @nullable */
   vencimento?: string | null;
   diasAtraso: number;
   clienteId: number;
-  /** @nullable */
+  /**
+     * @minimum 0
+     * @nullable
+     */
   codigo?: number | null;
   cliente: string;
   obrigacao: string;
@@ -874,15 +1056,29 @@ export interface ObrigacaoAtrasada {
 export interface Inadimplente {
   id: number;
   competenciaId: number;
+  /**
+     * @minimum 2000
+     * @maximum 2100
+     */
   ano: number;
+  /**
+     * @minimum 1
+     * @maximum 12
+     */
   mes: number;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   valor?: string | null;
   /** @nullable */
   vencimento?: string | null;
   diasAtraso: number;
   clienteId: number;
-  /** @nullable */
+  /**
+     * @minimum 0
+     * @nullable
+     */
   codigo?: number | null;
   cliente: string;
   /** @nullable */
@@ -902,10 +1098,12 @@ export interface CobrancaInput {
 
 export interface Configuracao {
   chave: string;
+  /** @pattern ^-?\d+(\.\d{1,2})?$ */
   valor: string;
 }
 
 export interface ConfiguracaoInput {
+  /** @pattern ^-?\d+(\.\d{1,2})?$ */
   valor: string;
 }
 
@@ -920,6 +1118,10 @@ export const EscopoRegistro = {
 
 export interface Perfil {
   id: number;
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
   nome: string;
   /** @nullable */
   cnpj?: string | null;
@@ -961,6 +1163,7 @@ export interface Despesa {
   data: string;
   categoria: string;
   descricao: string;
+  /** @pattern ^-?\d+(\.\d{1,2})?$ */
   valor: string;
   /** @nullable */
   vencimento?: string | null;
@@ -981,6 +1184,7 @@ export interface DespesaInput {
   categoria: string;
   /** @minLength 1 */
   descricao: string;
+  /** @pattern ^-?\d+(\.\d{1,2})?$ */
   valor: string;
   /** @nullable */
   vencimento?: string | null;
@@ -997,6 +1201,7 @@ export interface DespesaPatch {
   data?: string;
   categoria?: string;
   descricao?: string;
+  /** @pattern ^-?\d+(\.\d{1,2})?$ */
   valor?: string;
   /** @nullable */
   vencimento?: string | null;
@@ -1023,6 +1228,10 @@ export interface Funcionario {
   clienteId?: number | null;
   /** @nullable */
   clienteNome?: string | null;
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
   nome: string;
   /** @nullable */
   cpf?: string | null;
@@ -1040,7 +1249,10 @@ export interface Funcionario {
   admissao?: string | null;
   /** @nullable */
   demissao?: string | null;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   salario?: string | null;
   situacao: SituacaoFuncionario;
   /** @nullable */
@@ -1076,7 +1288,10 @@ export interface FuncionarioInput {
   admissao?: string | null;
   /** @nullable */
   demissao?: string | null;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   salario?: string | null;
   situacao?: SituacaoFuncionario;
   /** @nullable */
@@ -1092,6 +1307,10 @@ export interface FuncionarioInput {
 export interface FuncionarioPatch {
   /** @nullable */
   clienteId?: number | null;
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
   nome?: string;
   /** @nullable */
   cpf?: string | null;
@@ -1109,7 +1328,10 @@ export interface FuncionarioPatch {
   admissao?: string | null;
   /** @nullable */
   demissao?: string | null;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   salario?: string | null;
   situacao?: SituacaoFuncionario;
   /** @nullable */
@@ -1139,22 +1361,48 @@ export interface LancamentoFolha {
   clienteId?: number | null;
   /** @nullable */
   clienteNome?: string | null;
+  /**
+     * @minimum 2000
+     * @maximum 2100
+     */
   ano: number;
+  /**
+     * @minimum 1
+     * @maximum 12
+     */
   mes: number;
   tipo: TipoFolha;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   salarioBase?: string | null;
   /** @nullable */
   proventos?: string | null;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   descontos?: string | null;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   inss?: string | null;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   fgts?: string | null;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   irrf?: string | null;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   liquido?: string | null;
   pago: boolean;
   /** @nullable */
@@ -1167,6 +1415,10 @@ export interface LancamentoFolhaInput {
   /** @nullable */
   id?: number | null;
   funcionarioId: number;
+  /**
+     * @minimum 2000
+     * @maximum 2100
+     */
   ano: number;
   /**
      * @minimum 1
@@ -1174,19 +1426,37 @@ export interface LancamentoFolhaInput {
      */
   mes: number;
   tipo?: TipoFolha;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   salarioBase?: string | null;
   /** @nullable */
   proventos?: string | null;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   descontos?: string | null;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   inss?: string | null;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   fgts?: string | null;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   irrf?: string | null;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   liquido?: string | null;
   pago?: boolean;
   /** @nullable */
@@ -1196,19 +1466,37 @@ export interface LancamentoFolhaInput {
 }
 
 export interface LancamentoFolhaPatch {
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   salarioBase?: string | null;
   /** @nullable */
   proventos?: string | null;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   descontos?: string | null;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   inss?: string | null;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   fgts?: string | null;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   irrf?: string | null;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   liquido?: string | null;
   pago?: boolean;
   /** @nullable */
@@ -1246,7 +1534,10 @@ export interface PeriodoFerias {
   vencida: boolean;
   situacao: PeriodoFeriasSituacao;
   diasVendidos: number;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   valor?: string | null;
   /** @nullable */
   observacao?: string | null;
@@ -1267,7 +1558,10 @@ export interface FeriasInput {
      * @maximum 10
      */
   diasVendidos?: number;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   valor?: string | null;
   /** @nullable */
   observacao?: string | null;
@@ -1285,7 +1579,10 @@ export interface FeriasPatch {
      * @maximum 10
      */
   diasVendidos?: number;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   valor?: string | null;
   /** @nullable */
   observacao?: string | null;
@@ -1296,6 +1593,11 @@ export interface FichaFuncionario {
   folha: LancamentoFolha[];
   ferias: PeriodoFerias[];
 }
+
+/**
+ * Erro tratado pela API
+ */
+export type ErroResponse = Erro;
 
 export type ListarDebitosParams = {
 status?: StatusDebito;

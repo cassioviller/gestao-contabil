@@ -48,7 +48,10 @@ test.describe("usuários, papéis e sessão", () => {
     expect(lista.map((u) => u.login)).toEqual(expect.arrayContaining([CONTA_E2E.login, AUX.login]));
   });
 
-  test("auxiliar opera, mas não gerencia usuários nem revela senhas", async ({ request, baseURL }) => {
+  test("auxiliar opera, mas não gerencia usuários nem revela senhas", async ({
+    request,
+    baseURL,
+  }) => {
     const criado = await request.post("/api/clientes", {
       data: { razaoSocial: "Cliente com segredo", senhaGov: "gov-123" },
     });
@@ -70,9 +73,13 @@ test.describe("usuários, papéis e sessão", () => {
 
   test("admin não tira o próprio acesso; o escritório não fica sem admin", async ({ request }) => {
     const eu = await (await request.get("/api/auth/eu")).json();
-    const proprio = await request.patch(`/api/usuarios/${eu.usuarioId}`, { data: { ativo: false } });
+    const proprio = await request.patch(`/api/usuarios/${eu.usuarioId}`, {
+      data: { ativo: false },
+    });
     expect(proprio.status()).toBe(400);
-    const rebaixar = await request.patch(`/api/usuarios/${eu.usuarioId}`, { data: { papel: "auxiliar" } });
+    const rebaixar = await request.patch(`/api/usuarios/${eu.usuarioId}`, {
+      data: { papel: "auxiliar" },
+    });
     expect(rebaixar.status()).toBe(400);
     // Continua admin e logado.
     expect((await request.get("/api/usuarios")).status()).toBe(200);
@@ -116,7 +123,10 @@ test.describe("usuários, papéis e sessão", () => {
   });
 
   test("admin redefine a senha e desativa um usuário", async ({ request, baseURL }) => {
-    const lista = (await (await request.get("/api/usuarios")).json()) as Array<{ id: number; login: string }>;
+    const lista = (await (await request.get("/api/usuarios")).json()) as Array<{
+      id: number;
+      login: string;
+    }>;
     const aux = lista.find((u) => u.login === AUX.login)!;
 
     const r = await request.post(`/api/usuarios/${aux.id}/redefinir-senha`, {
@@ -139,10 +149,16 @@ test.describe("usuários, papéis e sessão", () => {
     await expect(page.getByRole("heading", { name: "Usuários", level: 1 })).toBeVisible();
     await expect(page.locator("tbody tr").filter({ hasText: AUX.login })).toHaveCount(1);
     // "e2e" também casa com "aux-e2e": mira pela marca de quem está logado.
-    await expect(page.locator("tbody tr").filter({ hasText: "(você)" })).toContainText(CONTA_E2E.login);
+    await expect(page.locator("tbody tr").filter({ hasText: "(você)" })).toContainText(
+      CONTA_E2E.login,
+    );
   });
 
-  test("a tela Minha conta troca a senha pelo formulário", async ({ request, browser, baseURL }) => {
+  test("a tela Minha conta troca a senha pelo formulário", async ({
+    request,
+    browser,
+    baseURL,
+  }) => {
     // Usuário só deste teste: trocar a senha derruba as outras sessões do
     // usuário, e a sessão da suíte (storageState) não pode cair no meio.
     const UI = { login: "ui-e2e", senha: "senha-ui-12345" };

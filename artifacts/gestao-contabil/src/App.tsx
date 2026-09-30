@@ -1,11 +1,5 @@
 import { Switch, Route, Router as WouterRouter } from "wouter";
-import {
-  MutationCache,
-  QueryCache,
-  QueryClient,
-  QueryClientProvider,
-  type Query,
-} from "@tanstack/react-query";
+import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useGetSessaoAtual } from "@workspace/api-client-react";
 import { CHAVE_SESSAO, ehSessao } from "@/lib/sessao";
 import MenuLateral from "@/components/MenuLateral";
@@ -32,15 +26,13 @@ import CompetenciaPagamentos from "@/pages/CompetenciaPagamentos";
 import Pendencias from "@/pages/Pendencias";
 import NotFound from "@/pages/not-found";
 
-type QualquerQuery = Query<unknown, unknown, unknown, readonly unknown[]>;
-
 /**
  * Qualquer 401 (sessão expirou, ou alguém saiu em outra aba) revalida a sessão,
  * que falha e devolve a tela de login — em vez de deixar a tela travada num erro
  * sem explicação. O próprio pedido de sessão fica de fora do gatilho, senão o
  * 401 dele se realimentaria em laço.
  */
-function aoFalhar(erro: unknown, query?: QualquerQuery): void {
+function aoFalhar(erro: unknown, query?: { queryKey?: readonly unknown[] }): void {
   if ((erro as { status?: number })?.status !== 401 || ehSessao(query)) return;
   queryClient.invalidateQueries({ queryKey: CHAVE_SESSAO });
 }

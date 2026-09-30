@@ -64,10 +64,7 @@ async function validarVinculos(
 // GET /api/credenciais
 router.get("/", async (req, res) => {
   const contaId = contaDaRequisicao(req);
-  const lista = await consulta(contaId).orderBy(
-    asc(clientes.razaoSocial),
-    asc(credenciais.rotulo),
-  );
+  const lista = await consulta(contaId).orderBy(asc(clientes.razaoSocial), asc(credenciais.rotulo));
   res.json(lista);
 });
 
@@ -97,7 +94,12 @@ router.post("/", async (req, res) => {
   }
 
   if (dados.senha !== undefined) {
-    await auditar(req, { acao: "alterar_segredo", entidade: "credencial", entidadeId: credencialId, campo: "senha" });
+    await auditar(req, {
+      acao: "alterar_segredo",
+      entidade: "credencial",
+      entidadeId: credencialId,
+      campo: "senha",
+    });
   }
 
   const [salva] = await consulta(contaId, eq(credenciais.id, credencialId));
@@ -134,7 +136,12 @@ router.patch("/:id", async (req, res) => {
     .returning({ id: credenciais.id });
   if (!atualizada) throw new HttpError(404, "Credencial não encontrada.");
   if ("senha" in mudancas) {
-    await auditar(req, { acao: "alterar_segredo", entidade: "credencial", entidadeId: id, campo: "senha" });
+    await auditar(req, {
+      acao: "alterar_segredo",
+      entidade: "credencial",
+      entidadeId: id,
+      campo: "senha",
+    });
   }
 
   const [salva] = await consulta(contaId, eq(credenciais.id, id));
@@ -150,7 +157,12 @@ router.get("/:id/senha", exigirPapel("admin", "contador"), async (req, res) => {
     .from(credenciais)
     .where(and(eq(credenciais.id, id), eq(credenciais.contaId, contaId)));
   if (!c) throw new HttpError(404, "Credencial não encontrada.");
-  await auditar(req, { acao: "revelar_segredo", entidade: "credencial", entidadeId: id, campo: "senha" });
+  await auditar(req, {
+    acao: "revelar_segredo",
+    entidade: "credencial",
+    entidadeId: id,
+    campo: "senha",
+  });
   res.json({ senha: decifrar(c.senha) });
 });
 
@@ -158,9 +170,7 @@ router.get("/:id/senha", exigirPapel("admin", "contador"), async (req, res) => {
 router.delete("/:id", async (req, res) => {
   const contaId = contaDaRequisicao(req);
   const { id } = RemoverCredencialParams.parse(req.params);
-  await db
-    .delete(credenciais)
-    .where(and(eq(credenciais.id, id), eq(credenciais.contaId, contaId)));
+  await db.delete(credenciais).where(and(eq(credenciais.id, id), eq(credenciais.contaId, contaId)));
   res.status(204).send();
 });
 

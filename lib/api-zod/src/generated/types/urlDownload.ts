@@ -9,5 +9,5 @@
 export interface UrlDownload {
   url: string;
   /** @nullable */
-  expiraEm: Date | null;
+  expiraEm: string | null;
 }

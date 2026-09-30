@@ -11,12 +11,16 @@ export interface ChecklistItem {
   id: number;
   status: ChecklistItemStatus;
   clienteId: number;
-  /** @nullable */
+  /**
+     * @minimum 0
+     * @nullable
+     */
   codigo?: number | null;
   cliente: string;
   /** @nullable */
   vencimento?: string | null;
   tipoObrigacaoId: number;
   obrigacao: string;
+  /** @minimum 0 */
   ordem: number;
 }

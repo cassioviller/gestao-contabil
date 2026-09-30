@@ -58,13 +58,17 @@ export default defineConfig({
       override: {
         zod: {
           coerce: {
-            query: ['boolean', 'number', 'string'],
-            param: ['boolean', 'number', 'string'],
-            body: ['bigint', 'date'],
-            response: ['bigint', 'date'],
+            query: ["boolean", "number", "string"],
+            param: ["boolean", "number", "string"],
+            // Datas viajam como texto ISO (AAAA-MM-DD): coagir para Date mudaria
+            // o dia conforme o fuso e quebraria as colunas `date` do banco.
+            body: ["bigint"],
+            response: ["bigint"],
           },
         },
-        useDates: true,
+        // Sem Date nos schemas: `format: date` vira `zod.string().date()` (AAAA-MM-DD),
+        // que é o que o banco e as telas trocam.
+        useDates: false,
         useBigInt: true,
       },
     },

@@ -12,6 +12,10 @@ export interface CredencialInput {
   clienteId: number;
   /** @nullable */
   tipoObrigacaoId?: number | null;
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
   rotulo: string;
   /** @nullable */
   login?: string | null;

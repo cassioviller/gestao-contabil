@@ -67,7 +67,6 @@ export default async function globalSetup() {
       );
     }
 
-    // eslint-disable-next-line no-console
     console.log("[e2e] database truncated · contas de teste criadas");
   } finally {
     await pool.end();

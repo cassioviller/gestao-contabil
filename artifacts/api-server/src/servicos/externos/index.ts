@@ -25,7 +25,9 @@ function escolherArmazenamento(): Armazenamento {
     });
   }
   const local = new ArmazenamentoLocal();
-  avisar(`[externos] R2_* ausentes: arquivos vão para o disco local (${local.pasta}). Não use em produção.`);
+  avisar(
+    `[externos] R2_* ausentes: arquivos vão para o disco local (${local.pasta}). Não use em produção.`,
+  );
   return local;
 }
 
@@ -37,7 +39,10 @@ function escolherMensageiro(): Mensageiro {
   const email = RESEND_API_KEY
     ? new EmailResend(RESEND_API_KEY, EMAIL_REMETENTE || "ContaFácil <avisos@exemplo.com.br>")
     : null;
-  const whatsapp = WHATSAPP_TOKEN && WHATSAPP_NUMERO_ID ? new WhatsappCloud(WHATSAPP_TOKEN, WHATSAPP_NUMERO_ID) : null;
+  const whatsapp =
+    WHATSAPP_TOKEN && WHATSAPP_NUMERO_ID
+      ? new WhatsappCloud(WHATSAPP_TOKEN, WHATSAPP_NUMERO_ID)
+      : null;
   if (!email) avisar("[externos] RESEND_API_KEY ausente: e-mails ficam só na tabela `avisos`.");
   if (!whatsapp) avisar("[externos] WHATSAPP_* ausentes: WhatsApp fica só na tabela `avisos`.");
   return {

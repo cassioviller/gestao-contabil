@@ -10,8 +10,15 @@ import type { RegimeTributario } from './regimeTributario';
 export interface ClienteInput {
   /** @nullable */
   id?: number | null;
-  /** @nullable */
+  /**
+     * @minimum 0
+     * @nullable
+     */
   codigo?: number | null;
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
   razaoSocial: string;
   /** @nullable */
   cnpj?: string | null;
@@ -38,9 +45,16 @@ export interface ClienteInput {
   senhaNfse?: string | null;
   /** @nullable */
   observacao?: string | null;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   valorHonorario?: string | null;
-  /** @nullable */
+  /**
+     * @minimum 1
+     * @maximum 31
+     * @nullable
+     */
   diaVencimentoHonorario?: number | null;
   /** @nullable */
   contatoNome?: string | null;

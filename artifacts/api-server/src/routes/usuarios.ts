@@ -76,7 +76,10 @@ router.post("/", async (req, res) => {
     throw new HttpError(400, "O login só pode ter letras, números, ponto, hífen, @ e _.");
   }
 
-  const [existente] = await db.select({ id: usuarios.id }).from(usuarios).where(eq(usuarios.login, login));
+  const [existente] = await db
+    .select({ id: usuarios.id })
+    .from(usuarios)
+    .where(eq(usuarios.login, login));
   if (existente) {
     throw new HttpError(409, "Já existe um usuário com esse login.", undefined, "duplicado");
   }
@@ -92,7 +95,12 @@ router.post("/", async (req, res) => {
       senhaHash: await gerarHashSenha(dados.senha),
     })
     .returning(campos);
-  await auditar(req, { acao: "criar_usuario", entidade: "usuario", entidadeId: novo.id, para: dados.papel });
+  await auditar(req, {
+    acao: "criar_usuario",
+    entidade: "usuario",
+    entidadeId: novo.id,
+    para: dados.papel,
+  });
   res.json(novo);
 });
 
@@ -124,7 +132,9 @@ router.patch("/:id", async (req, res) => {
   const [atualizado] = await db
     .update(usuarios)
     .set({
-      ...(mudancas.nome !== undefined ? { nome: (mudancas.nome as string | null)?.trim() || null } : {}),
+      ...(mudancas.nome !== undefined
+        ? { nome: (mudancas.nome as string | null)?.trim() || null }
+        : {}),
       ...(mudancas.email !== undefined
         ? { email: (mudancas.email as string | null)?.trim().toLowerCase() || null }
         : {}),

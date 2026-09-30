@@ -17,6 +17,6 @@ export interface Usuario {
   papel: Papel;
   ativo: boolean;
   /** @nullable */
-  ultimoAcessoEm: Date | null;
-  criadoEm: Date;
+  ultimoAcessoEm: string | null;
+  criadoEm: string;
 }

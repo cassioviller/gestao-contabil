@@ -30,14 +30,7 @@ export async function gerarHashSenha(senha: string): Promise<string> {
     p: P,
     maxmem: MAXMEM,
   });
-  return [
-    "scrypt",
-    N,
-    R,
-    P,
-    sal.toString("base64"),
-    hash.toString("base64"),
-  ].join("$");
+  return ["scrypt", N, R, P, sal.toString("base64"), hash.toString("base64")].join("$");
 }
 
 /**
@@ -45,10 +38,7 @@ export async function gerarHashSenha(senha: string): Promise<string> {
  * malformado, para que uma linha corrompida no banco vire "senha inválida" em
  * vez de erro 500 na tela de login.
  */
-export async function conferirSenha(
-  senha: string,
-  hashArmazenado: string,
-): Promise<boolean> {
+export async function conferirSenha(senha: string, hashArmazenado: string): Promise<boolean> {
   const partes = hashArmazenado.split("$");
   if (partes.length !== 6 || partes[0] !== "scrypt") return false;
 

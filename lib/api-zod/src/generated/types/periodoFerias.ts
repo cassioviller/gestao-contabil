@@ -26,7 +26,10 @@ export interface PeriodoFerias {
   vencida: boolean;
   situacao: PeriodoFeriasSituacao;
   diasVendidos: number;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   valor?: string | null;
   /** @nullable */
   observacao?: string | null;

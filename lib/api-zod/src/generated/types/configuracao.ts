@@ -8,5 +8,6 @@
 
 export interface Configuracao {
   chave: string;
+  /** @pattern ^-?\d+(\.\d{1,2})?$ */
   valor: string;
 }

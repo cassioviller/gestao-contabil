@@ -10,15 +10,18 @@ export type { StatusProcessoValor } from "@workspace/dominio";
  */
 export type Categoria = "processo" | "pedido";
 
-export const TEXTOS: Record<Categoria, {
-  titulo: string;
-  singular: string;
-  novo: string;
-  sugestoes: string[];
-  exemploTipo: string;
-  exemploEtapa: string;
-  mostrarOrgao: boolean;
-}> = {
+export const TEXTOS: Record<
+  Categoria,
+  {
+    titulo: string;
+    singular: string;
+    novo: string;
+    sugestoes: string[];
+    exemploTipo: string;
+    exemploEtapa: string;
+    mostrarOrgao: boolean;
+  }
+> = {
   processo: {
     titulo: "Processos",
     singular: "processo",

@@ -44,7 +44,9 @@ router.get("/", async (req, res) => {
   const extras: Array<ReturnType<typeof eq>> = [];
   if (status) extras.push(eq(avisos.status, status));
   if (clienteId) extras.push(eq(avisos.clienteId, clienteId));
-  const lista = await consulta(contaId, ...extras).orderBy(desc(avisos.id)).limit(200);
+  const lista = await consulta(contaId, ...extras)
+    .orderBy(desc(avisos.id))
+    .limit(200);
   res.json(lista);
 });
 
@@ -58,7 +60,9 @@ router.post("/", exigirPapel("admin", "contador"), async (req, res) => {
   if (canal !== "portal" && !destino.destino) {
     throw new HttpError(
       400,
-      canal === "email" ? "O cliente não tem e-mail cadastrado." : "O cliente não tem WhatsApp cadastrado.",
+      canal === "email"
+        ? "O cliente não tem e-mail cadastrado."
+        : "O cliente não tem WhatsApp cadastrado.",
       undefined,
       "sem_destino",
     );

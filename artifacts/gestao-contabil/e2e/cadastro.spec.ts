@@ -61,7 +61,9 @@ test("edita células da planilha e os valores persistem após reload", async ({ 
   await expect(page.getByText("✓ salvo")).toBeVisible();
 
   // A API nunca devolve a senha em claro na listagem, e no banco ela está cifrada.
-  const lista = (await (await request.get("/api/clientes")).json()) as Array<Record<string, unknown>>;
+  const lista = (await (await request.get("/api/clientes")).json()) as Array<
+    Record<string, unknown>
+  >;
   const cliente = lista.find((c) => c.razaoSocial === EMPRESA)!;
   expect(cliente.temSenhaGov).toBe(true);
   expect(cliente.temSenhaNfse).toBe(true);
@@ -73,7 +75,9 @@ test("edita células da planilha e os valores persistem após reload", async ({ 
   await expect(recarregada.locator('select[name="regime"]')).toHaveValue("lucro_presumido");
 
   // Procuração vencida fica destacada em vermelho.
-  await expect(recarregada.locator('input[name="procuracaoVencimento"]')).toHaveClass(/text-red-600/);
+  await expect(recarregada.locator('input[name="procuracaoVencimento"]')).toHaveClass(
+    /text-red-600/,
+  );
 });
 
 test("a planilha é sempre clara: fundo branco e letra preta, mesmo no tema escuro", async ({
@@ -124,7 +128,13 @@ test("regime tributário oferece as quatro opções e só aceita valor da lista"
 }) => {
   await page.goto("/cadastro");
   const opcoes = page.locator('select[name="regime"]').first().locator("option");
-  await expect(opcoes).toHaveText(["—", "Simples Nacional", "MEI", "Lucro Presumido", "Lucro Real"]);
+  await expect(opcoes).toHaveText([
+    "—",
+    "Simples Nacional",
+    "MEI",
+    "Lucro Presumido",
+    "Lucro Real",
+  ]);
 
   // O select precisa ter fundo próprio: com `bg-transparent` a lista suspensa
   // sai branca e o texto claro fica ilegível.

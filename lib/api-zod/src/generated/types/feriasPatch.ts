@@ -18,7 +18,10 @@ export interface FeriasPatch {
      * @maximum 10
      */
   diasVendidos?: number;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   valor?: string | null;
   /** @nullable */
   observacao?: string | null;

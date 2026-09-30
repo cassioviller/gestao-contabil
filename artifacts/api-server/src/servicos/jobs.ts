@@ -105,7 +105,9 @@ function esperaMinutos(tentativa: number): number {
 }
 
 async function concluir(id: number): Promise<void> {
-  await db.execute(sql`update jobs set status = 'concluido', concluido_em = now() where id = ${id}`);
+  await db.execute(
+    sql`update jobs set status = 'concluido', concluido_em = now() where id = ${id}`,
+  );
 }
 
 async function falhar(job: Reservado, erro: unknown): Promise<void> {
@@ -178,7 +180,10 @@ export async function processarJobs(
 export async function agendarRecorrentes(): Promise<void> {
   const hoje = hojeBR();
   await enfileirar(db, { tipo: "limpeza", chave: `limpeza:${hoje}` });
-  await enfileirar(db, { tipo: "abrir-competencia", chave: `abrir-competencia:${hoje.slice(0, 7)}` });
+  await enfileirar(db, {
+    tipo: "abrir-competencia",
+    chave: `abrir-competencia:${hoje.slice(0, 7)}`,
+  });
 }
 
 /** Laço interno para ambientes com processo permanente (Docker, dev). */

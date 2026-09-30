@@ -10,14 +10,25 @@ import type { ObrigacaoAtrasadaStatus } from './obrigacaoAtrasadaStatus';
 export interface ObrigacaoAtrasada {
   id: number;
   competenciaId: number;
+  /**
+     * @minimum 2000
+     * @maximum 2100
+     */
   ano: number;
+  /**
+     * @minimum 1
+     * @maximum 12
+     */
   mes: number;
   status: ObrigacaoAtrasadaStatus;
   /** @nullable */
   vencimento?: string | null;
   diasAtraso: number;
   clienteId: number;
-  /** @nullable */
+  /**
+     * @minimum 0
+     * @nullable
+     */
   codigo?: number | null;
   cliente: string;
   obrigacao: string;

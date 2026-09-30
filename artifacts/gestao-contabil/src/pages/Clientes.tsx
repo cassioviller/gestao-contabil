@@ -7,7 +7,13 @@ import {
   useRemoverCliente,
   useListarTipos,
 } from "@workspace/api-client-react";
-import { formatarMoeda, formatarNumeroBR, paraDecimalAPI, REGIMES, rotuloRegime } from "@/lib/formato";
+import {
+  formatarMoeda,
+  formatarNumeroBR,
+  paraDecimalAPI,
+  REGIMES,
+  rotuloRegime,
+} from "@/lib/formato";
 
 type Cliente = {
   id: number;
@@ -30,20 +36,51 @@ type Cliente = {
 };
 
 const novoCliente: Cliente = {
-  id: 0, codigo: null, razaoSocial: "", cnpj: "", cnaePrincipal: "", regime: null, inscricaoEstadual: "",
-  formaEnvio: "", procuracao: "", observacao: "",
-  valorHonorario: "", diaVencimentoHonorario: null,
-  contatoNome: "", whatsapp: "", email: "", ativo: true, obrigacoes: [],
+  id: 0,
+  codigo: null,
+  razaoSocial: "",
+  cnpj: "",
+  cnaePrincipal: "",
+  regime: null,
+  inscricaoEstadual: "",
+  formaEnvio: "",
+  procuracao: "",
+  observacao: "",
+  valorHonorario: "",
+  diaVencimentoHonorario: null,
+  contatoNome: "",
+  whatsapp: "",
+  email: "",
+  ativo: true,
+  obrigacoes: [],
 };
 
-function Campo({ label, name, defaultValue, type = "text", required, placeholder }: {
-  label: string; name: string; defaultValue: string | number; type?: string; required?: boolean; placeholder?: string;
+function Campo({
+  label,
+  name,
+  defaultValue,
+  type = "text",
+  required,
+  placeholder,
+}: {
+  label: string;
+  name: string;
+  defaultValue: string | number;
+  type?: string;
+  required?: boolean;
+  placeholder?: string;
 }) {
   return (
     <label className="flex flex-col gap-1 text-sm">
       <span className="text-neutral-600 dark:text-neutral-400">{label}</span>
-      <input name={name} type={type} defaultValue={defaultValue} required={required} placeholder={placeholder}
-        className="rounded-lg border border-black/15 bg-transparent px-3 py-2 dark:border-white/15" />
+      <input
+        name={name}
+        type={type}
+        defaultValue={defaultValue}
+        required={required}
+        placeholder={placeholder}
+        className="rounded-lg border border-black/15 bg-transparent px-3 py-2 dark:border-white/15"
+      />
     </label>
   );
 }
@@ -56,7 +93,11 @@ type TipoResumo = {
   ativo?: boolean;
 };
 
-function FormularioCliente({ cliente, tipos, aoFechar }: {
+function FormularioCliente({
+  cliente,
+  tipos,
+  aoFechar,
+}: {
   cliente: Cliente;
   tipos: TipoResumo[];
   aoFechar: () => void;
@@ -110,15 +151,17 @@ function FormularioCliente({ cliente, tipos, aoFechar }: {
       procuracao: String(fd.get("procuracao") ?? "") || null,
       observacao: String(fd.get("observacao") ?? "") || null,
       valorHonorario: paraDecimalAPI(String(fd.get("valorHonorario") ?? "")),
-      diaVencimentoHonorario: fd.get("diaVencimentoHonorario") ? Number(fd.get("diaVencimentoHonorario")) : null,
+      diaVencimentoHonorario: fd.get("diaVencimentoHonorario")
+        ? Number(fd.get("diaVencimentoHonorario"))
+        : null,
       contatoNome: String(fd.get("contatoNome") ?? "") || null,
       whatsapp: String(fd.get("whatsapp") ?? "") || null,
       email: String(fd.get("email") ?? "") || null,
       ativo: fd.get("ativo") !== null,
       obrigacoes: tipoIds,
     };
-    // @ts-ignore
-    await criarMutation.mutateAsync({ data: dados });
+    // `regime` vem do <select> como string; o contrato quer o enum.
+    await criarMutation.mutateAsync({ data: dados as never });
     qc.invalidateQueries({ queryKey: getListarClientesQueryKey() });
     aoFechar();
   }
@@ -145,46 +188,110 @@ function FormularioCliente({ cliente, tipos, aoFechar }: {
     <div className="fixed inset-0 z-10 flex items-start justify-center overflow-y-auto bg-black/40 p-4">
       <div className="my-8 w-full max-w-2xl rounded-xl border border-black/10 bg-white p-6 shadow-xl dark:border-white/10 dark:bg-neutral-950">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">{ehNovo ? "Novo cliente" : `Editar — ${cliente.razaoSocial}`}</h2>
-          <button onClick={aoFechar} className="text-neutral-500 hover:text-neutral-800">✕</button>
+          <h2 className="text-lg font-semibold">
+            {ehNovo ? "Novo cliente" : `Editar — ${cliente.razaoSocial}`}
+          </h2>
+          <button onClick={aoFechar} className="text-neutral-500 hover:text-neutral-800">
+            ✕
+          </button>
         </div>
         <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Campo label="Código" name="codigo" defaultValue={cliente.codigo ?? ""} type="number" />
-          <Campo label="Razão social *" name="razaoSocial" defaultValue={cliente.razaoSocial} required />
+          <Campo
+            label="Razão social *"
+            name="razaoSocial"
+            defaultValue={cliente.razaoSocial}
+            required
+          />
           <Campo label="CNPJ" name="cnpj" defaultValue={cliente.cnpj ?? ""} />
-          <Campo label="CNAE principal" name="cnaePrincipal" defaultValue={cliente.cnaePrincipal ?? ""} placeholder="ex: 6920-6/01" />
+          <Campo
+            label="CNAE principal"
+            name="cnaePrincipal"
+            defaultValue={cliente.cnaePrincipal ?? ""}
+            placeholder="ex: 6920-6/01"
+          />
           <label className="flex flex-col gap-1 text-sm">
             <span className="text-neutral-600 dark:text-neutral-400">Regime tributário</span>
             {/* Fundo próprio: com `bg-transparent` a lista suspensa sai branca e o texto claro some. */}
-            <select name="regime" value={regime} onChange={(e) => mudarRegime(e.target.value)}
-              className="rounded-lg border border-black/15 bg-neutral-900 px-3 py-2 text-white dark:border-white/15">
-              <option value="" className="bg-neutral-900 text-white">Não definido</option>
+            <select
+              name="regime"
+              value={regime}
+              onChange={(e) => mudarRegime(e.target.value)}
+              className="rounded-lg border border-black/15 bg-neutral-900 px-3 py-2 text-white dark:border-white/15"
+            >
+              <option value="" className="bg-neutral-900 text-white">
+                Não definido
+              </option>
               {REGIMES.map((r) => (
-                <option key={r.valor} value={r.valor} className="bg-neutral-900 text-white">{r.rotulo}</option>
+                <option key={r.valor} value={r.valor} className="bg-neutral-900 text-white">
+                  {r.rotulo}
+                </option>
               ))}
             </select>
           </label>
-          <Campo label="Inscrição estadual" name="inscricaoEstadual" defaultValue={cliente.inscricaoEstadual ?? ""} />
+          <Campo
+            label="Inscrição estadual"
+            name="inscricaoEstadual"
+            defaultValue={cliente.inscricaoEstadual ?? ""}
+          />
           <Campo label="Forma de envio" name="formaEnvio" defaultValue={cliente.formaEnvio ?? ""} />
           <Campo label="Procuração" name="procuracao" defaultValue={cliente.procuracao ?? ""} />
-          <Campo label="Honorário mensal (R$)" name="valorHonorario" defaultValue={formatarNumeroBR(cliente.valorHonorario)} placeholder="ex: 350,00" />
-          <Campo label="Contato (WhatsApp)" name="contatoNome" defaultValue={cliente.contatoNome ?? ""} placeholder="ex: Maria (financeiro)" />
-          <Campo label="WhatsApp" name="whatsapp" defaultValue={cliente.whatsapp ?? ""} placeholder="ex: (11) 99999-9999" />
-          <Campo label="E-mail de contato" name="email" type="email" defaultValue={cliente.email ?? ""} placeholder="ex: contato@empresa.com.br" />
-          <Campo label="Dia venc. honorário" name="diaVencimentoHonorario" defaultValue={cliente.diaVencimentoHonorario ?? ""} type="number" placeholder="ex: 10" />
+          <Campo
+            label="Honorário mensal (R$)"
+            name="valorHonorario"
+            defaultValue={formatarNumeroBR(cliente.valorHonorario)}
+            placeholder="ex: 350,00"
+          />
+          <Campo
+            label="Contato (WhatsApp)"
+            name="contatoNome"
+            defaultValue={cliente.contatoNome ?? ""}
+            placeholder="ex: Maria (financeiro)"
+          />
+          <Campo
+            label="WhatsApp"
+            name="whatsapp"
+            defaultValue={cliente.whatsapp ?? ""}
+            placeholder="ex: (11) 99999-9999"
+          />
+          <Campo
+            label="E-mail de contato"
+            name="email"
+            type="email"
+            defaultValue={cliente.email ?? ""}
+            placeholder="ex: contato@empresa.com.br"
+          />
+          <Campo
+            label="Dia venc. honorário"
+            name="diaVencimentoHonorario"
+            defaultValue={cliente.diaVencimentoHonorario ?? ""}
+            type="number"
+            placeholder="ex: 10"
+          />
           <label className="flex flex-col gap-1 text-sm sm:col-span-2">
             <span className="text-neutral-600 dark:text-neutral-400">Observação</span>
-            <textarea name="observacao" defaultValue={cliente.observacao ?? ""} rows={2}
-              className="rounded-lg border border-black/15 bg-transparent px-3 py-2 dark:border-white/15" />
+            <textarea
+              name="observacao"
+              defaultValue={cliente.observacao ?? ""}
+              rows={2}
+              className="rounded-lg border border-black/15 bg-transparent px-3 py-2 dark:border-white/15"
+            />
           </label>
           <fieldset className="sm:col-span-2">
-            <legend className="mb-2 text-sm text-neutral-600 dark:text-neutral-400">Obrigações deste cliente</legend>
+            <legend className="mb-2 text-sm text-neutral-600 dark:text-neutral-400">
+              Obrigações deste cliente
+            </legend>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               {visiveis.map((t) => {
                 const incompativel = !compativel(t);
                 return (
                   <label key={t.id} className="flex items-center gap-2 text-sm">
-                    <input type="checkbox" name={`obrig_${t.id}`} checked={marcadas.has(t.id)} onChange={() => alternar(t.id)} />
+                    <input
+                      type="checkbox"
+                      name={`obrig_${t.id}`}
+                      checked={marcadas.has(t.id)}
+                      onChange={() => alternar(t.id)}
+                    />
                     <span className={incompativel ? "text-amber-600 dark:text-amber-400" : ""}>
                       {t.nome}
                       {incompativel && <span title="Não é deste regime"> ⚠</span>}
@@ -194,8 +301,11 @@ function FormularioCliente({ cliente, tipos, aoFechar }: {
               })}
             </div>
             {ocultas > 0 && (
-              <button type="button" onClick={() => setMostrarTodas((v) => !v)}
-                className="mt-2 text-xs text-blue-600 hover:underline">
+              <button
+                type="button"
+                onClick={() => setMostrarTodas((v) => !v)}
+                className="mt-2 text-xs text-blue-600 hover:underline"
+              >
                 {mostrarTodas
                   ? "Mostrar só as do regime"
                   : `Mostrar todas (${ocultas} não são deste regime)`}
@@ -208,13 +318,29 @@ function FormularioCliente({ cliente, tipos, aoFechar }: {
           </label>
           <div className="flex items-center justify-between gap-2 sm:col-span-2">
             {!ehNovo ? (
-              <button type="button" onClick={handleRemover} className="text-sm text-red-600 hover:underline">Remover</button>
-            ) : <span />}
+              <button
+                type="button"
+                onClick={handleRemover}
+                className="text-sm text-red-600 hover:underline"
+              >
+                Remover
+              </button>
+            ) : (
+              <span />
+            )}
             <div className="flex gap-2">
-              <button type="button" onClick={aoFechar}
-                className="rounded-lg border border-black/15 px-4 py-2 text-sm dark:border-white/15">Cancelar</button>
-              <button type="submit" disabled={criarMutation.isPending}
-                className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50">
+              <button
+                type="button"
+                onClick={aoFechar}
+                className="rounded-lg border border-black/15 px-4 py-2 text-sm dark:border-white/15"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={criarMutation.isPending}
+                className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
+              >
                 {criarMutation.isPending ? "Salvando..." : "Salvar"}
               </button>
             </div>
@@ -248,15 +374,20 @@ export default function Clientes() {
           <h1 className="text-2xl font-bold">Clientes</h1>
           <p className="text-sm text-neutral-500">{clientes.length} cadastrado(s)</p>
         </div>
-        <button onClick={() => setEditando({ ...novoCliente })}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+        <button
+          onClick={() => setEditando({ ...novoCliente })}
+          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+        >
           + Novo cliente
         </button>
       </div>
 
-      <input value={busca} onChange={(e) => setBusca(e.target.value)}
+      <input
+        value={busca}
+        onChange={(e) => setBusca(e.target.value)}
         placeholder="Buscar por nome, CNPJ ou código…"
-        className="mb-4 w-full rounded-lg border border-black/15 bg-transparent px-3 py-2 text-sm dark:border-white/15 sm:w-80" />
+        className="mb-4 w-full rounded-lg border border-black/15 bg-transparent px-3 py-2 text-sm dark:border-white/15 sm:w-80"
+      />
 
       {isLoading ? (
         <p className="text-sm text-neutral-500">Carregando...</p>
@@ -282,19 +413,34 @@ export default function Clientes() {
                     <p className="font-medium">{c.razaoSocial}</p>
                     {!c.ativo && <span className="text-xs text-red-500">inativo</span>}
                   </td>
-                  <td className="px-3 py-3 text-neutral-600 dark:text-neutral-400">{c.cnpj || "—"}</td>
-                  <td className="px-3 py-3 text-neutral-600 dark:text-neutral-400">{rotuloRegime(c.regime) || "—"}</td>
+                  <td className="px-3 py-3 text-neutral-600 dark:text-neutral-400">
+                    {c.cnpj || "—"}
+                  </td>
+                  <td className="px-3 py-3 text-neutral-600 dark:text-neutral-400">
+                    {rotuloRegime(c.regime) || "—"}
+                  </td>
                   <td className="px-3 py-3">{formatarMoeda(c.valorHonorario)}</td>
                   <td className="px-3 py-3">
-                    <span className="text-xs text-neutral-500">{c.obrigacoes.length} obrigação(ões)</span>
+                    <span className="text-xs text-neutral-500">
+                      {c.obrigacoes.length} obrigação(ões)
+                    </span>
                   </td>
                   <td className="px-3 py-3 text-right">
-                    <button onClick={() => setEditando(c as Cliente)} className="text-xs text-blue-600 hover:underline">Editar</button>
+                    <button
+                      onClick={() => setEditando(c as Cliente)}
+                      className="text-xs text-blue-600 hover:underline"
+                    >
+                      Editar
+                    </button>
                   </td>
                 </tr>
               ))}
               {filtrados.length === 0 && (
-                <tr><td colSpan={7} className="px-3 py-6 text-center text-neutral-500">Nenhum cliente encontrado.</td></tr>
+                <tr>
+                  <td colSpan={7} className="px-3 py-6 text-center text-neutral-500">
+                    Nenhum cliente encontrado.
+                  </td>
+                </tr>
               )}
             </tbody>
           </table>

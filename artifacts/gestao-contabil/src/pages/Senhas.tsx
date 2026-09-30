@@ -27,7 +27,14 @@ type Credencial = {
 type Campo = "rotulo" | "login" | "senha" | "observacao";
 
 /** Acessos que não são de uma obrigação específica, mas todo escritório usa. */
-const ACESSOS_GERAIS = ["gov.br", "e-CAC", "Prefeitura / NFS-e", "SEFAZ", "Conectividade Social", "Simples Nacional"];
+const ACESSOS_GERAIS = [
+  "gov.br",
+  "e-CAC",
+  "Prefeitura / NFS-e",
+  "SEFAZ",
+  "Conectividade Social",
+  "Simples Nacional",
+];
 
 export default function Senhas() {
   const qc = useQueryClient();
@@ -59,7 +66,9 @@ export default function Senhas() {
       setSalvo(true);
       window.setTimeout(() => setSalvo(false), 1500);
     } catch (e) {
-      setErro(mensagemDeErro(e, "Não foi possível salvar. Verifique se o servidor da API está no ar."));
+      setErro(
+        mensagemDeErro(e, "Não foi possível salvar. Verifique se o servidor da API está no ar."),
+      );
     }
   }
 
@@ -110,7 +119,7 @@ export default function Senhas() {
     if (!clienteId || !rotulo) return;
     // Quando o rótulo bate com um tipo do catálogo, já deixa vinculado.
     const tipo = (tipos as { id: number; nome: string }[]).find(
-      (t) => t.nome.toLowerCase() === rotulo.toLowerCase()
+      (t) => t.nome.toLowerCase() === rotulo.toLowerCase(),
     );
     await comAviso(async () => {
       await salvar.mutateAsync({
@@ -126,7 +135,7 @@ export default function Senhas() {
     const t = busca.trim().toLowerCase();
     if (!t) return true;
     return [c.clienteNome, c.rotulo, c.login, c.observacao].some((v) =>
-      (v ?? "").toLowerCase().includes(t)
+      (v ?? "").toLowerCase().includes(t),
     );
   });
 
@@ -156,35 +165,57 @@ export default function Senhas() {
       </div>
 
       {erro && (
-        <p role="alert" className="mb-3 rounded-lg bg-red-600/10 px-3 py-2 text-sm text-red-700 dark:text-red-400">
+        <p
+          role="alert"
+          className="mb-3 rounded-lg bg-red-600/10 px-3 py-2 text-sm text-red-700 dark:text-red-400"
+        >
           {erro}
         </p>
       )}
 
       <form onSubmit={adicionar} className="mb-4 flex flex-wrap items-center gap-2">
-        <select value={novoCliente} onChange={(e) => setNovoCliente(e.target.value)} required
-          className={selectEscuro} aria-label="Empresa">
-          <option value="" className="bg-neutral-900 text-white">Empresa…</option>
+        <select
+          value={novoCliente}
+          onChange={(e) => setNovoCliente(e.target.value)}
+          required
+          className={selectEscuro}
+          aria-label="Empresa"
+        >
+          <option value="" className="bg-neutral-900 text-white">
+            Empresa…
+          </option>
           {(clientes as { id: number; razaoSocial: string }[]).map((c) => (
             <option key={c.id} value={c.id} className="bg-neutral-900 text-white">
               {c.razaoSocial}
             </option>
           ))}
         </select>
-        <input value={novoRotulo} onChange={(e) => setNovoRotulo(e.target.value)} name="novoRotulo"
-          list="sistemas" placeholder="Sistema / obrigação (ex: DAS)" className={`${campoForm} w-64`} />
+        <input
+          value={novoRotulo}
+          onChange={(e) => setNovoRotulo(e.target.value)}
+          name="novoRotulo"
+          list="sistemas"
+          placeholder="Sistema / obrigação (ex: DAS)"
+          className={`${campoForm} w-64`}
+        />
         <datalist id="sistemas">
           {sugestoes.map((s) => (
             <option key={s} value={s} />
           ))}
         </datalist>
-        <button type="submit" disabled={!novoCliente || !novoRotulo.trim()}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+        <button
+          type="submit"
+          disabled={!novoCliente || !novoRotulo.trim()}
+          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+        >
           + Adicionar acesso
         </button>
-        <input value={busca} onChange={(e) => setBusca(e.target.value)}
+        <input
+          value={busca}
+          onChange={(e) => setBusca(e.target.value)}
           placeholder="Buscar por empresa, sistema ou login…"
-          className={`ml-auto w-full ${campoForm} sm:w-72`} />
+          className={`ml-auto w-full ${campoForm} sm:w-72`}
+        />
       </form>
 
       {isLoading ? (
@@ -207,7 +238,9 @@ export default function Senhas() {
                 <tr key={c.id}>
                   <td className={`w-64 px-2 py-2 font-medium ${celula}`}>{c.clienteNome}</td>
                   <td className={`w-48 ${celula}`}>
-                    <input name="rotulo" defaultValue={c.rotulo}
+                    <input
+                      name="rotulo"
+                      defaultValue={c.rotulo}
                       onKeyDown={teclas(c.rotulo)}
                       onBlur={(e) => {
                         const v = e.target.value.trim();
@@ -217,13 +250,20 @@ export default function Senhas() {
                         }
                         if (v !== c.rotulo) salvarCampo(c.id, "rotulo", v);
                       }}
-                      className={entrada} />
+                      className={entrada}
+                    />
                   </td>
                   <td className={`w-44 ${celula}`}>
-                    <input name="login" defaultValue={c.login ?? ""}
+                    <input
+                      name="login"
+                      defaultValue={c.login ?? ""}
                       onKeyDown={teclas(c.login ?? "")}
-                      onBlur={(e) => e.target.value !== (c.login ?? "") && salvarCampo(c.id, "login", e.target.value)}
-                      className={entrada} />
+                      onBlur={(e) =>
+                        e.target.value !== (c.login ?? "") &&
+                        salvarCampo(c.id, "login", e.target.value)
+                      }
+                      className={entrada}
+                    />
                   </td>
                   <td className={`w-44 ${celula}`}>
                     {(() => {
@@ -231,19 +271,27 @@ export default function Senhas() {
                       const valor = revelada ? reveladas[c.id] : "";
                       return (
                         <div className="flex items-center">
-                          <input name="senha" key={revelada ? "aberta" : "fechada"}
-                            type={revelada ? "text" : "password"} defaultValue={valor}
+                          <input
+                            name="senha"
+                            key={revelada ? "aberta" : "fechada"}
+                            type={revelada ? "text" : "password"}
+                            defaultValue={valor}
                             placeholder={revelada ? "—" : c.temSenha ? "••••••••" : "—"}
                             autoComplete="new-password"
                             onKeyDown={teclas(valor)}
                             onBlur={(e) => {
                               const digitado = e.target.value;
-                              if (revelada ? digitado !== valor : digitado !== "") salvarSenha(c.id, digitado);
+                              if (revelada ? digitado !== valor : digitado !== "")
+                                salvarSenha(c.id, digitado);
                             }}
-                            className={entrada} />
-                          <button type="button" title={revelada ? "Ocultar senha" : "Revelar senha"}
+                            className={entrada}
+                          />
+                          <button
+                            type="button"
+                            title={revelada ? "Ocultar senha" : "Revelar senha"}
                             onClick={() => (revelada ? ocultar(c.id) : revelar(c.id))}
-                            className="px-1 text-neutral-500 hover:text-black dark:hover:text-white">
+                            className="px-1 text-neutral-500 hover:text-black dark:hover:text-white"
+                          >
                             {revelada ? "🙈" : "👁"}
                           </button>
                         </div>
@@ -251,22 +299,28 @@ export default function Senhas() {
                     })()}
                   </td>
                   <td className={celula}>
-                    <input name="observacao" defaultValue={c.observacao ?? ""}
+                    <input
+                      name="observacao"
+                      defaultValue={c.observacao ?? ""}
                       onKeyDown={teclas(c.observacao ?? "")}
                       onBlur={(e) =>
-                        e.target.value !== (c.observacao ?? "") && salvarCampo(c.id, "observacao", e.target.value)
+                        e.target.value !== (c.observacao ?? "") &&
+                        salvarCampo(c.id, "observacao", e.target.value)
                       }
-                      className={entrada} />
+                      className={entrada}
+                    />
                   </td>
                   <td className="w-10 px-2 py-2 text-center">
-                    <button title="Remover acesso"
+                    <button
+                      title="Remover acesso"
                       onClick={() =>
                         comAviso(async () => {
                           await remover.mutateAsync({ id: c.id });
                           invalidar();
                         })
                       }
-                      className="text-neutral-400 hover:text-red-600">
+                      className="text-neutral-400 hover:text-red-600"
+                    >
                       ✕
                     </button>
                   </td>

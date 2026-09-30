@@ -9,7 +9,14 @@ import {
   useSalvarDespesa,
 } from "@workspace/api-client-react";
 import type { Despesa } from "@workspace/api-client-react";
-import { MESES, formatarMoeda, formatarNumeroBR, hojeBR, mesAtualBR, paraDecimalAPI } from "@/lib/formato";
+import {
+  MESES,
+  formatarMoeda,
+  formatarNumeroBR,
+  hojeBR,
+  mesAtualBR,
+  paraDecimalAPI,
+} from "@/lib/formato";
 
 /** Categorias que quase todo escritório usa — o campo aceita qualquer outra. */
 const CATEGORIAS = [
@@ -125,8 +132,7 @@ export default function Despesas() {
   const filtradas = soAbertas ? lista.filter((d) => !d.pago) : lista;
 
   const { total, aberto, porCategoria } = useMemo(() => {
-    const soma = (linhas: Despesa[]) =>
-      linhas.reduce((s, d) => s + Number(d.valor ?? 0), 0);
+    const soma = (linhas: Despesa[]) => linhas.reduce((s, d) => s + Number(d.valor ?? 0), 0);
     const mapa = new Map<string, number>();
     for (const d of filtradas) {
       mapa.set(d.categoria, (mapa.get(d.categoria) ?? 0) + Number(d.valor ?? 0));
@@ -237,7 +243,10 @@ export default function Despesas() {
       </div>
 
       {erro && (
-        <p role="alert" className="mb-3 rounded-lg bg-red-600/10 px-3 py-2 text-sm text-red-700 dark:text-red-400">
+        <p
+          role="alert"
+          className="mb-3 rounded-lg bg-red-600/10 px-3 py-2 text-sm text-red-700 dark:text-red-400"
+        >
           {erro}
         </p>
       )}
@@ -359,9 +368,7 @@ export default function Despesas() {
                     />
                   </td>
                   <td className="border-r border-black/10 p-2 dark:border-white/10">
-                    {d.clienteNome ?? (
-                      <span className="text-neutral-500">Escritório</span>
-                    )}
+                    {d.clienteNome ?? <span className="text-neutral-500">Escritório</span>}
                   </td>
                   <td className={celula}>
                     <input

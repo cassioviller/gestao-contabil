@@ -7,5 +7,6 @@
  */
 
 export interface ConfiguracaoInput {
+  /** @pattern ^-?\d+(\.\d{1,2})?$ */
   valor: string;
 }

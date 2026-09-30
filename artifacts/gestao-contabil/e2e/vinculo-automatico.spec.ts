@@ -11,19 +11,27 @@ const INATIVA = "Auto Inativa";
 const EMPRESA = "Vínculo Auto LTDA";
 const EXPLICITA = "Lista Explícita LTDA";
 
-async function tipo(request: import("@playwright/test").APIRequestContext, data: Record<string, unknown>) {
+async function tipo(
+  request: import("@playwright/test").APIRequestContext,
+  data: Record<string, unknown>,
+) {
   const r = await request.post("/api/tipos", { data });
   expect(r.status(), await r.text()).toBe(200);
   return (await r.json()) as { id: number; nome: string };
 }
 
 async function obrigacoesDe(request: import("@playwright/test").APIRequestContext, id: number) {
-  const lista = (await (await request.get("/api/clientes")).json()) as Array<{ id: number; obrigacoes: number[] }>;
+  const lista = (await (await request.get("/api/clientes")).json()) as Array<{
+    id: number;
+    obrigacoes: number[];
+  }>;
   return lista.find((c) => c.id === id)!.obrigacoes;
 }
 
 test.describe("vínculo automático por regime", () => {
-  test("definir o regime vincula as automáticas do regime; trocar só acrescenta", async ({ request }) => {
+  test("definir o regime vincula as automáticas do regime; trocar só acrescenta", async ({
+    request,
+  }) => {
     const simples = await tipo(request, { nome: AUTO_SIMPLES, regimes: ["simples_nacional"] });
     const geral = await tipo(request, { nome: AUTO_GERAL });
     const manual = await tipo(request, { nome: MANUAL, vincularAutomatico: false });
@@ -35,7 +43,9 @@ test.describe("vínculo automático por regime", () => {
     expect(await obrigacoesDe(request, id)).toEqual([]);
 
     // Regime pela planilha (PATCH): entram a do Simples e a geral; não a manual nem a inativa.
-    const patch = await request.patch(`/api/clientes/${id}`, { data: { regime: "simples_nacional" } });
+    const patch = await request.patch(`/api/clientes/${id}`, {
+      data: { regime: "simples_nacional" },
+    });
     expect(patch.status()).toBe(200);
     let obrig = await obrigacoesDe(request, id);
     expect(obrig).toEqual(expect.arrayContaining([simples.id, geral.id]));
@@ -55,7 +65,9 @@ test.describe("vínculo automático por regime", () => {
     expect((await sincronizado.json()).vinculosCriados).toBeGreaterThanOrEqual(1);
     expect(await obrigacoesDe(request, id)).toContain(presumido.id);
     // Rodar de novo não cria nada.
-    expect((await (await request.post("/api/tipos/vincular-automaticos")).json()).vinculosCriados).toBe(0);
+    expect(
+      (await (await request.post("/api/tipos/vincular-automaticos")).json()).vinculosCriados,
+    ).toBe(0);
   });
 
   test("lista explícita de obrigações prevalece sobre o automático", async ({ request }) => {
@@ -68,17 +80,25 @@ test.describe("vínculo automático por regime", () => {
 
   test("a grade de Tipos edita 'Auto' e 'Ativa' e grava no banco", async ({ page, request }) => {
     await page.goto("/tipos");
-    const linha = page.locator("tbody tr").filter({ has: page.locator(`input[value="${AUTO_GERAL}"]`) });
-    await expect(linha.getByRole("checkbox", { name: `${AUTO_GERAL}: vincular automaticamente` })).toBeChecked();
+    const linha = page
+      .locator("tbody tr")
+      .filter({ has: page.locator(`input[value="${AUTO_GERAL}"]`) });
+    await expect(
+      linha.getByRole("checkbox", { name: `${AUTO_GERAL}: vincular automaticamente` }),
+    ).toBeChecked();
     await expect(linha.getByRole("checkbox", { name: `${AUTO_GERAL}: ativa` })).toBeChecked();
 
-    await linha.getByRole("checkbox", { name: `${AUTO_GERAL}: vincular automaticamente` }).uncheck();
+    await linha
+      .getByRole("checkbox", { name: `${AUTO_GERAL}: vincular automaticamente` })
+      .uncheck();
     await linha.getByRole("checkbox", { name: `${AUTO_GERAL}: ativa` }).uncheck();
     await linha.locator('input[name="descricao"]').fill("Guia geral de teste");
     await page.getByRole("button", { name: "Salvar alterações" }).click();
     await expect(page.getByText("✓ alterações salvas")).toBeVisible();
 
-    const tipos = (await (await request.get("/api/tipos")).json()) as Array<Record<string, unknown>>;
+    const tipos = (await (await request.get("/api/tipos")).json()) as Array<
+      Record<string, unknown>
+    >;
     const geral = tipos.find((t) => t.nome === AUTO_GERAL)!;
     expect(geral.vincularAutomatico).toBe(false);
     expect(geral.ativo).toBe(false);
@@ -88,7 +108,8 @@ test.describe("vínculo automático por regime", () => {
   test("no cadastro, escolher o regime marca as automáticas do regime", async ({ page }) => {
     await page.goto("/clientes");
     await page.getByRole("button", { name: "Novo cliente" }).click();
-    const caixa = (nome: string) => page.locator("label").filter({ hasText: nome }).getByRole("checkbox");
+    const caixa = (nome: string) =>
+      page.locator("label").filter({ hasText: nome }).getByRole("checkbox");
     await expect(caixa(AUTO_SIMPLES)).not.toBeChecked();
 
     await page.locator('select[name="regime"]').selectOption("simples_nacional");

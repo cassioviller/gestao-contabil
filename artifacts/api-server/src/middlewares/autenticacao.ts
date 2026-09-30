@@ -3,7 +3,6 @@ import { HttpError } from "../lib/http";
 import { COOKIE_SESSAO, buscarSessao, type Papel, type Sessao } from "../lib/sessao";
 
 declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Request {
       sessao?: Sessao;

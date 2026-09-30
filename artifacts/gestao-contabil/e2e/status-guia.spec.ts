@@ -15,7 +15,10 @@ test("célula do checklist percorre pendente → emitido → enviado", async ({ 
   const { id: compId } = await c.json();
 
   await page.goto(`/competencias/${compId}`);
-  const celula = page.getByRole("row", { name: new RegExp(EMPRESA) }).getByRole("button").first();
+  const celula = page
+    .getByRole("row", { name: new RegExp(EMPRESA) })
+    .getByRole("button")
+    .first();
 
   // A legenda mostra os quatro estados pelo nome.
   for (const rotulo of ["Pendente", "Emitido", "Enviado", "Não se aplica"]) {
@@ -47,7 +50,10 @@ test("célula do checklist percorre pendente → emitido → enviado", async ({ 
   expect(comp.resumo.obrigacoes.emitidos).toBe(0);
 
   // Fecha o ciclo: enviado → não se aplica → pendente.
-  const recarregada = page.getByRole("row", { name: new RegExp(EMPRESA) }).getByRole("button").first();
+  const recarregada = page
+    .getByRole("row", { name: new RegExp(EMPRESA) })
+    .getByRole("button")
+    .first();
   await recarregada.click();
   await expect(recarregada).toHaveText("–");
   await recarregada.click();

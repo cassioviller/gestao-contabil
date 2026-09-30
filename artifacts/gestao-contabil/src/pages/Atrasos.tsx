@@ -28,12 +28,25 @@ type Campo = "rotulo" | "competenciaRef" | "vencimento" | "valor" | "observacao"
 
 const STATUS = [
   { valor: "em_aberto", rotulo: "Em aberto", cor: "bg-red-600/15 text-red-700 dark:text-red-400" },
-  { valor: "parcelado", rotulo: "Parcelado", cor: "bg-amber-600/15 text-amber-700 dark:text-amber-400" },
+  {
+    valor: "parcelado",
+    rotulo: "Parcelado",
+    cor: "bg-amber-600/15 text-amber-700 dark:text-amber-400",
+  },
   { valor: "pago", rotulo: "Pago", cor: "bg-green-600/15 text-green-700 dark:text-green-400" },
 ] as const;
 
 /** Guias que não vêm do catálogo mas aparecem sempre. */
-const GUIAS_EXTRA = ["Parcelamento", "DAS", "Simples Nacional", "IRPJ", "CSLL", "ICMS", "ISS", "PIS/COFINS"];
+const GUIAS_EXTRA = [
+  "Parcelamento",
+  "DAS",
+  "Simples Nacional",
+  "IRPJ",
+  "CSLL",
+  "ICMS",
+  "ISS",
+  "PIS/COFINS",
+];
 
 /** Dias de atraso — só conta enquanto a guia não foi quitada. */
 function diasAtraso(vencimento: string | null, status: string, hoje: string): number | null {
@@ -47,7 +60,7 @@ export default function Atrasos() {
   const [filtro, setFiltro] = useState("todos");
 
   const { data: debitos = [], isLoading } = useListarDebitos(
-    filtro === "todos" ? undefined : { status: filtro as never }
+    filtro === "todos" ? undefined : { status: filtro as never },
   );
   const { data: clientes = [] } = useListarClientes();
   const { data: tipos = [] } = useListarTipos();
@@ -77,7 +90,7 @@ export default function Atrasos() {
       setErro(
         e instanceof Error && e.message
           ? `Não foi possível salvar: ${e.message}`
-          : "Não foi possível salvar. Verifique se o servidor da API está no ar."
+          : "Não foi possível salvar. Verifique se o servidor da API está no ar.",
       );
     }
   }
@@ -115,7 +128,7 @@ export default function Atrasos() {
     const rotulo = novaGuia.trim();
     if (!clienteId || !rotulo) return;
     const tipo = (tipos as { id: number; nome: string }[]).find(
-      (t) => t.nome.toLowerCase() === rotulo.toLowerCase()
+      (t) => t.nome.toLowerCase() === rotulo.toLowerCase(),
     );
     await comAviso(async () => {
       await salvar.mutateAsync({
@@ -131,7 +144,7 @@ export default function Atrasos() {
     const t = busca.trim().toLowerCase();
     if (!t) return true;
     return [d.clienteNome, d.rotulo, d.competenciaRef, d.observacao].some((v) =>
-      (v ?? "").toLowerCase().includes(t)
+      (v ?? "").toLowerCase().includes(t),
     );
   });
 
@@ -140,7 +153,7 @@ export default function Atrasos() {
     .filter((d) => d.status !== "pago")
     .reduce((soma, d) => soma + Number(d.valor ?? 0), 0);
   const empresasComAtraso = new Set(
-    filtrados.filter((d) => d.status !== "pago").map((d) => d.clienteId)
+    filtrados.filter((d) => d.status !== "pago").map((d) => d.clienteId),
   ).size;
 
   const celula = "border-r border-black/10 p-0 dark:border-white/10";
@@ -181,45 +194,70 @@ export default function Atrasos() {
       </div>
 
       {erro && (
-        <p role="alert" className="mb-3 rounded-lg bg-red-600/10 px-3 py-2 text-sm text-red-700 dark:text-red-400">
+        <p
+          role="alert"
+          className="mb-3 rounded-lg bg-red-600/10 px-3 py-2 text-sm text-red-700 dark:text-red-400"
+        >
           {erro}
         </p>
       )}
 
       <form onSubmit={adicionar} className="mb-4 flex flex-wrap items-center gap-2">
-        <select value={novoCliente} onChange={(e) => setNovoCliente(e.target.value)} required
-          className={selectEscuro} aria-label="Empresa">
-          <option value="" className="bg-neutral-900 text-white">Empresa…</option>
+        <select
+          value={novoCliente}
+          onChange={(e) => setNovoCliente(e.target.value)}
+          required
+          className={selectEscuro}
+          aria-label="Empresa"
+        >
+          <option value="" className="bg-neutral-900 text-white">
+            Empresa…
+          </option>
           {(clientes as { id: number; razaoSocial: string }[]).map((c) => (
             <option key={c.id} value={c.id} className="bg-neutral-900 text-white">
               {c.razaoSocial}
             </option>
           ))}
         </select>
-        <input value={novaGuia} onChange={(e) => setNovaGuia(e.target.value)} name="novaGuia"
-          list="guias" placeholder="Guia (ex: INSS)" className={`${campoForm} w-56`} />
+        <input
+          value={novaGuia}
+          onChange={(e) => setNovaGuia(e.target.value)}
+          name="novaGuia"
+          list="guias"
+          placeholder="Guia (ex: INSS)"
+          className={`${campoForm} w-56`}
+        />
         <datalist id="guias">
           {sugestoes.map((s) => (
             <option key={s} value={s} />
           ))}
         </datalist>
-        <button type="submit" disabled={!novoCliente || !novaGuia.trim()}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+        <button
+          type="submit"
+          disabled={!novoCliente || !novaGuia.trim()}
+          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+        >
           + Registrar atraso
         </button>
-        <input value={busca} onChange={(e) => setBusca(e.target.value)}
+        <input
+          value={busca}
+          onChange={(e) => setBusca(e.target.value)}
           placeholder="Buscar por empresa, guia ou competência…"
-          className={`ml-auto w-full ${campoForm} sm:w-72`} />
+          className={`ml-auto w-full ${campoForm} sm:w-72`}
+        />
       </form>
 
       <div className="mb-4 flex flex-wrap gap-2">
         {[{ valor: "todos", rotulo: "Todos" }, ...STATUS].map((s) => (
-          <button key={s.valor} onClick={() => setFiltro(s.valor)}
+          <button
+            key={s.valor}
+            onClick={() => setFiltro(s.valor)}
             className={`rounded-lg px-3 py-1.5 text-sm ${
               filtro === s.valor
                 ? "bg-blue-600 text-white"
                 : "border border-black/15 text-neutral-700 dark:border-white/15 dark:text-neutral-300"
-            }`}>
+            }`}
+          >
             {s.rotulo}
           </button>
         ))}
@@ -249,7 +287,10 @@ export default function Atrasos() {
                   <tr key={d.id} className={d.status === "pago" ? "opacity-60" : ""}>
                     <td className={`w-56 px-2 py-2 font-medium ${celula}`}>{d.clienteNome}</td>
                     <td className={`w-40 ${celula}`}>
-                      <input name="rotulo" defaultValue={d.rotulo} onKeyDown={teclas(d.rotulo)}
+                      <input
+                        name="rotulo"
+                        defaultValue={d.rotulo}
+                        onKeyDown={teclas(d.rotulo)}
                         onBlur={(e) => {
                           const v = e.target.value.trim();
                           if (!v) {
@@ -258,66 +299,90 @@ export default function Atrasos() {
                           }
                           if (v !== d.rotulo) salvarCampo(d.id, "rotulo", v);
                         }}
-                        className={entrada} />
+                        className={entrada}
+                      />
                     </td>
                     <td className={`w-32 ${celula}`}>
-                      <input name="competenciaRef" defaultValue={d.competenciaRef ?? ""}
-                        placeholder="05/2026" onKeyDown={teclas(d.competenciaRef ?? "")}
+                      <input
+                        name="competenciaRef"
+                        defaultValue={d.competenciaRef ?? ""}
+                        placeholder="05/2026"
+                        onKeyDown={teclas(d.competenciaRef ?? "")}
                         onBlur={(e) =>
                           e.target.value !== (d.competenciaRef ?? "") &&
                           salvarCampo(d.id, "competenciaRef", e.target.value)
                         }
-                        className={entrada} />
+                        className={entrada}
+                      />
                     </td>
                     <td className={`w-36 ${celula}`}>
-                      <input type="date" name="vencimento" defaultValue={d.vencimento ?? ""}
+                      <input
+                        type="date"
+                        name="vencimento"
+                        defaultValue={d.vencimento ?? ""}
                         onBlur={(e) =>
                           e.target.value !== (d.vencimento ?? "") &&
                           salvarCampo(d.id, "vencimento", e.target.value)
                         }
-                        className={`${entrada} ${atraso ? "font-medium text-red-600" : ""}`} />
-                      {atraso && (
-                        <p className="px-2 pb-1 text-xs text-red-600">{atraso} dia(s)</p>
-                      )}
+                        className={`${entrada} ${atraso ? "font-medium text-red-600" : ""}`}
+                      />
+                      {atraso && <p className="px-2 pb-1 text-xs text-red-600">{atraso} dia(s)</p>}
                     </td>
                     <td className={`w-28 ${celula}`}>
-                      <input name="valor" defaultValue={formatarNumeroBR(d.valor)} placeholder="0,00"
+                      <input
+                        name="valor"
+                        defaultValue={formatarNumeroBR(d.valor)}
+                        placeholder="0,00"
                         onKeyDown={teclas(formatarNumeroBR(d.valor))}
                         onBlur={(e) =>
                           paraDecimalAPI(e.target.value) !== (d.valor ?? null) &&
                           salvarCampo(d.id, "valor", e.target.value)
                         }
-                        className={entrada} />
+                        className={entrada}
+                      />
                     </td>
                     <td className={`w-36 px-2 py-1 ${celula}`}>
-                      <select name="status" aria-label={`Situação de ${d.rotulo} de ${d.clienteNome}`}
-                        value={d.status} onChange={(e) => mudarStatus(d.id, e.target.value)}
-                        className="h-8 w-full rounded bg-neutral-900 px-1 text-xs text-white outline-none">
+                      <select
+                        name="status"
+                        aria-label={`Situação de ${d.rotulo} de ${d.clienteNome}`}
+                        value={d.status}
+                        onChange={(e) => mudarStatus(d.id, e.target.value)}
+                        className="h-8 w-full rounded bg-neutral-900 px-1 text-xs text-white outline-none"
+                      >
                         {STATUS.map((s) => (
-                          <option key={s.valor} value={s.valor} className="bg-neutral-900 text-white">
+                          <option
+                            key={s.valor}
+                            value={s.valor}
+                            className="bg-neutral-900 text-white"
+                          >
                             {s.rotulo}
                           </option>
                         ))}
                       </select>
                     </td>
                     <td className={celula}>
-                      <input name="observacao" defaultValue={d.observacao ?? ""}
+                      <input
+                        name="observacao"
+                        defaultValue={d.observacao ?? ""}
                         onKeyDown={teclas(d.observacao ?? "")}
                         onBlur={(e) =>
                           e.target.value !== (d.observacao ?? "") &&
                           salvarCampo(d.id, "observacao", e.target.value)
                         }
-                        className={entrada} />
+                        className={entrada}
+                      />
                     </td>
                     <td className="w-10 px-2 py-2 text-center">
-                      <button title="Remover registro"
+                      <button
+                        title="Remover registro"
                         onClick={() =>
                           comAviso(async () => {
                             await remover.mutateAsync({ id: d.id });
                             invalidar();
                           })
                         }
-                        className="text-neutral-400 hover:text-red-600">
+                        className="text-neutral-400 hover:text-red-600"
+                      >
                         ✕
                       </button>
                     </td>
@@ -337,8 +402,8 @@ export default function Atrasos() {
       )}
 
       <p className="mt-3 text-xs text-neutral-500">
-        Marcar como <strong>Pago</strong> tira a guia do total devido, mas mantém o histórico na lista.
-        Datas de vencimento vencidas aparecem em vermelho com os dias de atraso.
+        Marcar como <strong>Pago</strong> tira a guia do total devido, mas mantém o histórico na
+        lista. Datas de vencimento vencidas aparecem em vermelho com os dias de atraso.
       </p>
     </div>
   );

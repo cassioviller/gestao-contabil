@@ -14,7 +14,12 @@ import { agendarRecorrentes, processarJobs } from "../servicos/jobs";
 export const exigirTokenJobs: RequestHandler = (req, _res, next) => {
   const esperado = process.env.TOKEN_JOBS;
   if (!esperado) {
-    throw new HttpError(503, "TOKEN_JOBS não configurado; a fila não pode ser disparada.", undefined, "jobs_desligados");
+    throw new HttpError(
+      503,
+      "TOKEN_JOBS não configurado; a fila não pode ser disparada.",
+      undefined,
+      "jobs_desligados",
+    );
   }
   const cabecalho = req.headers.authorization ?? "";
   const recebido = cabecalho.startsWith("Bearer ") ? cabecalho.slice(7).trim() : "";

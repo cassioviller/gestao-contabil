@@ -8,7 +8,15 @@
 
 export interface Competencia {
   id: number;
+  /**
+     * @minimum 2000
+     * @maximum 2100
+     */
   ano: number;
+  /**
+     * @minimum 1
+     * @maximum 12
+     */
   mes: number;
   /** @nullable */
   rotulo?: string | null;

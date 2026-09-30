@@ -9,6 +9,7 @@
 export interface EtapaPatch {
   descricao?: string;
   feito?: boolean;
+  /** @minimum 0 */
   ordem?: number;
   /** @nullable */
   observacao?: string | null;

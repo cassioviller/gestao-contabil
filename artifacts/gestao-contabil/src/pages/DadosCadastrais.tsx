@@ -62,9 +62,19 @@ const COLUNAS: Coluna[] = [
   { campo: "socioNome", rotulo: "Sócio principal", largura: "w-56" },
   { campo: "socioCpf", rotulo: "CPF do sócio", largura: "w-40", placeholder: "000.000.000-00" },
   { campo: "senhaGov", rotulo: "Senha gov.br", largura: "w-40", senha: true },
-  { campo: "procuracaoVencimento", rotulo: "Vencimento da procuração", largura: "w-48", tipo: "date" },
+  {
+    campo: "procuracaoVencimento",
+    rotulo: "Vencimento da procuração",
+    largura: "w-48",
+    tipo: "date",
+  },
   { campo: "valorHonorario", rotulo: "Honorário (R$)", largura: "w-32", placeholder: "350,00" },
-  { campo: "diaVencimentoHonorario", rotulo: "Dia venc. honorário", largura: "w-36", tipo: "number" },
+  {
+    campo: "diaVencimentoHonorario",
+    rotulo: "Dia venc. honorário",
+    largura: "w-36",
+    tipo: "number",
+  },
   { campo: "contatoNome", rotulo: "Contato (WhatsApp)", largura: "w-48" },
   { campo: "whatsapp", rotulo: "WhatsApp", largura: "w-44", placeholder: "(11) 99999-9999" },
   { campo: "email", rotulo: "E-mail de contato", largura: "w-64", tipo: "email" },
@@ -180,8 +190,14 @@ export default function DadosCadastrais() {
   const filtrados = lista.filter((c) => {
     const t = busca.trim().toLowerCase();
     if (!t) return true;
-    return [c.razaoSocial, c.cnpj, c.socioNome, c.contatoNome, c.email, String(c.codigo ?? "")]
-      .some((v) => (v ?? "").toLowerCase().includes(t));
+    return [
+      c.razaoSocial,
+      c.cnpj,
+      c.socioNome,
+      c.contatoNome,
+      c.email,
+      String(c.codigo ?? ""),
+    ].some((v) => (v ?? "").toLowerCase().includes(t));
   });
 
   const celula = "border-r border-black/10 p-0";
@@ -201,7 +217,8 @@ export default function DadosCadastrais() {
         <div>
           <h1 className="text-2xl font-bold">Dados cadastrais</h1>
           <p className="text-sm text-neutral-500">
-            {filtrados.length} empresa(s) · clique em qualquer célula para editar — salva sozinho ao sair do campo
+            {filtrados.length} empresa(s) · clique em qualquer célula para editar — salva sozinho ao
+            sair do campo
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -306,7 +323,11 @@ export default function DadosCadastrais() {
                                 defaultValue={valor}
                                 placeholder={revelada ? "—" : tem ? "••••••••" : "—"}
                                 autoComplete="new-password"
-                                title={tem && !revelada ? "Há senha gravada; digite para substituir ou revele" : undefined}
+                                title={
+                                  tem && !revelada
+                                    ? "Há senha gravada; digite para substituir ou revele"
+                                    : undefined
+                                }
                                 onKeyDown={(e) => {
                                   if (e.key === "Enter") e.currentTarget.blur();
                                   if (e.key === "Escape") {
@@ -360,7 +381,11 @@ export default function DadosCadastrais() {
                                 —
                               </option>
                               {col.opcoes.map((o) => (
-                                <option key={o.valor} value={o.valor} className="bg-white text-black">
+                                <option
+                                  key={o.valor}
+                                  value={o.valor}
+                                  className="bg-white text-black"
+                                >
                                   {o.rotulo}
                                 </option>
                               ))}
@@ -413,7 +438,10 @@ export default function DadosCadastrais() {
               })}
               {filtrados.length === 0 && (
                 <tr>
-                  <td colSpan={COLUNAS.length + 4} className="px-3 py-8 text-center text-neutral-500">
+                  <td
+                    colSpan={COLUNAS.length + 4}
+                    className="px-3 py-8 text-center text-neutral-500"
+                  >
                     Nenhuma empresa encontrada.
                   </td>
                 </tr>
@@ -424,7 +452,8 @@ export default function DadosCadastrais() {
       )}
 
       <p className="mt-3 text-xs text-neutral-500">
-        Senhas ficam cifradas no banco; cada revelação (👁) fica registrada com usuário, data e IP. Procuração vencida aparece em vermelho.
+        Senhas ficam cifradas no banco; cada revelação (👁) fica registrada com usuário, data e IP.
+        Procuração vencida aparece em vermelho.
       </p>
     </div>
   );

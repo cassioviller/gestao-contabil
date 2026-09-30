@@ -1,7 +1,11 @@
 import { describe, expect, test } from "vitest";
 import { montarAviso } from "./modelos";
 
-const base = { cliente: "Padaria Pão Quente", escritorio: "AZ Contabilidade", contato: "(11) 99999-0000" };
+const base = {
+  cliente: "Padaria Pão Quente",
+  escritorio: "AZ Contabilidade",
+  contato: "(11) 99999-0000",
+};
 
 describe("montarAviso", () => {
   test("guia disponível cita obrigação, competência, vencimento e link", () => {

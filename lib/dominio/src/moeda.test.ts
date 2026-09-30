@@ -73,7 +73,7 @@ describe("formatação", () => {
   });
 
   test("formatarMoeda", () => {
-    expect(formatarMoeda("350.00").replace(/ /g, " ")).toBe("R$ 350,00");
+    expect(formatarMoeda("350.00").replace(/\u00a0/g, " ")).toBe("R$ 350,00");
     expect(formatarMoeda(null)).toBe("—");
     expect(formatarMoeda("")).toBe("—");
   });

@@ -13,6 +13,10 @@ export interface Arquivo {
   clienteId: number | null;
   entidade: EntidadeArquivo;
   entidadeId: number;
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
   nome: string;
   mime: string;
   tamanho: number;
@@ -20,5 +24,5 @@ export interface Arquivo {
   sha256: string | null;
   origem: string;
   confirmado: boolean;
-  criadoEm: Date;
+  criadoEm: string;
 }

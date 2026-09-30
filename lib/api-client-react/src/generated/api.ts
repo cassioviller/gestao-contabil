@@ -45,6 +45,7 @@ import type {
   Despesa,
   DespesaInput,
   DespesaPatch,
+  ErroResponse,
   EtapaInput,
   EtapaPatch,
   ExecutarJobsInput,
@@ -149,7 +150,7 @@ export const entrar = async (credenciais: Credenciais, options?: RequestInit): P
 
 
 
-export const getEntrarMutationOptions = <TError = ErrorType<void>,
+export const getEntrarMutationOptions = <TError = ErrorType<ErroResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof entrar>>, TError,{data: BodyType<Credenciais>}, TContext>, request?: SecondParameter<typeof customFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof entrar>>, TError,{data: BodyType<Credenciais>}, TContext> => {
 
@@ -178,12 +179,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type EntrarMutationResult = NonNullable<Awaited<ReturnType<typeof entrar>>>
     export type EntrarMutationBody = BodyType<Credenciais>
-    export type EntrarMutationError = ErrorType<void>
+    export type EntrarMutationError = ErrorType<ErroResponse>
 
     /**
  * @summary Abre uma sessão com login e senha
  */
-export const useEntrar = <TError = ErrorType<void>,
+export const useEntrar = <TError = ErrorType<ErroResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof entrar>>, TError,{data: BodyType<Credenciais>}, TContext>, request?: SecondParameter<typeof customFetch>}
  ): UseMutationResult<
         Awaited<ReturnType<typeof entrar>>,
@@ -297,7 +298,7 @@ export const getGetSessaoAtualQueryKey = () => {
     }
 
 
-export const getGetSessaoAtualQueryOptions = <TData = Awaited<ReturnType<typeof getSessaoAtual>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSessaoAtual>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+export const getGetSessaoAtualQueryOptions = <TData = Awaited<ReturnType<typeof getSessaoAtual>>, TError = ErrorType<ErroResponse>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSessaoAtual>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -316,14 +317,14 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type GetSessaoAtualQueryResult = NonNullable<Awaited<ReturnType<typeof getSessaoAtual>>>
-export type GetSessaoAtualQueryError = ErrorType<void>
+export type GetSessaoAtualQueryError = ErrorType<ErroResponse>
 
 
 /**
  * @summary Quem está logado e em qual conta
  */
 
-export function useGetSessaoAtual<TData = Awaited<ReturnType<typeof getSessaoAtual>>, TError = ErrorType<void>>(
+export function useGetSessaoAtual<TData = Awaited<ReturnType<typeof getSessaoAtual>>, TError = ErrorType<ErroResponse>>(
   options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSessaoAtual>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
@@ -366,7 +367,7 @@ export const trocarSenha = async (trocarSenhaInput: TrocarSenhaInput, options?: 
 
 
 
-export const getTrocarSenhaMutationOptions = <TError = ErrorType<void>,
+export const getTrocarSenhaMutationOptions = <TError = ErrorType<ErroResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof trocarSenha>>, TError,{data: BodyType<TrocarSenhaInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof trocarSenha>>, TError,{data: BodyType<TrocarSenhaInput>}, TContext> => {
 
@@ -395,12 +396,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type TrocarSenhaMutationResult = NonNullable<Awaited<ReturnType<typeof trocarSenha>>>
     export type TrocarSenhaMutationBody = BodyType<TrocarSenhaInput>
-    export type TrocarSenhaMutationError = ErrorType<void>
+    export type TrocarSenhaMutationError = ErrorType<ErroResponse>
 
     /**
  * @summary Troca a própria senha (encerra as outras sessões do usuário)
  */
-export const useTrocarSenha = <TError = ErrorType<void>,
+export const useTrocarSenha = <TError = ErrorType<ErroResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof trocarSenha>>, TError,{data: BodyType<TrocarSenhaInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
  ): UseMutationResult<
         Awaited<ReturnType<typeof trocarSenha>>,
@@ -956,7 +957,7 @@ export const getGetSegredosClienteQueryKey = (id: number,) => {
     }
 
 
-export const getGetSegredosClienteQueryOptions = <TData = Awaited<ReturnType<typeof getSegredosCliente>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSegredosCliente>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+export const getGetSegredosClienteQueryOptions = <TData = Awaited<ReturnType<typeof getSegredosCliente>>, TError = ErrorType<ErroResponse>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSegredosCliente>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -975,14 +976,14 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type GetSegredosClienteQueryResult = NonNullable<Awaited<ReturnType<typeof getSegredosCliente>>>
-export type GetSegredosClienteQueryError = ErrorType<void>
+export type GetSegredosClienteQueryError = ErrorType<ErroResponse>
 
 
 /**
  * @summary Revela as senhas gov.br e NFS-e do cliente (fica registrado na auditoria)
  */
 
-export function useGetSegredosCliente<TData = Awaited<ReturnType<typeof getSegredosCliente>>, TError = ErrorType<void>>(
+export function useGetSegredosCliente<TData = Awaited<ReturnType<typeof getSegredosCliente>>, TError = ErrorType<ErroResponse>>(
  id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSegredosCliente>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
@@ -1903,7 +1904,7 @@ export const getGetSenhaCredencialQueryKey = (id: number,) => {
     }
 
 
-export const getGetSenhaCredencialQueryOptions = <TData = Awaited<ReturnType<typeof getSenhaCredencial>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSenhaCredencial>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+export const getGetSenhaCredencialQueryOptions = <TData = Awaited<ReturnType<typeof getSenhaCredencial>>, TError = ErrorType<ErroResponse>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSenhaCredencial>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -1922,14 +1923,14 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type GetSenhaCredencialQueryResult = NonNullable<Awaited<ReturnType<typeof getSenhaCredencial>>>
-export type GetSenhaCredencialQueryError = ErrorType<void>
+export type GetSenhaCredencialQueryError = ErrorType<ErroResponse>
 
 
 /**
  * @summary Revela a senha de um acesso (fica registrado na auditoria)
  */
 
-export function useGetSenhaCredencial<TData = Awaited<ReturnType<typeof getSenhaCredencial>>, TError = ErrorType<void>>(
+export function useGetSenhaCredencial<TData = Awaited<ReturnType<typeof getSenhaCredencial>>, TError = ErrorType<ErroResponse>>(
  id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSenhaCredencial>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
@@ -2134,7 +2135,7 @@ export const getGetProcessoQueryKey = (id: number,) => {
     }
 
 
-export const getGetProcessoQueryOptions = <TData = Awaited<ReturnType<typeof getProcesso>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getProcesso>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+export const getGetProcessoQueryOptions = <TData = Awaited<ReturnType<typeof getProcesso>>, TError = ErrorType<ErroResponse>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getProcesso>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -2153,14 +2154,14 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type GetProcessoQueryResult = NonNullable<Awaited<ReturnType<typeof getProcesso>>>
-export type GetProcessoQueryError = ErrorType<void>
+export type GetProcessoQueryError = ErrorType<ErroResponse>
 
 
 /**
  * @summary Obtém um processo com suas etapas
  */
 
-export function useGetProcesso<TData = Awaited<ReturnType<typeof getProcesso>>, TError = ErrorType<void>>(
+export function useGetProcesso<TData = Awaited<ReturnType<typeof getProcesso>>, TError = ErrorType<ErroResponse>>(
  id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getProcesso>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
@@ -2640,7 +2641,7 @@ export const getGetCompetenciaQueryKey = (id: number,) => {
     }
 
 
-export const getGetCompetenciaQueryOptions = <TData = Awaited<ReturnType<typeof getCompetencia>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCompetencia>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+export const getGetCompetenciaQueryOptions = <TData = Awaited<ReturnType<typeof getCompetencia>>, TError = ErrorType<ErroResponse>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCompetencia>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -2659,14 +2660,14 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type GetCompetenciaQueryResult = NonNullable<Awaited<ReturnType<typeof getCompetencia>>>
-export type GetCompetenciaQueryError = ErrorType<void>
+export type GetCompetenciaQueryError = ErrorType<ErroResponse>
 
 
 /**
  * @summary Obtém uma competência com resumo
  */
 
-export function useGetCompetencia<TData = Awaited<ReturnType<typeof getCompetencia>>, TError = ErrorType<void>>(
+export function useGetCompetencia<TData = Awaited<ReturnType<typeof getCompetencia>>, TError = ErrorType<ErroResponse>>(
  id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCompetencia>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
@@ -2780,7 +2781,7 @@ export const sincronizarCompetencia = async (id: number, options?: RequestInit):
 
 
 
-export const getSincronizarCompetenciaMutationOptions = <TError = ErrorType<void>,
+export const getSincronizarCompetenciaMutationOptions = <TError = ErrorType<ErroResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sincronizarCompetencia>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof sincronizarCompetencia>>, TError,{id: number}, TContext> => {
 
@@ -2809,12 +2810,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type SincronizarCompetenciaMutationResult = NonNullable<Awaited<ReturnType<typeof sincronizarCompetencia>>>
 
-    export type SincronizarCompetenciaMutationError = ErrorType<void>
+    export type SincronizarCompetenciaMutationError = ErrorType<ErroResponse>
 
     /**
  * @summary Acrescenta ao mês os clientes e obrigações incluídos depois da abertura
  */
-export const useSincronizarCompetencia = <TError = ErrorType<void>,
+export const useSincronizarCompetencia = <TError = ErrorType<ErroResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sincronizarCompetencia>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
  ): UseMutationResult<
         Awaited<ReturnType<typeof sincronizarCompetencia>>,
@@ -5133,7 +5134,7 @@ export const criarUsuario = async (usuarioInput: UsuarioInput, options?: Request
 
 
 
-export const getCriarUsuarioMutationOptions = <TError = ErrorType<void>,
+export const getCriarUsuarioMutationOptions = <TError = ErrorType<ErroResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof criarUsuario>>, TError,{data: BodyType<UsuarioInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof criarUsuario>>, TError,{data: BodyType<UsuarioInput>}, TContext> => {
 
@@ -5162,12 +5163,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type CriarUsuarioMutationResult = NonNullable<Awaited<ReturnType<typeof criarUsuario>>>
     export type CriarUsuarioMutationBody = BodyType<UsuarioInput>
-    export type CriarUsuarioMutationError = ErrorType<void>
+    export type CriarUsuarioMutationError = ErrorType<ErroResponse>
 
     /**
  * @summary Cria um usuário no escritório (só admin)
  */
-export const useCriarUsuario = <TError = ErrorType<void>,
+export const useCriarUsuario = <TError = ErrorType<ErroResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof criarUsuario>>, TError,{data: BodyType<UsuarioInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
  ): UseMutationResult<
         Awaited<ReturnType<typeof criarUsuario>>,
@@ -5204,7 +5205,7 @@ export const atualizarUsuario = async (id: number,
 
 
 
-export const getAtualizarUsuarioMutationOptions = <TError = ErrorType<void>,
+export const getAtualizarUsuarioMutationOptions = <TError = ErrorType<ErroResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof atualizarUsuario>>, TError,{id: number;data: BodyType<UsuarioPatch>}, TContext>, request?: SecondParameter<typeof customFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof atualizarUsuario>>, TError,{id: number;data: BodyType<UsuarioPatch>}, TContext> => {
 
@@ -5233,12 +5234,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type AtualizarUsuarioMutationResult = NonNullable<Awaited<ReturnType<typeof atualizarUsuario>>>
     export type AtualizarUsuarioMutationBody = BodyType<UsuarioPatch>
-    export type AtualizarUsuarioMutationError = ErrorType<void>
+    export type AtualizarUsuarioMutationError = ErrorType<ErroResponse>
 
     /**
  * @summary Altera nome, e-mail, papel ou situação de um usuário (só admin)
  */
-export const useAtualizarUsuario = <TError = ErrorType<void>,
+export const useAtualizarUsuario = <TError = ErrorType<ErroResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof atualizarUsuario>>, TError,{id: number;data: BodyType<UsuarioPatch>}, TContext>, request?: SecondParameter<typeof customFetch>}
  ): UseMutationResult<
         Awaited<ReturnType<typeof atualizarUsuario>>,
@@ -5275,7 +5276,7 @@ export const redefinirSenhaUsuario = async (id: number,
 
 
 
-export const getRedefinirSenhaUsuarioMutationOptions = <TError = ErrorType<void>,
+export const getRedefinirSenhaUsuarioMutationOptions = <TError = ErrorType<ErroResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof redefinirSenhaUsuario>>, TError,{id: number;data: BodyType<RedefinirSenhaInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof redefinirSenhaUsuario>>, TError,{id: number;data: BodyType<RedefinirSenhaInput>}, TContext> => {
 
@@ -5304,12 +5305,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type RedefinirSenhaUsuarioMutationResult = NonNullable<Awaited<ReturnType<typeof redefinirSenhaUsuario>>>
     export type RedefinirSenhaUsuarioMutationBody = BodyType<RedefinirSenhaInput>
-    export type RedefinirSenhaUsuarioMutationError = ErrorType<void>
+    export type RedefinirSenhaUsuarioMutationError = ErrorType<ErroResponse>
 
     /**
  * @summary Define uma nova senha para o usuário e derruba as sessões dele (só admin)
  */
-export const useRedefinirSenhaUsuario = <TError = ErrorType<void>,
+export const useRedefinirSenhaUsuario = <TError = ErrorType<ErroResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof redefinirSenhaUsuario>>, TError,{id: number;data: BodyType<RedefinirSenhaInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
  ): UseMutationResult<
         Awaited<ReturnType<typeof redefinirSenhaUsuario>>,
@@ -5429,7 +5430,7 @@ export const criarArquivo = async (arquivoInput: ArquivoInput, options?: Request
 
 
 
-export const getCriarArquivoMutationOptions = <TError = ErrorType<void>,
+export const getCriarArquivoMutationOptions = <TError = ErrorType<ErroResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof criarArquivo>>, TError,{data: BodyType<ArquivoInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof criarArquivo>>, TError,{data: BodyType<ArquivoInput>}, TContext> => {
 
@@ -5458,12 +5459,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type CriarArquivoMutationResult = NonNullable<Awaited<ReturnType<typeof criarArquivo>>>
     export type CriarArquivoMutationBody = BodyType<ArquivoInput>
-    export type CriarArquivoMutationError = ErrorType<void>
+    export type CriarArquivoMutationError = ErrorType<ErroResponse>
 
     /**
  * @summary Registra um arquivo e devolve para onde subir o conteúdo
  */
-export const useCriarArquivo = <TError = ErrorType<void>,
+export const useCriarArquivo = <TError = ErrorType<ErroResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof criarArquivo>>, TError,{data: BodyType<ArquivoInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
  ): UseMutationResult<
         Awaited<ReturnType<typeof criarArquivo>>,
@@ -5647,7 +5648,7 @@ export const confirmarArquivo = async (id: number, options?: RequestInit): Promi
 
 
 
-export const getConfirmarArquivoMutationOptions = <TError = ErrorType<void>,
+export const getConfirmarArquivoMutationOptions = <TError = ErrorType<ErroResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmarArquivo>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof confirmarArquivo>>, TError,{id: number}, TContext> => {
 
@@ -5676,12 +5677,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type ConfirmarArquivoMutationResult = NonNullable<Awaited<ReturnType<typeof confirmarArquivo>>>
 
-    export type ConfirmarArquivoMutationError = ErrorType<void>
+    export type ConfirmarArquivoMutationError = ErrorType<ErroResponse>
 
     /**
  * @summary Confirma que o upload direto (URL assinada) terminou
  */
-export const useConfirmarArquivo = <TError = ErrorType<void>,
+export const useConfirmarArquivo = <TError = ErrorType<ErroResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmarArquivo>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
  ): UseMutationResult<
         Awaited<ReturnType<typeof confirmarArquivo>>,
@@ -5948,7 +5949,7 @@ export const criarAviso = async (avisoInput: AvisoInput, options?: RequestInit):
 
 
 
-export const getCriarAvisoMutationOptions = <TError = ErrorType<void>,
+export const getCriarAvisoMutationOptions = <TError = ErrorType<ErroResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof criarAviso>>, TError,{data: BodyType<AvisoInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof criarAviso>>, TError,{data: BodyType<AvisoInput>}, TContext> => {
 
@@ -5977,12 +5978,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type CriarAvisoMutationResult = NonNullable<Awaited<ReturnType<typeof criarAviso>>>
     export type CriarAvisoMutationBody = BodyType<AvisoInput>
-    export type CriarAvisoMutationError = ErrorType<void>
+    export type CriarAvisoMutationError = ErrorType<ErroResponse>
 
     /**
  * @summary Envia um aviso avulso ao cliente (fica na fila até o worker rodar)
  */
-export const useCriarAviso = <TError = ErrorType<void>,
+export const useCriarAviso = <TError = ErrorType<ErroResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof criarAviso>>, TError,{data: BodyType<AvisoInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
  ): UseMutationResult<
         Awaited<ReturnType<typeof criarAviso>>,
@@ -6172,7 +6173,7 @@ export const executarJobs = async (executarJobsInput?: ExecutarJobsInput, option
 
 
 
-export const getExecutarJobsMutationOptions = <TError = ErrorType<void>,
+export const getExecutarJobsMutationOptions = <TError = ErrorType<ErroResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof executarJobs>>, TError,{data?: BodyType<ExecutarJobsInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof executarJobs>>, TError,{data?: BodyType<ExecutarJobsInput>}, TContext> => {
 
@@ -6201,12 +6202,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type ExecutarJobsMutationResult = NonNullable<Awaited<ReturnType<typeof executarJobs>>>
     export type ExecutarJobsMutationBody = BodyType<ExecutarJobsInput> | undefined
-    export type ExecutarJobsMutationError = ErrorType<void>
+    export type ExecutarJobsMutationError = ErrorType<ErroResponse>
 
     /**
  * @summary Processa a fila por até alguns minutos (gatilho do agendador externo)
  */
-export const useExecutarJobs = <TError = ErrorType<void>,
+export const useExecutarJobs = <TError = ErrorType<ErroResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof executarJobs>>, TError,{data?: BodyType<ExecutarJobsInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
  ): UseMutationResult<
         Awaited<ReturnType<typeof executarJobs>>,

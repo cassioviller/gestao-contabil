@@ -8,6 +8,10 @@
 
 export interface Perfil {
   id: number;
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
   nome: string;
   /** @nullable */
   cnpj?: string | null;

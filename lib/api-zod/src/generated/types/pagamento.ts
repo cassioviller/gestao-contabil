@@ -10,7 +10,10 @@ import type { PagamentoStatus } from './pagamentoStatus';
 export interface Pagamento {
   id: number;
   status: PagamentoStatus;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   valor?: string | null;
   /** @nullable */
   dataPagamento?: string | null;
@@ -21,7 +24,10 @@ export interface Pagamento {
   /** @nullable */
   observacao?: string | null;
   clienteId: number;
-  /** @nullable */
+  /**
+     * @minimum 0
+     * @nullable
+     */
   codigo?: number | null;
   cliente: string;
 }

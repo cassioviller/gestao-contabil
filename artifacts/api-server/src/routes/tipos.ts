@@ -50,7 +50,12 @@ router.post("/vincular-automaticos", async (req, res) => {
   const contaId = contaDaRequisicao(req);
   const vinculosCriados = await vincularObrigacoesAutomaticas(db, contaId);
   if (vinculosCriados > 0) {
-    await auditar(req, { acao: "vincular_automaticas", entidade: "conta", entidadeId: contaId, para: String(vinculosCriados) });
+    await auditar(req, {
+      acao: "vincular_automaticas",
+      entidade: "conta",
+      entidadeId: contaId,
+      para: String(vinculosCriados),
+    });
   }
   res.json({ vinculosCriados });
 });
@@ -64,7 +69,12 @@ router.delete("/:id", async (req, res) => {
     .where(and(eq(tiposObrigacao.id, id), eq(tiposObrigacao.contaId, contaId)))
     .returning({ nome: tiposObrigacao.nome });
   if (apagados.length) {
-    await auditar(req, { acao: "excluir_tipo", entidade: "tipo_obrigacao", entidadeId: id, de: apagados[0].nome });
+    await auditar(req, {
+      acao: "excluir_tipo",
+      entidade: "tipo_obrigacao",
+      entidadeId: id,
+      de: apagados[0].nome,
+    });
   }
   res.status(204).send();
 });

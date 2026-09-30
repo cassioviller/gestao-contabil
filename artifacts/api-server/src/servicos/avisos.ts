@@ -80,7 +80,8 @@ export async function destinoDoCliente(
     .where(and(eq(clientes.id, clienteId), eq(clientes.contaId, contaId)));
   if (!c) return null;
   if (canal === "email") return { destino: c.email?.trim() || null, nome: c.nome };
-  if (canal === "whatsapp") return { destino: c.whatsapp ? normalizarTelefone(c.whatsapp) : null, nome: c.nome };
+  if (canal === "whatsapp")
+    return { destino: c.whatsapp ? normalizarTelefone(c.whatsapp) : null, nome: c.nome };
   return { destino: c.email?.trim() || null, nome: c.nome };
 }
 
@@ -101,7 +102,10 @@ export async function enviarAviso(avisoId: number, ultimaTentativa: boolean): Pr
       provedorId = "portal";
     } else if (a.canal === "email") {
       if (!a.destino) throw new Error("Cliente sem e-mail cadastrado.");
-      const [conta] = await db.select({ nome: contas.nome }).from(contas).where(eq(contas.id, a.contaId));
+      const [conta] = await db
+        .select({ nome: contas.nome })
+        .from(contas)
+        .where(eq(contas.id, a.contaId));
       const assunto = a.assunto ?? `Aviso de ${conta?.nome ?? "seu escritório contábil"}`;
       ({ id: provedorId } = await mensageiro.enviarEmail({
         para: a.destino,
@@ -143,9 +147,6 @@ export async function enviarAviso(avisoId: number, ultimaTentativa: boolean): Pr
 }
 
 function paraHtml(texto: string): string {
-  const escapado = texto
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+  const escapado = texto.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   return `<div style="font-family:sans-serif;white-space:pre-wrap">${escapado}</div>`;
 }

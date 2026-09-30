@@ -1,5 +1,14 @@
 import { and, eq, isNull, lt, sql } from "drizzle-orm";
-import { avisos, competencias, contas, db, eventosWebhook, jobs, tentativasLogin, tokensAcesso } from "@workspace/db";
+import {
+  avisos,
+  competencias,
+  contas,
+  db,
+  eventosWebhook,
+  jobs,
+  tentativasLogin,
+  tokensAcesso,
+} from "@workspace/db";
 import { hojeBR } from "@workspace/dominio";
 import { limparSessoesVencidas } from "../lib/sessao";
 import { gerarItensDaCompetencia } from "../routes/competencias";

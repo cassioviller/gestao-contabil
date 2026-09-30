@@ -12,7 +12,9 @@ test("cadastra senhas por obrigação e elas persistem", async ({ page, request 
 
   // O rótulo mora dentro de um <input>, então hasText não serve: filtra pelo valor.
   const linhaDe = (sistema: string) =>
-    page.locator("tbody tr").filter({ has: page.locator(`input[name="rotulo"][value="${sistema}"]`) });
+    page
+      .locator("tbody tr")
+      .filter({ has: page.locator(`input[name="rotulo"][value="${sistema}"]`) });
 
   // Duas linhas para a mesma empresa: uma por sistema.
   for (const sistema of ["DAS", "Nota Fiscal"]) {
@@ -38,7 +40,9 @@ test("cadastra senhas por obrigação e elas persistem", async ({ page, request 
   await recarregada.locator('button[title="Revelar senha"]').click();
   await expect(recarregada.locator('input[name="senha"]')).toHaveValue("senha-do-das");
 
-  const lista = (await (await request.get("/api/credenciais")).json()) as Array<Record<string, unknown>>;
+  const lista = (await (await request.get("/api/credenciais")).json()) as Array<
+    Record<string, unknown>
+  >;
   const das = lista.find((c) => c.rotulo === "DAS")!;
   expect(das.temSenha).toBe(true);
   expect("senha" in das).toBe(false);

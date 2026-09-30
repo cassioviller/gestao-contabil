@@ -15,5 +15,5 @@ export type UploadAssinado = {
   url: string;
   metodo: UploadAssinadoMetodo;
   cabecalhos?: UploadAssinadoCabecalhos;
-  expiraEm: Date;
+  expiraEm: string;
 } | null;

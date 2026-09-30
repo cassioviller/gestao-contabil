@@ -9,14 +9,7 @@ import {
   getListarClientesQueryKey,
 } from "@workspace/api-client-react";
 import { mensagemDeErro } from "@/lib/erros";
-import {
-  PERIODICIDADES,
-  rotuloPeriodicidade,
-  mesesDaPeriodicidade,
-  MESES,
-  nomeMes,
-  REGIMES,
-} from "@/lib/formato";
+import { PERIODICIDADES, mesesDaPeriodicidade, MESES, nomeMes, REGIMES } from "@/lib/formato";
 
 type Tipo = {
   id: number;
@@ -36,14 +29,6 @@ type Tipo = {
 
 /** Campos que a grade edita. `id` fica de fora — é a identidade da linha. */
 type Rascunho = Partial<Omit<Tipo, "id">>;
-
-const COR_PERIODICIDADE: Record<string, string> = {
-  mensal: "bg-blue-600/15 text-blue-700 dark:text-blue-400",
-  bimestral: "bg-cyan-600/15 text-cyan-700 dark:text-cyan-400",
-  trimestral: "bg-violet-600/15 text-violet-700 dark:text-violet-400",
-  semestral: "bg-amber-600/15 text-amber-700 dark:text-amber-400",
-  anual: "bg-rose-600/15 text-rose-700 dark:text-rose-400",
-};
 
 /** Iniciais dos regimes, para caber numa coluna de grade. */
 const SIGLA_REGIME: Record<string, string> = {
@@ -92,9 +77,7 @@ export default function Tipos() {
 
   function alternarRegime(t: Tipo, valor: string) {
     const atuais = ver(t, "regimes") ?? [];
-    const proximo = atuais.includes(valor)
-      ? atuais.filter((r) => r !== valor)
-      : [...atuais, valor];
+    const proximo = atuais.includes(valor) ? atuais.filter((r) => r !== valor) : [...atuais, valor];
     // Nenhum marcado = vale para todos, que no banco é nulo.
     mudar(t, "regimes", proximo.length ? proximo : null);
   }
@@ -120,7 +103,7 @@ export default function Tipos() {
             diaVencimento: dados.diaVencimento,
             offsetMes: dados.offsetMes,
             periodicidade: dados.periodicidade,
-            mesReferencia: dados.periodicidade === "mensal" ? null : dados.mesReferencia ?? 1,
+            mesReferencia: dados.periodicidade === "mensal" ? null : (dados.mesReferencia ?? 1),
             regimes: dados.regimes,
             descricao: dados.descricao,
             vincularAutomatico: dados.vincularAutomatico,
@@ -133,7 +116,9 @@ export default function Tipos() {
       setSalvo(true);
       window.setTimeout(() => setSalvo(false), 2000);
     } catch (e) {
-      setErro(mensagemDeErro(e, "Não foi possível salvar. Verifique se o servidor da API está no ar."));
+      setErro(
+        mensagemDeErro(e, "Não foi possível salvar. Verifique se o servidor da API está no ar."),
+      );
     } finally {
       setSalvando(false);
     }
@@ -189,17 +174,23 @@ export default function Tipos() {
         <div>
           <h1 className="text-2xl font-bold">Tipos de obrigação</h1>
           <p className="text-sm text-neutral-500">
-            Edite tudo aqui e grave de uma vez · a periodicidade define em que meses cada uma aparece
+            Edite tudo aqui e grave de uma vez · a periodicidade define em que meses cada uma
+            aparece
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button onClick={vincularAutomaticas} disabled={vincularMutation.isPending}
+          <button
+            onClick={vincularAutomaticas}
+            disabled={vincularMutation.isPending}
             title="Vincula a cada cliente ativo com regime as obrigações marcadas como automáticas; não desvincula nada"
-            className="rounded-lg border border-black/15 px-4 py-2 text-sm disabled:opacity-50 dark:border-white/15">
+            className="rounded-lg border border-black/15 px-4 py-2 text-sm disabled:opacity-50 dark:border-white/15"
+          >
             {vincularMutation.isPending ? "Vinculando..." : "Vincular automáticas aos clientes"}
           </button>
-          <button onClick={adicionar}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+          <button
+            onClick={adicionar}
+            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          >
             + Nova obrigação
           </button>
         </div>
@@ -208,7 +199,10 @@ export default function Tipos() {
       {aviso && <p className="mb-3 text-sm text-green-700 dark:text-green-400">✓ {aviso}</p>}
 
       {erro && (
-        <p role="alert" className="mb-3 rounded-lg bg-red-600/10 px-3 py-2 text-sm text-red-700 dark:text-red-400">
+        <p
+          role="alert"
+          className="mb-3 rounded-lg bg-red-600/10 px-3 py-2 text-sm text-red-700 dark:text-red-400"
+        >
           {erro}
         </p>
       )}
@@ -216,14 +210,19 @@ export default function Tipos() {
       <div className="mb-4 flex flex-wrap gap-2">
         {[{ valor: "todas", rotulo: "Todas" }, ...PERIODICIDADES].map((p) => {
           const quantos =
-            p.valor === "todas" ? tipos.length : tipos.filter((t) => ver(t, "periodicidade") === p.valor).length;
+            p.valor === "todas"
+              ? tipos.length
+              : tipos.filter((t) => ver(t, "periodicidade") === p.valor).length;
           return (
-            <button key={p.valor} onClick={() => setFiltro(p.valor)}
+            <button
+              key={p.valor}
+              onClick={() => setFiltro(p.valor)}
               className={`rounded-lg px-3 py-1.5 text-sm ${
                 filtro === p.valor
                   ? "bg-blue-600 text-white"
                   : "border border-black/15 text-neutral-700 dark:border-white/15 dark:text-neutral-300"
-              }`}>
+              }`}
+            >
               {p.rotulo} <span className="text-xs opacity-70">{quantos}</span>
             </button>
           );
@@ -250,12 +249,16 @@ export default function Tipos() {
                     S=Simples M=MEI P=Presumido R=Real
                   </span>
                 </th>
-                <th className={`w-16 px-2 py-2 text-center font-medium ${celula}`}
-                  title="Ao definir o regime de um cliente, a obrigação é vinculada sozinha">
+                <th
+                  className={`w-16 px-2 py-2 text-center font-medium ${celula}`}
+                  title="Ao definir o regime de um cliente, a obrigação é vinculada sozinha"
+                >
                   Auto
                 </th>
-                <th className={`w-16 px-2 py-2 text-center font-medium ${celula}`}
-                  title="Inativa não entra em mês novo; o histórico fica">
+                <th
+                  className={`w-16 px-2 py-2 text-center font-medium ${celula}`}
+                  title="Inativa não entra em mês novo; o histórico fica"
+                >
                   Ativa
                 </th>
                 <th className="w-10" />
@@ -268,39 +271,61 @@ export default function Tipos() {
                 const alterado = alterados.some((a) => a.id === t.id);
                 const ativa = ver(t, "ativo");
                 return (
-                  <tr key={t.id}
-                    className={`${alterado ? "bg-amber-50 dark:bg-amber-950/20" : ""} ${ativa ? "" : "opacity-60"}`}>
+                  <tr
+                    key={t.id}
+                    className={`${alterado ? "bg-amber-50 dark:bg-amber-950/20" : ""} ${ativa ? "" : "opacity-60"}`}
+                  >
                     <td className={`w-16 ${celula}`}>
-                      <input type="number" name="ordem" aria-label={`Ordem de ${t.nome}`}
+                      <input
+                        type="number"
+                        name="ordem"
+                        aria-label={`Ordem de ${t.nome}`}
                         value={ver(t, "ordem")}
                         onChange={(e) => mudar(t, "ordem", Number(e.target.value))}
-                        className={entrada} />
+                        className={entrada}
+                      />
                     </td>
                     <td className={`min-w-56 ${celula}`}>
-                      <input name="nome" aria-label={`Nome de ${t.nome}`} value={ver(t, "nome")}
+                      <input
+                        name="nome"
+                        aria-label={`Nome de ${t.nome}`}
+                        value={ver(t, "nome")}
                         onChange={(e) => mudar(t, "nome", e.target.value)}
-                        className={`${entrada} font-medium`} />
+                        className={`${entrada} font-medium`}
+                      />
                       {periodicidade !== "mensal" && (
                         <p className="px-2 pb-1 text-xs text-neutral-500">
                           cai em{" "}
-                          {mesesDaPeriodicidade(periodicidade, ver(t, "mesReferencia")).map(nomeMes).join(", ")}
+                          {mesesDaPeriodicidade(periodicidade, ver(t, "mesReferencia"))
+                            .map(nomeMes)
+                            .join(", ")}
                         </p>
                       )}
                     </td>
                     <td className={`min-w-64 ${celula}`}>
-                      <input name="descricao" aria-label={`Descrição de ${t.nome}`}
+                      <input
+                        name="descricao"
+                        aria-label={`Descrição de ${t.nome}`}
                         value={ver(t, "descricao") ?? ""}
                         placeholder="o que é, quem entrega"
                         onChange={(e) => mudar(t, "descricao", e.target.value || null)}
-                        className={`${entrada} text-neutral-600 dark:text-neutral-300`} />
+                        className={`${entrada} text-neutral-600 dark:text-neutral-300`}
+                      />
                     </td>
                     <td className={`w-36 ${celula}`}>
-                      <select name="periodicidade" aria-label={`Periodicidade de ${t.nome}`}
+                      <select
+                        name="periodicidade"
+                        aria-label={`Periodicidade de ${t.nome}`}
                         value={periodicidade}
                         onChange={(e) => mudar(t, "periodicidade", e.target.value)}
-                        className={selecao}>
+                        className={selecao}
+                      >
                         {PERIODICIDADES.map((p) => (
-                          <option key={p.valor} value={p.valor} className="bg-neutral-900 text-white">
+                          <option
+                            key={p.valor}
+                            value={p.valor}
+                            className="bg-neutral-900 text-white"
+                          >
                             {p.rotulo}
                           </option>
                         ))}
@@ -310,10 +335,13 @@ export default function Tipos() {
                       {periodicidade === "mensal" ? (
                         <span className="block px-2 py-2 text-neutral-400">—</span>
                       ) : (
-                        <select name="mesReferencia" aria-label={`Mês de referência de ${t.nome}`}
+                        <select
+                          name="mesReferencia"
+                          aria-label={`Mês de referência de ${t.nome}`}
                           value={String(ver(t, "mesReferencia") ?? 1)}
                           onChange={(e) => mudar(t, "mesReferencia", Number(e.target.value))}
-                          className={selecao}>
+                          className={selecao}
+                        >
                           {MESES.map((m, i) => (
                             <option key={m} value={i + 1} className="bg-neutral-900 text-white">
                               {m}
@@ -323,30 +351,49 @@ export default function Tipos() {
                       )}
                     </td>
                     <td className={`w-24 ${celula}`}>
-                      <input type="number" min={1} max={31} name="diaVencimento"
+                      <input
+                        type="number"
+                        min={1}
+                        max={31}
+                        name="diaVencimento"
                         aria-label={`Dia de vencimento de ${t.nome}`}
                         value={ver(t, "diaVencimento") ?? ""}
                         onChange={(e) =>
                           mudar(t, "diaVencimento", e.target.value ? Number(e.target.value) : null)
                         }
-                        className={entrada} />
+                        className={entrada}
+                      />
                     </td>
                     <td className={`w-36 ${celula}`}>
-                      <select name="offsetMes" aria-label={`Vencimento de ${t.nome} em relação à competência`}
+                      <select
+                        name="offsetMes"
+                        aria-label={`Vencimento de ${t.nome} em relação à competência`}
                         value={String(ver(t, "offsetMes"))}
                         onChange={(e) => mudar(t, "offsetMes", Number(e.target.value))}
-                        className={selecao}>
-                        <option value="0" className="bg-neutral-900 text-white">Mesmo mês</option>
-                        <option value="1" className="bg-neutral-900 text-white">Mês seguinte</option>
+                        className={selecao}
+                      >
+                        <option value="0" className="bg-neutral-900 text-white">
+                          Mesmo mês
+                        </option>
+                        <option value="1" className="bg-neutral-900 text-white">
+                          Mês seguinte
+                        </option>
                       </select>
                     </td>
                     <td className={`w-40 px-2 py-2 ${celula}`}>
                       <div className="flex items-center gap-2">
                         {REGIMES.map((r) => (
-                          <label key={r.valor} className="flex items-center gap-0.5 text-xs" title={r.rotulo}>
-                            <input type="checkbox" checked={regimes.includes(r.valor)}
+                          <label
+                            key={r.valor}
+                            className="flex items-center gap-0.5 text-xs"
+                            title={r.rotulo}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={regimes.includes(r.valor)}
                               aria-label={`${t.nome}: ${r.rotulo}`}
-                              onChange={() => alternarRegime(t, r.valor)} />
+                              onChange={() => alternarRegime(t, r.valor)}
+                            />
                             {SIGLA_REGIME[r.valor]}
                           </label>
                         ))}
@@ -356,19 +403,29 @@ export default function Tipos() {
                       </p>
                     </td>
                     <td className={`w-16 px-2 py-2 text-center ${celula}`}>
-                      <input type="checkbox" name="vincularAutomatico"
+                      <input
+                        type="checkbox"
+                        name="vincularAutomatico"
                         aria-label={`${t.nome}: vincular automaticamente`}
                         checked={ver(t, "vincularAutomatico")}
-                        onChange={(e) => mudar(t, "vincularAutomatico", e.target.checked)} />
+                        onChange={(e) => mudar(t, "vincularAutomatico", e.target.checked)}
+                      />
                     </td>
                     <td className={`w-16 px-2 py-2 text-center ${celula}`}>
-                      <input type="checkbox" name="ativo" aria-label={`${t.nome}: ativa`}
+                      <input
+                        type="checkbox"
+                        name="ativo"
+                        aria-label={`${t.nome}: ativa`}
                         checked={ativa}
-                        onChange={(e) => mudar(t, "ativo", e.target.checked)} />
+                        onChange={(e) => mudar(t, "ativo", e.target.checked)}
+                      />
                     </td>
                     <td className="w-10 px-2 py-2 text-center">
-                      <button onClick={() => remover(t)} title="Remover obrigação"
-                        className="text-neutral-400 hover:text-red-600">
+                      <button
+                        onClick={() => remover(t)}
+                        title="Remover obrigação"
+                        className="text-neutral-400 hover:text-red-600"
+                      >
                         ✕
                       </button>
                     </td>
@@ -378,7 +435,9 @@ export default function Tipos() {
               {visiveis.length === 0 && (
                 <tr>
                   <td colSpan={11} className="px-3 py-8 text-center text-neutral-500">
-                    {tipos.length === 0 ? "Nenhuma obrigação cadastrada." : "Nenhuma nesta periodicidade."}
+                    {tipos.length === 0
+                      ? "Nenhuma obrigação cadastrada."
+                      : "Nenhuma nesta periodicidade."}
                   </td>
                 </tr>
               )}
@@ -400,12 +459,18 @@ export default function Tipos() {
           {!salvo && alterados.length === 0 && (
             <span className="mr-auto text-sm text-neutral-500">Nenhuma alteração pendente</span>
           )}
-          <button onClick={() => setRascunhos({})} disabled={alterados.length === 0 || salvando}
-            className="rounded-lg border border-black/15 px-4 py-2 text-sm disabled:opacity-40 dark:border-white/15">
+          <button
+            onClick={() => setRascunhos({})}
+            disabled={alterados.length === 0 || salvando}
+            className="rounded-lg border border-black/15 px-4 py-2 text-sm disabled:opacity-40 dark:border-white/15"
+          >
             Descartar
           </button>
-          <button onClick={salvarTudo} disabled={alterados.length === 0 || salvando}
-            className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-40">
+          <button
+            onClick={salvarTudo}
+            disabled={alterados.length === 0 || salvando}
+            className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-40"
+          >
             {salvando ? "Salvando..." : "Salvar alterações"}
           </button>
         </div>

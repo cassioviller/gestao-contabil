@@ -10,6 +10,10 @@ import type { SituacaoFuncionario } from './situacaoFuncionario';
 export interface FuncionarioPatch {
   /** @nullable */
   clienteId?: number | null;
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
   nome?: string;
   /** @nullable */
   cpf?: string | null;
@@ -27,7 +31,10 @@ export interface FuncionarioPatch {
   admissao?: string | null;
   /** @nullable */
   demissao?: string | null;
-  /** @nullable */
+  /**
+     * @nullable
+     * @pattern ^-?\d+(\.\d{1,2})?$
+     */
   salario?: string | null;
   situacao?: SituacaoFuncionario;
   /** @nullable */

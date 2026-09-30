@@ -77,7 +77,12 @@ router.put(
       .set({ tamanho: corpo.length, sha256, confirmado: true })
       .where(eq(arquivos.id, id))
       .returning(projecaoArquivo);
-    await auditar(req, { acao: "anexar_arquivo", entidade: a.entidade, entidadeId: a.entidadeId, para: a.nome });
+    await auditar(req, {
+      acao: "anexar_arquivo",
+      entidade: a.entidade,
+      entidadeId: a.entidadeId,
+      para: a.nome,
+    });
     res.json(atualizado);
   },
 );
@@ -89,14 +94,24 @@ router.post("/:id/confirmar", async (req, res) => {
   const a = await buscarArquivo(contaId, id);
   const tamanho = await armazenamento.tamanho(a.chave);
   if (tamanho === null) {
-    throw new HttpError(400, "O conteúdo ainda não chegou ao armazenamento.", undefined, "upload_incompleto");
+    throw new HttpError(
+      400,
+      "O conteúdo ainda não chegou ao armazenamento.",
+      undefined,
+      "upload_incompleto",
+    );
   }
   const [atualizado] = await db
     .update(arquivos)
     .set({ tamanho, confirmado: true })
     .where(eq(arquivos.id, id))
     .returning(projecaoArquivo);
-  await auditar(req, { acao: "anexar_arquivo", entidade: a.entidade, entidadeId: a.entidadeId, para: a.nome });
+  await auditar(req, {
+    acao: "anexar_arquivo",
+    entidade: a.entidade,
+    entidadeId: a.entidadeId,
+    para: a.nome,
+  });
   res.json(atualizado);
 });
 
@@ -133,7 +148,12 @@ router.delete("/:id", async (req, res) => {
   const { id } = RemoverArquivoParams.parse(req.params);
   const a = await buscarArquivo(contaId, id);
   if (await removerArquivo(contaId, id)) {
-    await auditar(req, { acao: "remover_arquivo", entidade: a.entidade, entidadeId: a.entidadeId, de: a.nome });
+    await auditar(req, {
+      acao: "remover_arquivo",
+      entidade: a.entidade,
+      entidadeId: a.entidadeId,
+      de: a.nome,
+    });
   }
   res.status(204).send();
 });

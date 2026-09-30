@@ -41,7 +41,12 @@ export class ArmazenamentoR2 implements Armazenamento {
   async urlUpload(chave: string, mime: string, tamanho: number): Promise<UrlAssinada> {
     const url = await getSignedUrl(
       this.s3,
-      new PutObjectCommand({ Bucket: this.bucket, Key: chave, ContentType: mime, ContentLength: tamanho }),
+      new PutObjectCommand({
+        Bucket: this.bucket,
+        Key: chave,
+        ContentType: mime,
+        ContentLength: tamanho,
+      }),
       { expiresIn: VALIDADE_S },
     );
     return { url, metodo: "PUT", cabecalhos: { "content-type": mime }, expiraEm: expira() };

@@ -34,9 +34,9 @@ describe("normalizarTelefone", () => {
 
 describe("montarMensagem", () => {
   test("troca as variáveis", () => {
-    expect(montarMensagem("Oi {cliente}, valor {valor}", { cliente: "ACME", valor: "R$ 350,00" })).toBe(
-      "Oi ACME, valor R$ 350,00",
-    );
+    expect(
+      montarMensagem("Oi {cliente}, valor {valor}", { cliente: "ACME", valor: "R$ 350,00" }),
+    ).toBe("Oi ACME, valor R$ 350,00");
   });
 
   test("deixa intacta a variável sem valor", () => {

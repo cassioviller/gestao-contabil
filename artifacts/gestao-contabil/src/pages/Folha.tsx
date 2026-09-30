@@ -170,7 +170,10 @@ export default function Folha() {
       </div>
 
       {erro && (
-        <p role="alert" className="mb-3 rounded-lg bg-red-600/10 px-3 py-2 text-sm text-red-700 dark:text-red-400">
+        <p
+          role="alert"
+          className="mb-3 rounded-lg bg-red-600/10 px-3 py-2 text-sm text-red-700 dark:text-red-400"
+        >
           {erro}
         </p>
       )}
@@ -204,9 +207,7 @@ export default function Folha() {
             <tbody>
               {equipe.map((f) => {
                 const l = porFuncionario.get(f.id);
-                const liquido = l
-                  ? emReais(l.liquido) || formatarNumeroBR(liquidoSugerido(l))
-                  : "";
+                const liquido = l ? emReais(l.liquido) || formatarNumeroBR(liquidoSugerido(l)) : "";
                 return (
                   <tr key={f.id} className="border-t border-black/10 dark:border-white/10">
                     <td className="p-2">
@@ -273,9 +274,7 @@ export default function Folha() {
 
       {extras.length > 0 && (
         <div className="mt-4">
-          <h2 className="mb-2 text-sm font-semibold text-neutral-500">
-            Outros lançamentos do mês
-          </h2>
+          <h2 className="mb-2 text-sm font-semibold text-neutral-500">Outros lançamentos do mês</h2>
           <ul className="rounded-xl border border-black/10 text-sm dark:border-white/10">
             {extras.map((l) => (
               <li

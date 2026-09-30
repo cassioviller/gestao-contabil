@@ -34,7 +34,13 @@ export default function Funcionarios() {
   const atualizar = useAtualizarFuncionario();
   const remover = useRemoverFuncionario();
 
-  const [novo, setNovo] = useState({ clienteId: "", nome: "", cargo: "", admissao: "", salario: "" });
+  const [novo, setNovo] = useState({
+    clienteId: "",
+    nome: "",
+    cargo: "",
+    admissao: "",
+    salario: "",
+  });
 
   function invalidar() {
     qc.invalidateQueries({ queryKey: getListarFuncionariosQueryKey() });
@@ -102,9 +108,7 @@ export default function Funcionarios() {
   const filtrados = lista.filter((f) => {
     const t = busca.trim().toLowerCase();
     if (!t) return true;
-    return [f.nome, f.cargo, f.cpf, f.clienteNome].some((v) =>
-      (v ?? "").toLowerCase().includes(t),
-    );
+    return [f.nome, f.cargo, f.cpf, f.clienteNome].some((v) => (v ?? "").toLowerCase().includes(t));
   });
 
   const folhaMensal = filtrados
@@ -194,7 +198,10 @@ export default function Funcionarios() {
       </div>
 
       {erro && (
-        <p role="alert" className="mb-3 rounded-lg bg-red-600/10 px-3 py-2 text-sm text-red-700 dark:text-red-400">
+        <p
+          role="alert"
+          className="mb-3 rounded-lg bg-red-600/10 px-3 py-2 text-sm text-red-700 dark:text-red-400"
+        >
           {erro}
         </p>
       )}
@@ -349,9 +356,7 @@ export default function Funcionarios() {
           </table>
         </div>
       )}
-      <p className="mt-2 text-xs text-neutral-500">
-        Situação atual: {rotuloSituacao(situacao)}
-      </p>
+      <p className="mt-2 text-xs text-neutral-500">Situação atual: {rotuloSituacao(situacao)}</p>
     </div>
   );
 }

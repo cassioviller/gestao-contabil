@@ -1,0 +1,21 @@
+# Gerado ou de terceiros
+node_modules
+dist
+build
+.tsbuildinfo
+*.tsbuildinfo
+pnpm-lock.yaml
+lib/api-client-react/src/generated
+lib/api-zod/src/generated
+lib/db/drizzle
+artifacts/gestao-contabil/test-results
+artifacts/gestao-contabil/playwright-report
+artifacts/gestao-contabil/e2e/.auth
+dados-locais
+# Prosa e config de plataforma: formato próprio
+*.md
+*.yaml
+*.yml
+*.nix
+.replit
+.migration-backup

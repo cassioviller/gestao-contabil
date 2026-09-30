@@ -57,7 +57,7 @@ export default function ProcessoDetalhe({ params }: { params: { id: string } }) 
       setErro(
         e instanceof Error && e.message
           ? `Não foi possível salvar: ${e.message}`
-          : "Não foi possível salvar. Verifique se o servidor da API está no ar."
+          : "Não foi possível salvar. Verifique se o servidor da API está no ar.",
       );
       recarregar(); // descarta a atualização otimista que não foi aceita
     }
@@ -75,14 +75,16 @@ export default function ProcessoDetalhe({ params }: { params: { id: string } }) 
    */
   function otimista(mudanca: (p: Record<string, unknown>) => Record<string, unknown>) {
     qc.setQueryData(getGetProcessoQueryKey(id), (antigo: unknown) =>
-      antigo ? mudanca(antigo as Record<string, unknown>) : antigo
+      antigo ? mudanca(antigo as Record<string, unknown>) : antigo,
     );
   }
 
   function etapaOtimista(etapaId: number, campos: Partial<Etapa>) {
     otimista((p) => ({
       ...p,
-      etapas: ((p.etapas as Etapa[]) ?? []).map((e) => (e.id === etapaId ? { ...e, ...campos } : e)),
+      etapas: ((p.etapas as Etapa[]) ?? []).map((e) =>
+        e.id === etapaId ? { ...e, ...campos } : e,
+      ),
     }));
   }
 
@@ -141,7 +143,8 @@ export default function ProcessoDetalhe({ params }: { params: { id: string } }) 
   }
 
   async function excluirProcesso() {
-    if (!confirm(`Remover este ${txt.singular} de ${p.clienteNome}? O checklist vai junto.`)) return;
+    if (!confirm(`Remover este ${txt.singular} de ${p.clienteNome}? O checklist vai junto.`))
+      return;
     await comAviso(async () => {
       await removerProcesso.mutateAsync({ id: p.id });
       qc.invalidateQueries({ queryKey: getListarProcessosQueryKey() });
@@ -171,8 +174,11 @@ export default function ProcessoDetalhe({ params }: { params: { id: string } }) 
           <span className={`rounded-full px-2.5 py-1 text-xs ${corStatusProcesso(p.status)}`}>
             {rotuloStatusProcesso(p.status)}
           </span>
-          <select value={p.status} onChange={(e) => mudarStatus(e.target.value)}
-            className="rounded-lg border border-black/15 bg-neutral-900 px-3 py-2 text-sm text-white dark:border-white/15">
+          <select
+            value={p.status}
+            onChange={(e) => mudarStatus(e.target.value)}
+            className="rounded-lg border border-black/15 bg-neutral-900 px-3 py-2 text-sm text-white dark:border-white/15"
+          >
             {STATUS_PROCESSO.map((s) => (
               <option key={s.valor} value={s.valor} className="bg-neutral-900 text-white">
                 {s.rotulo}
@@ -183,7 +189,10 @@ export default function ProcessoDetalhe({ params }: { params: { id: string } }) 
       </div>
 
       {erro && (
-        <p role="alert" className="mb-4 rounded-lg bg-red-600/10 px-3 py-2 text-sm text-red-700 dark:text-red-400">
+        <p
+          role="alert"
+          className="mb-4 rounded-lg bg-red-600/10 px-3 py-2 text-sm text-red-700 dark:text-red-400"
+        >
           {erro}
         </p>
       )}
@@ -191,25 +200,39 @@ export default function ProcessoDetalhe({ params }: { params: { id: string } }) 
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
         {/* --- Dados do processo --- */}
         <div className={cartao}>
-          <h2 className="mb-3 text-sm font-semibold text-neutral-600 dark:text-neutral-400">Dados</h2>
+          <h2 className="mb-3 text-sm font-semibold text-neutral-600 dark:text-neutral-400">
+            Dados
+          </h2>
           <dl className="grid grid-cols-2 gap-3 text-sm">
             {/* Órgão só aparece no trâmite formal; pedido do cliente não tem. */}
             {txt.mostrarOrgao && (
               <div>
                 <dt className="text-xs text-neutral-500">Órgão</dt>
                 <dd>
-                  <input defaultValue={p.orgao ?? ""} placeholder="—"
-                    onBlur={(e) => e.target.value !== (p.orgao ?? "") && salvarCampo({ orgao: e.target.value || null })}
-                    className="w-full bg-transparent outline-none focus:underline" />
+                  <input
+                    defaultValue={p.orgao ?? ""}
+                    placeholder="—"
+                    onBlur={(e) =>
+                      e.target.value !== (p.orgao ?? "") &&
+                      salvarCampo({ orgao: e.target.value || null })
+                    }
+                    className="w-full bg-transparent outline-none focus:underline"
+                  />
                 </dd>
               </div>
             )}
             <div>
               <dt className="text-xs text-neutral-500">Protocolo</dt>
               <dd>
-                <input defaultValue={p.protocolo ?? ""} placeholder="—"
-                  onBlur={(e) => e.target.value !== (p.protocolo ?? "") && salvarCampo({ protocolo: e.target.value || null })}
-                  className="w-full bg-transparent outline-none focus:underline" />
+                <input
+                  defaultValue={p.protocolo ?? ""}
+                  placeholder="—"
+                  onBlur={(e) =>
+                    e.target.value !== (p.protocolo ?? "") &&
+                    salvarCampo({ protocolo: e.target.value || null })
+                  }
+                  className="w-full bg-transparent outline-none focus:underline"
+                />
               </dd>
             </div>
             <div>
@@ -219,30 +242,47 @@ export default function ProcessoDetalhe({ params }: { params: { id: string } }) 
             <div>
               <dt className="text-xs text-neutral-500">Prazo</dt>
               <dd>
-                <input type="date" defaultValue={p.prazo ?? ""}
-                  onBlur={(e) => e.target.value !== (p.prazo ?? "") && salvarCampo({ prazo: e.target.value || null })}
-                  className={`w-full bg-transparent outline-none ${vencido ? "font-medium text-red-600" : ""}`} />
+                <input
+                  type="date"
+                  defaultValue={p.prazo ?? ""}
+                  onBlur={(e) =>
+                    e.target.value !== (p.prazo ?? "") &&
+                    salvarCampo({ prazo: e.target.value || null })
+                  }
+                  className={`w-full bg-transparent outline-none ${vencido ? "font-medium text-red-600" : ""}`}
+                />
                 {vencido && <span className="text-xs text-red-600">atrasado</span>}
               </dd>
             </div>
             {p.concluidoEm && (
               <div>
                 <dt className="text-xs text-neutral-500">Concluído em</dt>
-                <dd className="text-neutral-600 dark:text-neutral-400">{formatarData(p.concluidoEm)}</dd>
+                <dd className="text-neutral-600 dark:text-neutral-400">
+                  {formatarData(p.concluidoEm)}
+                </dd>
               </div>
             )}
           </dl>
           <div className="mt-3">
             <p className="mb-1 text-xs text-neutral-500">Observação</p>
-            <textarea defaultValue={p.observacao ?? ""} rows={3} placeholder={`Anotações do ${txt.singular}…`}
-              onBlur={(e) => e.target.value !== (p.observacao ?? "") && salvarCampo({ observacao: e.target.value || null })}
-              className={`w-full ${campo}`} />
+            <textarea
+              defaultValue={p.observacao ?? ""}
+              rows={3}
+              placeholder={`Anotações do ${txt.singular}…`}
+              onBlur={(e) =>
+                e.target.value !== (p.observacao ?? "") &&
+                salvarCampo({ observacao: e.target.value || null })
+              }
+              className={`w-full ${campo}`}
+            />
           </div>
         </div>
 
         {/* --- Progresso --- */}
         <div className={cartao}>
-          <h2 className="mb-3 text-sm font-semibold text-neutral-600 dark:text-neutral-400">Progresso</h2>
+          <h2 className="mb-3 text-sm font-semibold text-neutral-600 dark:text-neutral-400">
+            Progresso
+          </h2>
           {etapas.length === 0 ? (
             <p className="text-sm text-neutral-500">
               Nenhuma etapa ainda. Adicione abaixo o que precisa ser feito.
@@ -273,18 +313,26 @@ export default function ProcessoDetalhe({ params }: { params: { id: string } }) 
         <ul className="mb-4 divide-y divide-black/10 dark:divide-white/10">
           {etapas.map((et) => (
             <li key={et.id} className="flex items-start gap-3 py-2.5">
-              <input type="checkbox" checked={et.feito} aria-label={et.descricao}
+              <input
+                type="checkbox"
+                checked={et.feito}
+                aria-label={et.descricao}
                 onChange={async (e) => {
                   const feito = e.target.checked;
-                  etapaOtimista(et.id, { feito, concluidoEm: feito ? new Date().toISOString() : null });
+                  etapaOtimista(et.id, {
+                    feito,
+                    concluidoEm: feito ? new Date().toISOString() : null,
+                  });
                   await comAviso(async () => {
                     await atualizar.mutateAsync({ id: et.id, data: { feito } });
                     recarregar();
                   });
                 }}
-                className="mt-1" />
+                className="mt-1"
+              />
               <div className="flex-1">
-                <input defaultValue={et.descricao}
+                <input
+                  defaultValue={et.descricao}
                   onBlur={async (e) => {
                     const v = e.target.value.trim();
                     if (!v) {
@@ -299,19 +347,24 @@ export default function ProcessoDetalhe({ params }: { params: { id: string } }) 
                   }}
                   className={`w-full bg-transparent text-sm outline-none focus:underline ${
                     et.feito ? "text-neutral-400 line-through" : ""
-                  }`} />
+                  }`}
+                />
                 {et.concluidoEm && (
-                  <p className="text-xs text-neutral-500">feito em {formatarData(et.concluidoEm)}</p>
+                  <p className="text-xs text-neutral-500">
+                    feito em {formatarData(et.concluidoEm)}
+                  </p>
                 )}
               </div>
-              <button title="Remover etapa"
+              <button
+                title="Remover etapa"
                 onClick={async () => {
                   await comAviso(async () => {
                     await removerEtapa.mutateAsync({ id: et.id });
                     recarregar();
                   });
                 }}
-                className="text-neutral-400 hover:text-red-600">
+                className="text-neutral-400 hover:text-red-600"
+              >
                 ✕
               </button>
             </li>
@@ -319,11 +372,18 @@ export default function ProcessoDetalhe({ params }: { params: { id: string } }) 
         </ul>
 
         <form onSubmit={adicionarEtapa} className="flex gap-2">
-          <input value={nova} onChange={(e) => setNova(e.target.value)} name="novaEtapa"
+          <input
+            value={nova}
+            onChange={(e) => setNova(e.target.value)}
+            name="novaEtapa"
             placeholder={txt.exemploEtapa}
-            className={`flex-1 ${campo}`} />
-          <button type="submit" disabled={adicionar.isPending || !nova.trim()}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+            className={`flex-1 ${campo}`}
+          />
+          <button
+            type="submit"
+            disabled={adicionar.isPending || !nova.trim()}
+            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+          >
             Adicionar
           </button>
         </form>
