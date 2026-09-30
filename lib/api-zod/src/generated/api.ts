@@ -1711,3 +1711,286 @@ export const RedefinirSenhaUsuarioBody = zod.object({
 export const RedefinirSenhaUsuarioResponse = zod.void()
 
 
+/**
+ * @summary Arquivos confirmados de uma entidade
+ */
+
+
+
+export const ListarArquivosQueryParams = zod.object({
+  "entidade": zod.enum(['checklist_item', 'processo', 'pagamento', 'cliente', 'solicitacao']),
+  "entidadeId": zod.coerce.number().min(1)
+})
+
+export const ListarArquivosResponseItem = zod.object({
+  "id": zod.number(),
+  "clienteId": zod.number().nullable(),
+  "entidade": zod.enum(['checklist_item', 'processo', 'pagamento', 'cliente', 'solicitacao']),
+  "entidadeId": zod.number(),
+  "nome": zod.string(),
+  "mime": zod.string(),
+  "tamanho": zod.number(),
+  "sha256": zod.string().nullable(),
+  "origem": zod.string(),
+  "confirmado": zod.boolean(),
+  "criadoEm": zod.coerce.date()
+})
+export const ListarArquivosResponse = zod.array(ListarArquivosResponseItem)
+
+
+/**
+ * @summary Registra um arquivo e devolve para onde subir o conteúdo
+ */
+
+export const criarArquivoBodyNomeMax = 200;
+
+
+
+
+
+export const CriarArquivoBody = zod.object({
+  "entidade": zod.enum(['checklist_item', 'processo', 'pagamento', 'cliente', 'solicitacao']),
+  "entidadeId": zod.number().min(1),
+  "nome": zod.string().min(1).max(criarArquivoBodyNomeMax),
+  "mime": zod.string().min(1),
+  "tamanho": zod.number().min(1)
+})
+
+export const CriarArquivoResponse = zod.object({
+  "arquivo": zod.object({
+  "id": zod.number(),
+  "clienteId": zod.number().nullable(),
+  "entidade": zod.enum(['checklist_item', 'processo', 'pagamento', 'cliente', 'solicitacao']),
+  "entidadeId": zod.number(),
+  "nome": zod.string(),
+  "mime": zod.string(),
+  "tamanho": zod.number(),
+  "sha256": zod.string().nullable(),
+  "origem": zod.string(),
+  "confirmado": zod.boolean(),
+  "criadoEm": zod.coerce.date()
+}),
+  "upload": zod.object({
+  "url": zod.string(),
+  "metodo": zod.enum(['PUT']),
+  "cabecalhos": zod.record(zod.string(), zod.string()).optional(),
+  "expiraEm": zod.coerce.date()
+}).nullable(),
+  "urlConteudo": zod.string()
+})
+
+
+/**
+ * @summary Sobe o conteúdo pela API (quando não há URL assinada)
+ */
+export const EnviarConteudoArquivoParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const EnviarConteudoArquivoResponse = zod.object({
+  "id": zod.number(),
+  "clienteId": zod.number().nullable(),
+  "entidade": zod.enum(['checklist_item', 'processo', 'pagamento', 'cliente', 'solicitacao']),
+  "entidadeId": zod.number(),
+  "nome": zod.string(),
+  "mime": zod.string(),
+  "tamanho": zod.number(),
+  "sha256": zod.string().nullable(),
+  "origem": zod.string(),
+  "confirmado": zod.boolean(),
+  "criadoEm": zod.coerce.date()
+})
+
+
+/**
+ * @summary Baixa o conteúdo pela API (quando não há URL assinada)
+ */
+export const BaixarConteudoArquivoParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const BaixarConteudoArquivoResponse = zod.unknown()
+
+
+/**
+ * @summary Confirma que o upload direto (URL assinada) terminou
+ */
+export const ConfirmarArquivoParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ConfirmarArquivoResponse = zod.object({
+  "id": zod.number(),
+  "clienteId": zod.number().nullable(),
+  "entidade": zod.enum(['checklist_item', 'processo', 'pagamento', 'cliente', 'solicitacao']),
+  "entidadeId": zod.number(),
+  "nome": zod.string(),
+  "mime": zod.string(),
+  "tamanho": zod.number(),
+  "sha256": zod.string().nullable(),
+  "origem": zod.string(),
+  "confirmado": zod.boolean(),
+  "criadoEm": zod.coerce.date()
+})
+
+
+/**
+ * @summary URL para baixar o arquivo (assinada, ou a rota da API)
+ */
+export const GetUrlDownloadArquivoParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetUrlDownloadArquivoResponse = zod.object({
+  "url": zod.string(),
+  "expiraEm": zod.coerce.date().nullable()
+})
+
+
+/**
+ * @summary Remove o arquivo do armazenamento e do registro
+ */
+export const RemoverArquivoParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const RemoverArquivoResponse = zod.void()
+
+
+/**
+ * @summary Avisos da conta, mais recentes primeiro
+ */
+export const ListarAvisosQueryParams = zod.object({
+  "status": zod.enum(['pendente', 'enviado', 'entregue', 'lido', 'falhou']).optional(),
+  "clienteId": zod.coerce.number().optional()
+})
+
+export const ListarAvisosResponseItem = zod.object({
+  "id": zod.number(),
+  "clienteId": zod.number().nullable(),
+  "clienteNome": zod.string().nullish(),
+  "canal": zod.enum(['email', 'whatsapp', 'portal']),
+  "destino": zod.string().nullable(),
+  "modelo": zod.string(),
+  "assunto": zod.string().nullable(),
+  "corpo": zod.string(),
+  "status": zod.enum(['pendente', 'enviado', 'entregue', 'lido', 'falhou']),
+  "tentativas": zod.number(),
+  "provedorId": zod.string().nullish(),
+  "erro": zod.string().nullable(),
+  "referenciaEntidade": zod.string().nullish(),
+  "referenciaId": zod.number().nullish(),
+  "enviadoEm": zod.coerce.date().nullable(),
+  "criadoEm": zod.coerce.date()
+})
+export const ListarAvisosResponse = zod.array(ListarAvisosResponseItem)
+
+
+/**
+ * @summary Envia um aviso avulso ao cliente (fica na fila até o worker rodar)
+ */
+
+export const criarAvisoBodyAssuntoMax = 200;
+
+export const criarAvisoBodyCorpoMax = 5000;
+
+
+
+export const CriarAvisoBody = zod.object({
+  "clienteId": zod.number().min(1),
+  "canal": zod.enum(['email', 'whatsapp', 'portal']),
+  "assunto": zod.string().max(criarAvisoBodyAssuntoMax).nullish(),
+  "corpo": zod.string().min(1).max(criarAvisoBodyCorpoMax)
+})
+
+export const CriarAvisoResponse = zod.object({
+  "id": zod.number(),
+  "clienteId": zod.number().nullable(),
+  "clienteNome": zod.string().nullish(),
+  "canal": zod.enum(['email', 'whatsapp', 'portal']),
+  "destino": zod.string().nullable(),
+  "modelo": zod.string(),
+  "assunto": zod.string().nullable(),
+  "corpo": zod.string(),
+  "status": zod.enum(['pendente', 'enviado', 'entregue', 'lido', 'falhou']),
+  "tentativas": zod.number(),
+  "provedorId": zod.string().nullish(),
+  "erro": zod.string().nullable(),
+  "referenciaEntidade": zod.string().nullish(),
+  "referenciaId": zod.number().nullish(),
+  "enviadoEm": zod.coerce.date().nullable(),
+  "criadoEm": zod.coerce.date()
+})
+
+
+/**
+ * @summary Põe um aviso que falhou de volta na fila
+ */
+export const ReenviarAvisoParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ReenviarAvisoResponse = zod.object({
+  "id": zod.number(),
+  "clienteId": zod.number().nullable(),
+  "clienteNome": zod.string().nullish(),
+  "canal": zod.enum(['email', 'whatsapp', 'portal']),
+  "destino": zod.string().nullable(),
+  "modelo": zod.string(),
+  "assunto": zod.string().nullable(),
+  "corpo": zod.string(),
+  "status": zod.enum(['pendente', 'enviado', 'entregue', 'lido', 'falhou']),
+  "tentativas": zod.number(),
+  "provedorId": zod.string().nullish(),
+  "erro": zod.string().nullable(),
+  "referenciaEntidade": zod.string().nullish(),
+  "referenciaId": zod.number().nullish(),
+  "enviadoEm": zod.coerce.date().nullable(),
+  "criadoEm": zod.coerce.date()
+})
+
+
+/**
+ * @summary Últimas tarefas da fila (só admin)
+ */
+export const ListarJobsQueryParams = zod.object({
+  "status": zod.enum(['pendente', 'executando', 'concluido', 'falhou']).optional()
+})
+
+export const ListarJobsResponseItem = zod.object({
+  "id": zod.number(),
+  "contaId": zod.number().nullish(),
+  "tipo": zod.string(),
+  "chave": zod.string().nullable(),
+  "dados": zod.record(zod.string(), zod.unknown()).optional(),
+  "status": zod.enum(['pendente', 'executando', 'concluido', 'falhou']),
+  "tentativas": zod.number(),
+  "maxTentativas": zod.number(),
+  "executarEm": zod.coerce.date(),
+  "iniciadoEm": zod.coerce.date().nullable(),
+  "concluidoEm": zod.coerce.date().nullable(),
+  "erro": zod.string().nullable(),
+  "criadoEm": zod.coerce.date()
+})
+export const ListarJobsResponse = zod.array(ListarJobsResponseItem)
+
+
+/**
+ * @summary Processa a fila por até alguns minutos (gatilho do agendador externo)
+ */
+export const executarJobsBodyLimiteMsMin = 1000;
+export const executarJobsBodyLimiteMsMax = 300000;
+
+
+
+export const ExecutarJobsBody = zod.object({
+  "limiteMs": zod.number().min(executarJobsBodyLimiteMsMin).max(executarJobsBodyLimiteMsMax).optional()
+})
+
+export const ExecutarJobsResponse = zod.object({
+  "executados": zod.number(),
+  "falhas": zod.number(),
+  "restantes": zod.number()
+})
+
+

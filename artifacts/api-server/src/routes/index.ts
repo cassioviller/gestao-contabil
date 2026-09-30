@@ -20,6 +20,9 @@ import funcionariosRouter from "./funcionarios";
 import folhaRouter from "./folha";
 import feriasRouter from "./ferias";
 import usuariosRouter from "./usuarios";
+import arquivosRouter from "./arquivos";
+import avisosRouter from "./avisos";
+import jobsRouter, { executarJobs, exigirTokenJobs } from "./jobs";
 
 const router: IRouter = Router();
 
@@ -27,6 +30,8 @@ const router: IRouter = Router();
 // próprio login.
 router.use(healthRouter);
 router.use("/auth", authRouter);
+// O agendador externo dispara a fila com o token de serviço, sem sessão.
+router.post("/jobs/executar", exigirTokenJobs, executarJobs);
 
 // A porta. Tudo o que vem depois só roda com sessão válida e enxerga apenas a
 // conta dela — rota nova nasce protegida por estar abaixo desta linha.
@@ -50,5 +55,8 @@ router.use("/funcionarios", funcionariosRouter);
 router.use("/folha", folhaRouter);
 router.use("/ferias", feriasRouter);
 router.use("/usuarios", usuariosRouter);
+router.use("/arquivos", arquivosRouter);
+router.use("/avisos", avisosRouter);
+router.use("/jobs", jobsRouter);
 
 export default router;

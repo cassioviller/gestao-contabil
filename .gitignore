@@ -64,4 +64,4 @@ blob-report/
 .env.*
 !.env.example
 # Uploads do armazenamento local (dev/e2e)
-/dados-locais/
+dados-locais/

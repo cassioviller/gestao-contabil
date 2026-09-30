@@ -16,6 +16,190 @@ export interface Credenciais {
   senha: string;
 }
 
+export type EntidadeArquivo = typeof EntidadeArquivo[keyof typeof EntidadeArquivo];
+
+
+export const EntidadeArquivo = {
+  checklist_item: 'checklist_item',
+  processo: 'processo',
+  pagamento: 'pagamento',
+  cliente: 'cliente',
+  solicitacao: 'solicitacao',
+} as const;
+
+export interface Arquivo {
+  id: number;
+  /** @nullable */
+  clienteId: number | null;
+  entidade: EntidadeArquivo;
+  entidadeId: number;
+  nome: string;
+  mime: string;
+  tamanho: number;
+  /** @nullable */
+  sha256: string | null;
+  origem: string;
+  confirmado: boolean;
+  criadoEm: string;
+}
+
+export interface ArquivoInput {
+  entidade: EntidadeArquivo;
+  /** @minimum 1 */
+  entidadeId: number;
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
+  nome: string;
+  /** @minLength 1 */
+  mime: string;
+  /** @minimum 1 */
+  tamanho: number;
+}
+
+export type UploadAssinadoMetodo = typeof UploadAssinadoMetodo[keyof typeof UploadAssinadoMetodo];
+
+
+export const UploadAssinadoMetodo = {
+  PUT: 'PUT',
+} as const;
+
+export type UploadAssinadoCabecalhos = {[key: string]: string};
+
+/**
+ * @nullable
+ */
+export type UploadAssinado = {
+  url: string;
+  metodo: UploadAssinadoMetodo;
+  cabecalhos?: UploadAssinadoCabecalhos;
+  expiraEm: string;
+} | null;
+
+export interface ArquivoCriado {
+  arquivo: Arquivo;
+  upload: UploadAssinado | null;
+  urlConteudo: string;
+}
+
+export interface UrlDownload {
+  url: string;
+  /** @nullable */
+  expiraEm: string | null;
+}
+
+export type CanalAviso = typeof CanalAviso[keyof typeof CanalAviso];
+
+
+export const CanalAviso = {
+  email: 'email',
+  whatsapp: 'whatsapp',
+  portal: 'portal',
+} as const;
+
+export type StatusAviso = typeof StatusAviso[keyof typeof StatusAviso];
+
+
+export const StatusAviso = {
+  pendente: 'pendente',
+  enviado: 'enviado',
+  entregue: 'entregue',
+  lido: 'lido',
+  falhou: 'falhou',
+} as const;
+
+export interface Aviso {
+  id: number;
+  /** @nullable */
+  clienteId: number | null;
+  /** @nullable */
+  clienteNome?: string | null;
+  canal: CanalAviso;
+  /** @nullable */
+  destino: string | null;
+  modelo: string;
+  /** @nullable */
+  assunto: string | null;
+  corpo: string;
+  status: StatusAviso;
+  tentativas: number;
+  /** @nullable */
+  provedorId?: string | null;
+  /** @nullable */
+  erro: string | null;
+  /** @nullable */
+  referenciaEntidade?: string | null;
+  /** @nullable */
+  referenciaId?: number | null;
+  /** @nullable */
+  enviadoEm: string | null;
+  criadoEm: string;
+}
+
+export interface AvisoInput {
+  /** @minimum 1 */
+  clienteId: number;
+  canal: CanalAviso;
+  /**
+     * @maxLength 200
+     * @nullable
+     */
+  assunto?: string | null;
+  /**
+     * @minLength 1
+     * @maxLength 5000
+     */
+  corpo: string;
+}
+
+export type StatusJob = typeof StatusJob[keyof typeof StatusJob];
+
+
+export const StatusJob = {
+  pendente: 'pendente',
+  executando: 'executando',
+  concluido: 'concluido',
+  falhou: 'falhou',
+} as const;
+
+export type JobDados = { [key: string]: unknown };
+
+export interface Job {
+  id: number;
+  /** @nullable */
+  contaId?: number | null;
+  tipo: string;
+  /** @nullable */
+  chave: string | null;
+  dados?: JobDados;
+  status: StatusJob;
+  tentativas: number;
+  maxTentativas: number;
+  executarEm: string;
+  /** @nullable */
+  iniciadoEm: string | null;
+  /** @nullable */
+  concluidoEm: string | null;
+  /** @nullable */
+  erro: string | null;
+  criadoEm: string;
+}
+
+export interface ExecutarJobsInput {
+  /**
+     * @minimum 1000
+     * @maximum 300000
+     */
+  limiteMs?: number;
+}
+
+export interface ResultadoJobs {
+  executados: number;
+  falhas: number;
+  restantes: number;
+}
+
 export type Papel = typeof Papel[keyof typeof Papel];
 
 
@@ -1148,5 +1332,22 @@ export type ListarFeriasParams = {
 escopo?: EscopoRegistro;
 clienteId?: number;
 funcionarioId?: number;
+};
+
+export type ListarArquivosParams = {
+entidade: EntidadeArquivo;
+/**
+ * @minimum 1
+ */
+entidadeId: number;
+};
+
+export type ListarAvisosParams = {
+status?: StatusAviso;
+clienteId?: number;
+};
+
+export type ListarJobsParams = {
+status?: StatusJob;
 };
 

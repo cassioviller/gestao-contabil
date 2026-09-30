@@ -35,6 +35,12 @@ tags:
     description: Login e sessão do escritório
   - name: usuarios
     description: Usuários do escritório e seus papéis
+  - name: arquivos
+    description: Arquivos anexados (guias, comprovantes, documentos)
+  - name: avisos
+    description: Avisos enviados ao cliente (e-mail, WhatsApp, portal)
+  - name: jobs
+    description: Fila de tarefas em segundo plano
 
 paths:
   /auth/entrar:
@@ -1398,7 +1404,266 @@ paths:
           description: Usuário não encontrado
 
 
+  /arquivos:
+    get:
+      operationId: listarArquivos
+      tags: [arquivos]
+      summary: Arquivos confirmados de uma entidade
+      parameters:
+        - name: entidade
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/EntidadeArquivo"
+        - name: entidadeId
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        "200":
+          description: Lista de arquivos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Arquivo"
+    post:
+      operationId: criarArquivo
+      tags: [arquivos]
+      summary: Registra um arquivo e devolve para onde subir o conteúdo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ArquivoInput"
+      responses:
+        "200":
+          description: Registro criado; o conteúdo ainda precisa subir
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ArquivoCriado"
+        "400":
+          description: Tipo ou tamanho não permitido, ou entidade inexistente
+
+  /arquivos/{id}/conteudo:
+    put:
+      operationId: enviarConteudoArquivo
+      tags: [arquivos]
+      summary: Sobe o conteúdo pela API (quando não há URL assinada)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        "200":
+          description: Conteúdo gravado e arquivo confirmado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Arquivo"
+    get:
+      operationId: baixarConteudoArquivo
+      tags: [arquivos]
+      summary: Baixa o conteúdo pela API (quando não há URL assinada)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: O arquivo, como anexo
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+
+  /arquivos/{id}/confirmar:
+    post:
+      operationId: confirmarArquivo
+      tags: [arquivos]
+      summary: Confirma que o upload direto (URL assinada) terminou
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Arquivo confirmado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Arquivo"
+        "400":
+          description: O conteúdo não está no armazenamento
+
+  /arquivos/{id}/download-url:
+    get:
+      operationId: getUrlDownloadArquivo
+      tags: [arquivos]
+      summary: URL para baixar o arquivo (assinada, ou a rota da API)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: URL de download
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UrlDownload"
+
+  /arquivos/{id}:
+    delete:
+      operationId: removerArquivo
+      tags: [arquivos]
+      summary: Remove o arquivo do armazenamento e do registro
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Removido
+
+  /avisos:
+    get:
+      operationId: listarAvisos
+      tags: [avisos]
+      summary: Avisos da conta, mais recentes primeiro
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/StatusAviso"
+        - name: clienteId
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Lista de avisos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Aviso"
+    post:
+      operationId: criarAviso
+      tags: [avisos]
+      summary: Envia um aviso avulso ao cliente (fica na fila até o worker rodar)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AvisoInput"
+      responses:
+        "200":
+          description: Aviso na fila
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Aviso"
+        "400":
+          description: O cliente não tem destino para esse canal
+
+  /avisos/{id}/reenviar:
+    post:
+      operationId: reenviarAviso
+      tags: [avisos]
+      summary: Põe um aviso que falhou de volta na fila
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Aviso de volta na fila
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Aviso"
+
+  /jobs:
+    get:
+      operationId: listarJobs
+      tags: [jobs]
+      summary: Últimas tarefas da fila (só admin)
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/StatusJob"
+      responses:
+        "200":
+          description: Lista de tarefas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Job"
+
+  /jobs/executar:
+    post:
+      operationId: executarJobs
+      tags: [jobs]
+      summary: Processa a fila por até alguns minutos (gatilho do agendador externo)
+      security:
+        - tokenJobs: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExecutarJobsInput"
+      responses:
+        "200":
+          description: Resultado da rodada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResultadoJobs"
+        "401":
+          description: Token de serviço ausente ou inválido
+
+
 components:
+  securitySchemes:
+    tokenJobs:
+      type: http
+      scheme: bearer
+      description: "`Authorization: Bearer ${TOKEN_JOBS}`"
   schemas:
     HealthStatus:
       type: object
@@ -1420,6 +1685,138 @@ components:
 
     # Quem está logado. `conta` é o escritório dono dos dados — todo o resto da
     # API responde só o que pertence a ela.
+    EntidadeArquivo:
+      type: string
+      enum: [checklist_item, processo, pagamento, cliente, solicitacao]
+
+    Arquivo:
+      type: object
+      required: [id, clienteId, entidade, entidadeId, nome, mime, tamanho, sha256, origem, confirmado, criadoEm]
+      properties:
+        id: { type: integer }
+        clienteId: { type: ["integer", "null"] }
+        entidade: { $ref: "#/components/schemas/EntidadeArquivo" }
+        entidadeId: { type: integer }
+        nome: { type: string }
+        mime: { type: string }
+        tamanho: { type: integer }
+        sha256: { type: ["string", "null"] }
+        origem: { type: string }
+        confirmado: { type: boolean }
+        criadoEm: { type: string, format: date-time }
+
+    ArquivoInput:
+      type: object
+      required: [entidade, entidadeId, nome, mime, tamanho]
+      properties:
+        entidade: { $ref: "#/components/schemas/EntidadeArquivo" }
+        entidadeId: { type: integer, minimum: 1 }
+        nome: { type: string, minLength: 1, maxLength: 200 }
+        mime: { type: string, minLength: 1 }
+        tamanho: { type: integer, minimum: 1 }
+
+    # Para onde o navegador sobe o conteúdo. `null` = passa pela API
+    # (`PUT /arquivos/{id}/conteudo`), caso do armazenamento local.
+    UploadAssinado:
+      type: ["object", "null"]
+      required: [url, metodo, expiraEm]
+      properties:
+        url: { type: string }
+        metodo: { type: string, enum: [PUT] }
+        cabecalhos:
+          type: object
+          additionalProperties: { type: string }
+        expiraEm: { type: string, format: date-time }
+
+    ArquivoCriado:
+      type: object
+      required: [arquivo, upload, urlConteudo]
+      properties:
+        arquivo: { $ref: "#/components/schemas/Arquivo" }
+        upload: { $ref: "#/components/schemas/UploadAssinado" }
+        # Rota da API para subir/baixar quando `upload` é nulo.
+        urlConteudo: { type: string }
+
+    UrlDownload:
+      type: object
+      required: [url, expiraEm]
+      properties:
+        url: { type: string }
+        expiraEm: { type: ["string", "null"], format: date-time }
+
+    CanalAviso:
+      type: string
+      enum: [email, whatsapp, portal]
+
+    StatusAviso:
+      type: string
+      enum: [pendente, enviado, entregue, lido, falhou]
+
+    Aviso:
+      type: object
+      required: [id, clienteId, canal, destino, modelo, assunto, corpo, status, tentativas, erro, enviadoEm, criadoEm]
+      properties:
+        id: { type: integer }
+        clienteId: { type: ["integer", "null"] }
+        clienteNome: { type: ["string", "null"] }
+        canal: { $ref: "#/components/schemas/CanalAviso" }
+        destino: { type: ["string", "null"] }
+        modelo: { type: string }
+        assunto: { type: ["string", "null"] }
+        corpo: { type: string }
+        status: { $ref: "#/components/schemas/StatusAviso" }
+        tentativas: { type: integer }
+        provedorId: { type: ["string", "null"] }
+        erro: { type: ["string", "null"] }
+        referenciaEntidade: { type: ["string", "null"] }
+        referenciaId: { type: ["integer", "null"] }
+        enviadoEm: { type: ["string", "null"], format: date-time }
+        criadoEm: { type: string, format: date-time }
+
+    AvisoInput:
+      type: object
+      required: [clienteId, canal, corpo]
+      properties:
+        clienteId: { type: integer, minimum: 1 }
+        canal: { $ref: "#/components/schemas/CanalAviso" }
+        assunto: { type: ["string", "null"], maxLength: 200 }
+        corpo: { type: string, minLength: 1, maxLength: 5000 }
+
+    StatusJob:
+      type: string
+      enum: [pendente, executando, concluido, falhou]
+
+    Job:
+      type: object
+      required: [id, tipo, chave, status, tentativas, maxTentativas, executarEm, iniciadoEm, concluidoEm, erro, criadoEm]
+      properties:
+        id: { type: integer }
+        contaId: { type: ["integer", "null"] }
+        tipo: { type: string }
+        chave: { type: ["string", "null"] }
+        dados: { type: object, additionalProperties: true }
+        status: { $ref: "#/components/schemas/StatusJob" }
+        tentativas: { type: integer }
+        maxTentativas: { type: integer }
+        executarEm: { type: string, format: date-time }
+        iniciadoEm: { type: ["string", "null"], format: date-time }
+        concluidoEm: { type: ["string", "null"], format: date-time }
+        erro: { type: ["string", "null"] }
+        criadoEm: { type: string, format: date-time }
+
+    ExecutarJobsInput:
+      type: object
+      properties:
+        limiteMs: { type: integer, minimum: 1000, maximum: 300000 }
+
+    ResultadoJobs:
+      type: object
+      required: [executados, falhas, restantes]
+      properties:
+        executados: { type: integer }
+        falhas: { type: integer }
+        restantes: { type: integer }
+
     SessaoAtual:
       type: object
       required: [contaId, conta, login, nome, usuarioId, papel]

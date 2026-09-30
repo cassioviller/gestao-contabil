@@ -1,3 +1,5 @@
+import os from "node:os";
+import path from "node:path";
 import { defineConfig, devices } from "@playwright/test";
 import { urlDoBancoDeTeste } from "./e2e/global-setup";
 
@@ -60,6 +62,9 @@ export default defineConfig({
         // Chave fixa só para o e2e: em produção ela vem de um secret.
         CHAVE_CIFRA: process.env.CHAVE_CIFRA ?? "e2e-".padEnd(44, "0"),
         NODE_ENV: "test",
+        // Fila e arquivos da suíte: token fixo e disco temporário.
+        TOKEN_JOBS: "token-jobs-e2e",
+        DADOS_LOCAIS_DIR: path.join(os.tmpdir(), "contafacil-e2e-arquivos"),
       },
       url: `http://localhost:${API_PORT}/api/healthz`,
       reuseExistingServer: !process.env.CI,

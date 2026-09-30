@@ -21,6 +21,11 @@ import type {
 
 import type {
   AbrirCompetenciaInput,
+  Arquivo,
+  ArquivoCriado,
+  ArquivoInput,
+  Aviso,
+  AvisoInput,
   ChecklistItem,
   Cliente,
   ClienteInput,
@@ -42,6 +47,7 @@ import type {
   DespesaPatch,
   EtapaInput,
   EtapaPatch,
+  ExecutarJobsInput,
   FeriasInput,
   FeriasPatch,
   FichaFuncionario,
@@ -49,14 +55,18 @@ import type {
   FuncionarioInput,
   FuncionarioPatch,
   HealthStatus,
+  Job,
   LancamentoFolha,
   LancamentoFolhaInput,
   LancamentoFolhaPatch,
+  ListarArquivosParams,
+  ListarAvisosParams,
   ListarDebitosParams,
   ListarDespesasParams,
   ListarFeriasParams,
   ListarFolhaParams,
   ListarFuncionariosParams,
+  ListarJobsParams,
   ListarProcessosParams,
   Pagamento,
   PagamentoInput,
@@ -70,6 +80,7 @@ import type {
   ProcessoEtapa,
   ProcessoInput,
   RedefinirSenhaInput,
+  ResultadoJobs,
   ResultadoSincronizacao,
   ResultadoVinculo,
   SegredosCliente,
@@ -79,6 +90,7 @@ import type {
   TipoObrigacao,
   TipoObrigacaoInput,
   TrocarSenhaInput,
+  UrlDownload,
   Usuario,
   UsuarioInput,
   UsuarioPatch,
@@ -5306,5 +5318,902 @@ export const useRedefinirSenhaUsuario = <TError = ErrorType<void>,
         TContext
       > => {
       return useMutation(getRedefinirSenhaUsuarioMutationOptions(options));
+    }
+
+export const getListarArquivosUrl = (params: ListarArquivosParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/arquivos?${stringifiedParams}` : `/api/arquivos`
+}
+
+/**
+ * @summary Arquivos confirmados de uma entidade
+ */
+export const listarArquivos = async (params: ListarArquivosParams, options?: RequestInit): Promise<Arquivo[]> => {
+
+  return customFetch<Arquivo[]>(getListarArquivosUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListarArquivosQueryKey = (params?: ListarArquivosParams,) => {
+    return [
+    `/api/arquivos`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListarArquivosQueryOptions = <TData = Awaited<ReturnType<typeof listarArquivos>>, TError = ErrorType<unknown>>(params: ListarArquivosParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listarArquivos>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListarArquivosQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listarArquivos>>> = ({ signal }) => listarArquivos(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listarArquivos>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListarArquivosQueryResult = NonNullable<Awaited<ReturnType<typeof listarArquivos>>>
+export type ListarArquivosQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Arquivos confirmados de uma entidade
+ */
+
+export function useListarArquivos<TData = Awaited<ReturnType<typeof listarArquivos>>, TError = ErrorType<unknown>>(
+ params: ListarArquivosParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listarArquivos>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListarArquivosQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCriarArquivoUrl = () => {
+
+
+
+
+  return `/api/arquivos`
+}
+
+/**
+ * @summary Registra um arquivo e devolve para onde subir o conteúdo
+ */
+export const criarArquivo = async (arquivoInput: ArquivoInput, options?: RequestInit): Promise<ArquivoCriado> => {
+
+  return customFetch<ArquivoCriado>(getCriarArquivoUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(arquivoInput)
+  }
+);}
+
+
+
+
+export const getCriarArquivoMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof criarArquivo>>, TError,{data: BodyType<ArquivoInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof criarArquivo>>, TError,{data: BodyType<ArquivoInput>}, TContext> => {
+
+const mutationKey = ['criarArquivo'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof criarArquivo>>, {data: BodyType<ArquivoInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  criarArquivo(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CriarArquivoMutationResult = NonNullable<Awaited<ReturnType<typeof criarArquivo>>>
+    export type CriarArquivoMutationBody = BodyType<ArquivoInput>
+    export type CriarArquivoMutationError = ErrorType<void>
+
+    /**
+ * @summary Registra um arquivo e devolve para onde subir o conteúdo
+ */
+export const useCriarArquivo = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof criarArquivo>>, TError,{data: BodyType<ArquivoInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof criarArquivo>>,
+        TError,
+        {data: BodyType<ArquivoInput>},
+        TContext
+      > => {
+      return useMutation(getCriarArquivoMutationOptions(options));
+    }
+
+export const getEnviarConteudoArquivoUrl = (id: number,) => {
+
+
+
+
+  return `/api/arquivos/${id}/conteudo`
+}
+
+/**
+ * @summary Sobe o conteúdo pela API (quando não há URL assinada)
+ */
+export const enviarConteudoArquivo = async (id: number,
+    enviarConteudoArquivoBody: Blob, options?: RequestInit): Promise<Arquivo> => {
+
+  return customFetch<Arquivo>(getEnviarConteudoArquivoUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/octet-stream', ...options?.headers },
+    body: enviarConteudoArquivoBody
+  }
+);}
+
+
+
+
+export const getEnviarConteudoArquivoMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof enviarConteudoArquivo>>, TError,{id: number;data: BodyType<Blob>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof enviarConteudoArquivo>>, TError,{id: number;data: BodyType<Blob>}, TContext> => {
+
+const mutationKey = ['enviarConteudoArquivo'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof enviarConteudoArquivo>>, {id: number;data: BodyType<Blob>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  enviarConteudoArquivo(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type EnviarConteudoArquivoMutationResult = NonNullable<Awaited<ReturnType<typeof enviarConteudoArquivo>>>
+    export type EnviarConteudoArquivoMutationBody = BodyType<Blob>
+    export type EnviarConteudoArquivoMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Sobe o conteúdo pela API (quando não há URL assinada)
+ */
+export const useEnviarConteudoArquivo = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof enviarConteudoArquivo>>, TError,{id: number;data: BodyType<Blob>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof enviarConteudoArquivo>>,
+        TError,
+        {id: number;data: BodyType<Blob>},
+        TContext
+      > => {
+      return useMutation(getEnviarConteudoArquivoMutationOptions(options));
+    }
+
+export const getBaixarConteudoArquivoUrl = (id: number,) => {
+
+
+
+
+  return `/api/arquivos/${id}/conteudo`
+}
+
+/**
+ * @summary Baixa o conteúdo pela API (quando não há URL assinada)
+ */
+export const baixarConteudoArquivo = async (id: number, options?: RequestInit): Promise<Blob> => {
+
+  return customFetch<Blob>(getBaixarConteudoArquivoUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getBaixarConteudoArquivoQueryKey = (id: number,) => {
+    return [
+    `/api/arquivos/${id}/conteudo`
+    ] as const;
+    }
+
+
+export const getBaixarConteudoArquivoQueryOptions = <TData = Awaited<ReturnType<typeof baixarConteudoArquivo>>, TError = ErrorType<unknown>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof baixarConteudoArquivo>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getBaixarConteudoArquivoQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof baixarConteudoArquivo>>> = ({ signal }) => baixarConteudoArquivo(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof baixarConteudoArquivo>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type BaixarConteudoArquivoQueryResult = NonNullable<Awaited<ReturnType<typeof baixarConteudoArquivo>>>
+export type BaixarConteudoArquivoQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Baixa o conteúdo pela API (quando não há URL assinada)
+ */
+
+export function useBaixarConteudoArquivo<TData = Awaited<ReturnType<typeof baixarConteudoArquivo>>, TError = ErrorType<unknown>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof baixarConteudoArquivo>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getBaixarConteudoArquivoQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getConfirmarArquivoUrl = (id: number,) => {
+
+
+
+
+  return `/api/arquivos/${id}/confirmar`
+}
+
+/**
+ * @summary Confirma que o upload direto (URL assinada) terminou
+ */
+export const confirmarArquivo = async (id: number, options?: RequestInit): Promise<Arquivo> => {
+
+  return customFetch<Arquivo>(getConfirmarArquivoUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getConfirmarArquivoMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmarArquivo>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof confirmarArquivo>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['confirmarArquivo'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof confirmarArquivo>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  confirmarArquivo(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ConfirmarArquivoMutationResult = NonNullable<Awaited<ReturnType<typeof confirmarArquivo>>>
+
+    export type ConfirmarArquivoMutationError = ErrorType<void>
+
+    /**
+ * @summary Confirma que o upload direto (URL assinada) terminou
+ */
+export const useConfirmarArquivo = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmarArquivo>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof confirmarArquivo>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getConfirmarArquivoMutationOptions(options));
+    }
+
+export const getGetUrlDownloadArquivoUrl = (id: number,) => {
+
+
+
+
+  return `/api/arquivos/${id}/download-url`
+}
+
+/**
+ * @summary URL para baixar o arquivo (assinada, ou a rota da API)
+ */
+export const getUrlDownloadArquivo = async (id: number, options?: RequestInit): Promise<UrlDownload> => {
+
+  return customFetch<UrlDownload>(getGetUrlDownloadArquivoUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetUrlDownloadArquivoQueryKey = (id: number,) => {
+    return [
+    `/api/arquivos/${id}/download-url`
+    ] as const;
+    }
+
+
+export const getGetUrlDownloadArquivoQueryOptions = <TData = Awaited<ReturnType<typeof getUrlDownloadArquivo>>, TError = ErrorType<unknown>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getUrlDownloadArquivo>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetUrlDownloadArquivoQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getUrlDownloadArquivo>>> = ({ signal }) => getUrlDownloadArquivo(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getUrlDownloadArquivo>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetUrlDownloadArquivoQueryResult = NonNullable<Awaited<ReturnType<typeof getUrlDownloadArquivo>>>
+export type GetUrlDownloadArquivoQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary URL para baixar o arquivo (assinada, ou a rota da API)
+ */
+
+export function useGetUrlDownloadArquivo<TData = Awaited<ReturnType<typeof getUrlDownloadArquivo>>, TError = ErrorType<unknown>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getUrlDownloadArquivo>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetUrlDownloadArquivoQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getRemoverArquivoUrl = (id: number,) => {
+
+
+
+
+  return `/api/arquivos/${id}`
+}
+
+/**
+ * @summary Remove o arquivo do armazenamento e do registro
+ */
+export const removerArquivo = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getRemoverArquivoUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getRemoverArquivoMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removerArquivo>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof removerArquivo>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['removerArquivo'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof removerArquivo>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  removerArquivo(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RemoverArquivoMutationResult = NonNullable<Awaited<ReturnType<typeof removerArquivo>>>
+
+    export type RemoverArquivoMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Remove o arquivo do armazenamento e do registro
+ */
+export const useRemoverArquivo = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removerArquivo>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof removerArquivo>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getRemoverArquivoMutationOptions(options));
+    }
+
+export const getListarAvisosUrl = (params?: ListarAvisosParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/avisos?${stringifiedParams}` : `/api/avisos`
+}
+
+/**
+ * @summary Avisos da conta, mais recentes primeiro
+ */
+export const listarAvisos = async (params?: ListarAvisosParams, options?: RequestInit): Promise<Aviso[]> => {
+
+  return customFetch<Aviso[]>(getListarAvisosUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListarAvisosQueryKey = (params?: ListarAvisosParams,) => {
+    return [
+    `/api/avisos`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListarAvisosQueryOptions = <TData = Awaited<ReturnType<typeof listarAvisos>>, TError = ErrorType<unknown>>(params?: ListarAvisosParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listarAvisos>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListarAvisosQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listarAvisos>>> = ({ signal }) => listarAvisos(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listarAvisos>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListarAvisosQueryResult = NonNullable<Awaited<ReturnType<typeof listarAvisos>>>
+export type ListarAvisosQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Avisos da conta, mais recentes primeiro
+ */
+
+export function useListarAvisos<TData = Awaited<ReturnType<typeof listarAvisos>>, TError = ErrorType<unknown>>(
+ params?: ListarAvisosParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listarAvisos>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListarAvisosQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCriarAvisoUrl = () => {
+
+
+
+
+  return `/api/avisos`
+}
+
+/**
+ * @summary Envia um aviso avulso ao cliente (fica na fila até o worker rodar)
+ */
+export const criarAviso = async (avisoInput: AvisoInput, options?: RequestInit): Promise<Aviso> => {
+
+  return customFetch<Aviso>(getCriarAvisoUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(avisoInput)
+  }
+);}
+
+
+
+
+export const getCriarAvisoMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof criarAviso>>, TError,{data: BodyType<AvisoInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof criarAviso>>, TError,{data: BodyType<AvisoInput>}, TContext> => {
+
+const mutationKey = ['criarAviso'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof criarAviso>>, {data: BodyType<AvisoInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  criarAviso(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CriarAvisoMutationResult = NonNullable<Awaited<ReturnType<typeof criarAviso>>>
+    export type CriarAvisoMutationBody = BodyType<AvisoInput>
+    export type CriarAvisoMutationError = ErrorType<void>
+
+    /**
+ * @summary Envia um aviso avulso ao cliente (fica na fila até o worker rodar)
+ */
+export const useCriarAviso = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof criarAviso>>, TError,{data: BodyType<AvisoInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof criarAviso>>,
+        TError,
+        {data: BodyType<AvisoInput>},
+        TContext
+      > => {
+      return useMutation(getCriarAvisoMutationOptions(options));
+    }
+
+export const getReenviarAvisoUrl = (id: number,) => {
+
+
+
+
+  return `/api/avisos/${id}/reenviar`
+}
+
+/**
+ * @summary Põe um aviso que falhou de volta na fila
+ */
+export const reenviarAviso = async (id: number, options?: RequestInit): Promise<Aviso> => {
+
+  return customFetch<Aviso>(getReenviarAvisoUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getReenviarAvisoMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reenviarAviso>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reenviarAviso>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['reenviarAviso'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reenviarAviso>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  reenviarAviso(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReenviarAvisoMutationResult = NonNullable<Awaited<ReturnType<typeof reenviarAviso>>>
+
+    export type ReenviarAvisoMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Põe um aviso que falhou de volta na fila
+ */
+export const useReenviarAviso = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reenviarAviso>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof reenviarAviso>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getReenviarAvisoMutationOptions(options));
+    }
+
+export const getListarJobsUrl = (params?: ListarJobsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/jobs?${stringifiedParams}` : `/api/jobs`
+}
+
+/**
+ * @summary Últimas tarefas da fila (só admin)
+ */
+export const listarJobs = async (params?: ListarJobsParams, options?: RequestInit): Promise<Job[]> => {
+
+  return customFetch<Job[]>(getListarJobsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListarJobsQueryKey = (params?: ListarJobsParams,) => {
+    return [
+    `/api/jobs`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListarJobsQueryOptions = <TData = Awaited<ReturnType<typeof listarJobs>>, TError = ErrorType<unknown>>(params?: ListarJobsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listarJobs>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListarJobsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listarJobs>>> = ({ signal }) => listarJobs(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listarJobs>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListarJobsQueryResult = NonNullable<Awaited<ReturnType<typeof listarJobs>>>
+export type ListarJobsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Últimas tarefas da fila (só admin)
+ */
+
+export function useListarJobs<TData = Awaited<ReturnType<typeof listarJobs>>, TError = ErrorType<unknown>>(
+ params?: ListarJobsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listarJobs>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListarJobsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getExecutarJobsUrl = () => {
+
+
+
+
+  return `/api/jobs/executar`
+}
+
+/**
+ * @summary Processa a fila por até alguns minutos (gatilho do agendador externo)
+ */
+export const executarJobs = async (executarJobsInput?: ExecutarJobsInput, options?: RequestInit): Promise<ResultadoJobs> => {
+
+  return customFetch<ResultadoJobs>(getExecutarJobsUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(executarJobsInput)
+  }
+);}
+
+
+
+
+export const getExecutarJobsMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof executarJobs>>, TError,{data?: BodyType<ExecutarJobsInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof executarJobs>>, TError,{data?: BodyType<ExecutarJobsInput>}, TContext> => {
+
+const mutationKey = ['executarJobs'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof executarJobs>>, {data?: BodyType<ExecutarJobsInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  executarJobs(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ExecutarJobsMutationResult = NonNullable<Awaited<ReturnType<typeof executarJobs>>>
+    export type ExecutarJobsMutationBody = BodyType<ExecutarJobsInput> | undefined
+    export type ExecutarJobsMutationError = ErrorType<void>
+
+    /**
+ * @summary Processa a fila por até alguns minutos (gatilho do agendador externo)
+ */
+export const useExecutarJobs = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof executarJobs>>, TError,{data?: BodyType<ExecutarJobsInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof executarJobs>>,
+        TError,
+        {data?: BodyType<ExecutarJobsInput>},
+        TContext
+      > => {
+      return useMutation(getExecutarJobsMutationOptions(options));
     }
 

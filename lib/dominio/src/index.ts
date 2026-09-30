@@ -7,3 +7,4 @@ export * from "./folha";
 export * from "./documentos";
 export * from "./enums";
 export * from "./csv";
+export * from "./modelos";

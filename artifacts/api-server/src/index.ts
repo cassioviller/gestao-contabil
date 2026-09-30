@@ -2,6 +2,9 @@ import { garantirBanco, pool } from "@workspace/db";
 import app from "./app";
 import { logger } from "./lib/logger";
 import { limparSessoesVencidas } from "./lib/sessao";
+import { iniciarLacoInterno } from "./servicos/jobs";
+// Registra os manipuladores da fila (efeito colateral do import).
+import "./servicos/jobs-registro";
 
 const rawPort = process.env["PORT"];
 
@@ -37,6 +40,10 @@ const server = app.listen(port, (err) => {
 
   logger.info({ port }, "Server listening");
 });
+
+// Só onde há processo permanente (JOBS_INTERVALO_S > 0); no autoscale a fila
+// é disparada por POST /api/jobs/executar.
+iniciarLacoInterno();
 
 /**
  * Parada limpa: para de aceitar conexões, termina as requisições em andamento
