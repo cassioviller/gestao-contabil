@@ -19,3 +19,4 @@ dados-locais
 *.nix
 .replit
 .migration-backup
+artifacts/mockup-sandbox/src/.generated
