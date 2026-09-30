@@ -43,3 +43,26 @@ export interface Mensageiro {
   enviarEmail(m: Email): Promise<{ id: string }>;
   enviarWhatsapp(m: MensagemWhatsapp): Promise<{ id: string }>;
 }
+
+export type NovaCobranca = {
+  clienteExternoId: string;
+  /** Decimal com ponto ("350.00"). */
+  valor: string;
+  /** AAAA-MM-DD */
+  vencimento: string;
+  descricao: string;
+  /** Referência nossa, para casar o retorno (ex.: `pagamento:123`). */
+  referencia: string;
+};
+
+export interface Cobrador {
+  readonly nome: string;
+  garantirCliente(c: {
+    nome: string;
+    cnpj: string;
+    email?: string | null;
+    telefone?: string | null;
+  }): Promise<{ id: string }>;
+  criarCobranca(c: NovaCobranca): Promise<{ id: string; link: string; qrPix: string | null }>;
+  cancelar(id: string): Promise<void>;
+}

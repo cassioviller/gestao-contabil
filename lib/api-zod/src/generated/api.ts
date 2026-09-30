@@ -829,6 +829,7 @@ export const ListarProcessosResponseItem = zod.object({
   "prazo": zod.string().date().nullish(),
   "concluidoEm": zod.string().nullish(),
   "observacao": zod.string().nullish(),
+  "origem": zod.string(),
   "totalEtapas": zod.number(),
   "etapasFeitas": zod.number()
 })
@@ -867,6 +868,7 @@ export const SalvarProcessoResponse = zod.object({
   "prazo": zod.string().date().nullish(),
   "concluidoEm": zod.string().nullish(),
   "observacao": zod.string().nullish(),
+  "origem": zod.string(),
   "totalEtapas": zod.number(),
   "etapasFeitas": zod.number()
 })
@@ -900,6 +902,7 @@ export const GetProcessoResponse = zod.object({
   "prazo": zod.string().date().nullish(),
   "concluidoEm": zod.string().nullish(),
   "observacao": zod.string().nullish(),
+  "origem": zod.string(),
   "totalEtapas": zod.number(),
   "etapasFeitas": zod.number()
 }).and(zod.object({
@@ -1204,7 +1207,10 @@ export const ListarPagamentosResponseItem = zod.object({
   "observacao": zod.string().nullish(),
   "clienteId": zod.number(),
   "codigo": zod.number().min(listarPagamentosResponseCodigoMin).nullish(),
-  "cliente": zod.string()
+  "cliente": zod.string(),
+  "cobrancaExternaId": zod.string().nullable(),
+  "linkPagamento": zod.string().nullable(),
+  "qrPix": zod.string().nullable()
 })
 export const ListarPagamentosResponse = zod.array(ListarPagamentosResponseItem)
 
@@ -1444,7 +1450,10 @@ export const AtualizarPagamentoResponse = zod.object({
   "observacao": zod.string().nullish(),
   "clienteId": zod.number(),
   "codigo": zod.number().min(atualizarPagamentoResponseCodigoMin).nullish(),
-  "cliente": zod.string()
+  "cliente": zod.string(),
+  "cobrancaExternaId": zod.string().nullable(),
+  "linkPagamento": zod.string().nullable(),
+  "qrPix": zod.string().nullable()
 })
 
 
@@ -1483,6 +1492,7 @@ export const ListarPendenciasResponse = zod.object({
   "obrigacao": zod.string()
 })),
   "inadimplentes": zod.array(zod.object({
+  "linkPagamento": zod.string().nullish(),
   "id": zod.number(),
   "competenciaId": zod.number(),
   "ano": zod.number().min(listarPendenciasResponseInadimplentesItemAnoMin).max(listarPendenciasResponseInadimplentesItemAnoMax),
@@ -2771,6 +2781,495 @@ export const ExecutarJobsResponse = zod.object({
   "executados": zod.number(),
   "falhas": zod.number(),
   "restantes": zod.number()
+})
+
+
+/**
+ * @summary Pede um link de acesso por e-mail (sempre 204, para não revelar cadastros)
+ */
+export const portalEntrarBodyEmailMax = 200;
+
+
+
+export const PortalEntrarBody = zod.object({
+  "email": zod.string().email().max(portalEntrarBodyEmailMax)
+})
+
+export const PortalEntrarResponse = zod.void()
+
+
+/**
+ * @summary Abre a sessão do cliente a partir do link e redireciona ao portal
+ */
+export const portalAcessoPathTokenMin = 20;
+export const portalAcessoPathTokenMax = 100;
+
+
+
+export const PortalAcessoParams = zod.object({
+  "token": zod.coerce.string().min(portalAcessoPathTokenMin).max(portalAcessoPathTokenMax)
+})
+
+export const PortalAcessoResponse = zod.void()
+
+
+/**
+ * @summary Quem é o cliente logado no portal
+ */
+export const GetPortalSessaoResponse = zod.object({
+  "clienteId": zod.number(),
+  "razaoSocial": zod.string(),
+  "escritorio": zod.string(),
+  "email": zod.string(),
+  "cnpj": zod.string().nullable()
+})
+
+
+/**
+ * @summary Encerra a sessão do portal
+ */
+export const PortalSairResponse = zod.void()
+
+
+/**
+ * @summary Guias emitidas ou enviadas ao cliente, com os arquivos
+ */
+export const ListarPortalGuiasResponseItem = zod.object({
+  "id": zod.number(),
+  "obrigacao": zod.string(),
+  "ano": zod.number(),
+  "mes": zod.number(),
+  "vencimento": zod.string().date().nullable(),
+  "status": zod.enum(['pendente', 'emitido', 'enviado', 'nao_aplica']),
+  "arquivos": zod.array(zod.object({
+  "id": zod.number(),
+  "nome": zod.string(),
+  "tamanho": zod.number()
+})),
+  "enviadoEm": zod.string().datetime({"offset":true}).nullable(),
+  "cienteEm": zod.string().datetime({"offset":true}).nullable()
+})
+export const ListarPortalGuiasResponse = zod.array(ListarPortalGuiasResponseItem)
+
+
+/**
+ * @summary O cliente confirma que recebeu a guia (gera protocolo)
+ */
+
+
+
+export const DarCientePortalParams = zod.object({
+  "id": zod.coerce.number().min(1)
+})
+
+export const DarCientePortalResponse = zod.object({
+  "id": zod.number(),
+  "obrigacao": zod.string(),
+  "ano": zod.number(),
+  "mes": zod.number(),
+  "vencimento": zod.string().date().nullable(),
+  "status": zod.enum(['pendente', 'emitido', 'enviado', 'nao_aplica']),
+  "arquivos": zod.array(zod.object({
+  "id": zod.number(),
+  "nome": zod.string(),
+  "tamanho": zod.number()
+})),
+  "enviadoEm": zod.string().datetime({"offset":true}).nullable(),
+  "cienteEm": zod.string().datetime({"offset":true}).nullable()
+})
+
+
+/**
+ * @summary URL para o cliente baixar um arquivo dele
+ */
+
+
+
+export const GetUrlDownloadPortalParams = zod.object({
+  "id": zod.coerce.number().min(1)
+})
+
+export const GetUrlDownloadPortalResponse = zod.object({
+  "url": zod.string(),
+  "expiraEm": zod.string().datetime({"offset":true}).nullable()
+})
+
+
+/**
+ * @summary Download pela API (armazenamento local)
+ */
+
+
+
+export const BaixarConteudoPortalParams = zod.object({
+  "id": zod.coerce.number().min(1)
+})
+
+export const BaixarConteudoPortalResponse = zod.unknown()
+
+
+/**
+ * @summary Upload pela API de um arquivo registrado pelo portal
+ */
+
+
+
+export const EnviarConteudoPortalParams = zod.object({
+  "id": zod.coerce.number().min(1)
+})
+
+export const enviarConteudoPortalResponseNomeMax = 200;
+
+
+
+export const EnviarConteudoPortalResponse = zod.object({
+  "id": zod.number(),
+  "clienteId": zod.number().nullable(),
+  "entidade": zod.enum(['checklist_item', 'processo', 'pagamento', 'cliente', 'solicitacao']),
+  "entidadeId": zod.number(),
+  "nome": zod.string().min(1).max(enviarConteudoPortalResponseNomeMax),
+  "mime": zod.string(),
+  "tamanho": zod.number(),
+  "sha256": zod.string().nullable(),
+  "origem": zod.string(),
+  "confirmado": zod.boolean(),
+  "criadoEm": zod.string().datetime({"offset":true})
+})
+
+
+/**
+ * @summary Honorários do cliente (últimos 12 meses), com link de pagamento quando houver
+ */
+export const ListarPortalHonorariosResponseItem = zod.object({
+  "id": zod.number(),
+  "ano": zod.number(),
+  "mes": zod.number(),
+  "valor": zod.string().nullable(),
+  "vencimento": zod.string().date().nullable(),
+  "status": zod.enum(['pendente', 'pago', 'isento']),
+  "dataPagamento": zod.string().date().nullable(),
+  "linkPagamento": zod.string().nullable(),
+  "qrPix": zod.string().nullable()
+})
+export const ListarPortalHonorariosResponse = zod.array(ListarPortalHonorariosResponseItem)
+
+
+/**
+ * @summary O que o escritório pediu ao cliente
+ */
+export const ListarPortalSolicitacoesResponseItem = zod.object({
+  "id": zod.number(),
+  "clienteId": zod.number(),
+  "clienteNome": zod.string(),
+  "tipo": zod.string(),
+  "descricao": zod.string(),
+  "prazo": zod.string().date().nullable(),
+  "status": zod.enum(['aberta', 'respondida', 'concluida']),
+  "origem": zod.string(),
+  "resposta": zod.string().nullable(),
+  "respondidaEm": zod.string().datetime({"offset":true}).nullable(),
+  "arquivos": zod.number(),
+  "criadoEm": zod.string().datetime({"offset":true})
+})
+export const ListarPortalSolicitacoesResponse = zod.array(ListarPortalSolicitacoesResponseItem)
+
+
+/**
+ * @summary Registra um arquivo enviado pelo cliente em resposta a uma solicitação
+ */
+
+
+
+export const CriarArquivoPortalParams = zod.object({
+  "id": zod.coerce.number().min(1)
+})
+
+export const criarArquivoPortalBodyNomeMax = 200;
+
+
+
+
+
+export const CriarArquivoPortalBody = zod.object({
+  "nome": zod.string().min(1).max(criarArquivoPortalBodyNomeMax),
+  "mime": zod.string().min(1),
+  "tamanho": zod.number().min(1)
+})
+
+export const criarArquivoPortalResponseArquivoNomeMax = 200;
+
+
+
+export const CriarArquivoPortalResponse = zod.object({
+  "arquivo": zod.object({
+  "id": zod.number(),
+  "clienteId": zod.number().nullable(),
+  "entidade": zod.enum(['checklist_item', 'processo', 'pagamento', 'cliente', 'solicitacao']),
+  "entidadeId": zod.number(),
+  "nome": zod.string().min(1).max(criarArquivoPortalResponseArquivoNomeMax),
+  "mime": zod.string(),
+  "tamanho": zod.number(),
+  "sha256": zod.string().nullable(),
+  "origem": zod.string(),
+  "confirmado": zod.boolean(),
+  "criadoEm": zod.string().datetime({"offset":true})
+}),
+  "upload": zod.object({
+  "url": zod.string(),
+  "metodo": zod.enum(['PUT']),
+  "cabecalhos": zod.record(zod.string(), zod.string()).optional(),
+  "expiraEm": zod.string().datetime({"offset":true})
+}).nullable(),
+  "urlConteudo": zod.string()
+})
+
+
+/**
+ * @summary Resposta em texto do cliente a uma solicitação
+ */
+
+
+
+export const ResponderSolicitacaoPortalParams = zod.object({
+  "id": zod.coerce.number().min(1)
+})
+
+export const responderSolicitacaoPortalBodyRespostaMax = 5000;
+
+
+
+export const ResponderSolicitacaoPortalBody = zod.object({
+  "resposta": zod.string().min(1).max(responderSolicitacaoPortalBodyRespostaMax)
+})
+
+export const ResponderSolicitacaoPortalResponse = zod.object({
+  "id": zod.number(),
+  "clienteId": zod.number(),
+  "clienteNome": zod.string(),
+  "tipo": zod.string(),
+  "descricao": zod.string(),
+  "prazo": zod.string().date().nullable(),
+  "status": zod.enum(['aberta', 'respondida', 'concluida']),
+  "origem": zod.string(),
+  "resposta": zod.string().nullable(),
+  "respondidaEm": zod.string().datetime({"offset":true}).nullable(),
+  "arquivos": zod.number(),
+  "criadoEm": zod.string().datetime({"offset":true})
+})
+
+
+/**
+ * @summary Pedidos do cliente ao escritório (categoria pedido)
+ */
+export const ListarPortalPedidosResponseItem = zod.object({
+  "id": zod.number(),
+  "clienteId": zod.number(),
+  "clienteNome": zod.string(),
+  "tipo": zod.string(),
+  "categoria": zod.enum(['processo', 'pedido']).optional(),
+  "titulo": zod.string().nullish(),
+  "status": zod.enum(['aberto', 'em_andamento', 'concluido', 'cancelado']),
+  "orgao": zod.string().nullish(),
+  "protocolo": zod.string().nullish(),
+  "abertoEm": zod.string().nullish(),
+  "prazo": zod.string().date().nullish(),
+  "concluidoEm": zod.string().nullish(),
+  "observacao": zod.string().nullish(),
+  "origem": zod.string(),
+  "totalEtapas": zod.number(),
+  "etapasFeitas": zod.number()
+})
+export const ListarPortalPedidosResponse = zod.array(ListarPortalPedidosResponseItem)
+
+
+/**
+ * @summary O cliente abre um pedido ao escritório
+ */
+export const criarPortalPedidoBodyTipoMax = 200;
+
+export const criarPortalPedidoBodyObservacaoMax = 5000;
+
+
+
+export const CriarPortalPedidoBody = zod.object({
+  "tipo": zod.string().min(1).max(criarPortalPedidoBodyTipoMax),
+  "observacao": zod.string().max(criarPortalPedidoBodyObservacaoMax).nullish()
+})
+
+export const CriarPortalPedidoResponse = zod.object({
+  "id": zod.number(),
+  "clienteId": zod.number(),
+  "clienteNome": zod.string(),
+  "tipo": zod.string(),
+  "categoria": zod.enum(['processo', 'pedido']).optional(),
+  "titulo": zod.string().nullish(),
+  "status": zod.enum(['aberto', 'em_andamento', 'concluido', 'cancelado']),
+  "orgao": zod.string().nullish(),
+  "protocolo": zod.string().nullish(),
+  "abertoEm": zod.string().nullish(),
+  "prazo": zod.string().date().nullish(),
+  "concluidoEm": zod.string().nullish(),
+  "observacao": zod.string().nullish(),
+  "origem": zod.string(),
+  "totalEtapas": zod.number(),
+  "etapasFeitas": zod.number()
+})
+
+
+/**
+ * @summary Solicitações feitas aos clientes
+ */
+
+
+
+export const ListarSolicitacoesQueryParams = zod.object({
+  "clienteId": zod.coerce.number().min(1).optional(),
+  "status": zod.enum(['aberta', 'respondida', 'concluida']).optional()
+})
+
+export const ListarSolicitacoesResponseItem = zod.object({
+  "id": zod.number(),
+  "clienteId": zod.number(),
+  "clienteNome": zod.string(),
+  "tipo": zod.string(),
+  "descricao": zod.string(),
+  "prazo": zod.string().date().nullable(),
+  "status": zod.enum(['aberta', 'respondida', 'concluida']),
+  "origem": zod.string(),
+  "resposta": zod.string().nullable(),
+  "respondidaEm": zod.string().datetime({"offset":true}).nullable(),
+  "arquivos": zod.number(),
+  "criadoEm": zod.string().datetime({"offset":true})
+})
+export const ListarSolicitacoesResponse = zod.array(ListarSolicitacoesResponseItem)
+
+
+/**
+ * @summary Pede um documento ou informação ao cliente (avisa por e-mail se houver)
+ */
+
+export const criarSolicitacaoBodyDescricaoMax = 2000;
+
+
+
+export const CriarSolicitacaoBody = zod.object({
+  "clienteId": zod.number().min(1),
+  "tipo": zod.enum(['documento', 'informacao']).optional(),
+  "descricao": zod.string().min(1).max(criarSolicitacaoBodyDescricaoMax),
+  "prazo": zod.string().date().nullish()
+})
+
+export const CriarSolicitacaoResponse = zod.object({
+  "id": zod.number(),
+  "clienteId": zod.number(),
+  "clienteNome": zod.string(),
+  "tipo": zod.string(),
+  "descricao": zod.string(),
+  "prazo": zod.string().date().nullable(),
+  "status": zod.enum(['aberta', 'respondida', 'concluida']),
+  "origem": zod.string(),
+  "resposta": zod.string().nullable(),
+  "respondidaEm": zod.string().datetime({"offset":true}).nullable(),
+  "arquivos": zod.number(),
+  "criadoEm": zod.string().datetime({"offset":true})
+})
+
+
+/**
+ * @summary Altera situação, descrição ou prazo de uma solicitação
+ */
+
+
+
+export const AtualizarSolicitacaoParams = zod.object({
+  "id": zod.coerce.number().min(1)
+})
+
+export const atualizarSolicitacaoBodyDescricaoMax = 2000;
+
+
+
+export const AtualizarSolicitacaoBody = zod.object({
+  "status": zod.enum(['aberta', 'respondida', 'concluida']).optional(),
+  "descricao": zod.string().min(1).max(atualizarSolicitacaoBodyDescricaoMax).optional(),
+  "prazo": zod.string().date().nullish()
+})
+
+export const AtualizarSolicitacaoResponse = zod.object({
+  "id": zod.number(),
+  "clienteId": zod.number(),
+  "clienteNome": zod.string(),
+  "tipo": zod.string(),
+  "descricao": zod.string(),
+  "prazo": zod.string().date().nullable(),
+  "status": zod.enum(['aberta', 'respondida', 'concluida']),
+  "origem": zod.string(),
+  "resposta": zod.string().nullable(),
+  "respondidaEm": zod.string().datetime({"offset":true}).nullable(),
+  "arquivos": zod.number(),
+  "criadoEm": zod.string().datetime({"offset":true})
+})
+
+
+/**
+ * @summary Gera um link de acesso ao portal para entregar ao cliente por outro meio
+ */
+
+
+
+export const GerarLinkPortalParams = zod.object({
+  "id": zod.coerce.number().min(1)
+})
+
+export const GerarLinkPortalResponse = zod.object({
+  "link": zod.string(),
+  "expiraEm": zod.string().datetime({"offset":true})
+})
+
+
+/**
+ * @summary Gera a cobrança no provedor (link e Pix) para o honorário
+ */
+
+
+
+export const CobrarPagamentoParams = zod.object({
+  "id": zod.coerce.number().min(1)
+})
+
+export const cobrarPagamentoResponseValorRegExp = new RegExp('^-?\\d+(\\.\\d{1,2})?$');
+export const cobrarPagamentoResponseCodigoMin = 0;
+
+
+
+export const CobrarPagamentoResponse = zod.object({
+  "id": zod.number(),
+  "status": zod.enum(['pendente', 'pago', 'isento']),
+  "valor": zod.string().regex(cobrarPagamentoResponseValorRegExp).nullish(),
+  "dataPagamento": zod.string().date().nullish(),
+  "vencimento": zod.string().date().nullish(),
+  "forma": zod.string().nullish(),
+  "observacao": zod.string().nullish(),
+  "clienteId": zod.number(),
+  "codigo": zod.number().min(cobrarPagamentoResponseCodigoMin).nullish(),
+  "cliente": zod.string(),
+  "cobrancaExternaId": zod.string().nullable(),
+  "linkPagamento": zod.string().nullable(),
+  "qrPix": zod.string().nullable()
+})
+
+
+/**
+ * @summary Retorno do Asaas (baixa automática do honorário)
+ */
+export const WebhookAsaasBody = zod.object({
+  "id": zod.string().optional(),
+  "event": zod.string().optional()
+})
+
+export const WebhookAsaasResponse = zod.object({
+  "ok": zod.boolean(),
+  "duplicado": zod.boolean().optional()
 })
 
 

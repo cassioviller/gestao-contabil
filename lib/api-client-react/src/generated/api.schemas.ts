@@ -219,6 +219,180 @@ export interface ResultadoJobs {
   restantes: number;
 }
 
+export interface PortalEntradaInput {
+  /** @maxLength 200 */
+  email: string;
+}
+
+export interface PortalSessao {
+  clienteId: number;
+  razaoSocial: string;
+  escritorio: string;
+  email: string;
+  /** @nullable */
+  cnpj: string | null;
+}
+
+export type PortalGuiaStatus = typeof PortalGuiaStatus[keyof typeof PortalGuiaStatus];
+
+
+export const PortalGuiaStatus = {
+  pendente: 'pendente',
+  emitido: 'emitido',
+  enviado: 'enviado',
+  nao_aplica: 'nao_aplica',
+} as const;
+
+export type PortalGuiaArquivosItem = {
+  id: number;
+  nome: string;
+  tamanho: number;
+};
+
+export interface PortalGuia {
+  id: number;
+  obrigacao: string;
+  ano: number;
+  mes: number;
+  /** @nullable */
+  vencimento: string | null;
+  status: PortalGuiaStatus;
+  arquivos: PortalGuiaArquivosItem[];
+  /** @nullable */
+  enviadoEm: string | null;
+  /** @nullable */
+  cienteEm: string | null;
+}
+
+export type PortalHonorarioStatus = typeof PortalHonorarioStatus[keyof typeof PortalHonorarioStatus];
+
+
+export const PortalHonorarioStatus = {
+  pendente: 'pendente',
+  pago: 'pago',
+  isento: 'isento',
+} as const;
+
+export interface PortalHonorario {
+  id: number;
+  ano: number;
+  mes: number;
+  /** @nullable */
+  valor: string | null;
+  /** @nullable */
+  vencimento: string | null;
+  status: PortalHonorarioStatus;
+  /** @nullable */
+  dataPagamento: string | null;
+  /** @nullable */
+  linkPagamento: string | null;
+  /** @nullable */
+  qrPix: string | null;
+}
+
+export interface PortalArquivoInput {
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
+  nome: string;
+  /** @minLength 1 */
+  mime: string;
+  /** @minimum 1 */
+  tamanho: number;
+}
+
+export interface RespostaSolicitacaoInput {
+  /**
+     * @minLength 1
+     * @maxLength 5000
+     */
+  resposta: string;
+}
+
+export interface PortalPedidoInput {
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
+  tipo: string;
+  /**
+     * @maxLength 5000
+     * @nullable
+     */
+  observacao?: string | null;
+}
+
+export type StatusSolicitacao = typeof StatusSolicitacao[keyof typeof StatusSolicitacao];
+
+
+export const StatusSolicitacao = {
+  aberta: 'aberta',
+  respondida: 'respondida',
+  concluida: 'concluida',
+} as const;
+
+export interface Solicitacao {
+  id: number;
+  clienteId: number;
+  clienteNome: string;
+  tipo: string;
+  descricao: string;
+  /** @nullable */
+  prazo: string | null;
+  status: StatusSolicitacao;
+  origem: string;
+  /** @nullable */
+  resposta: string | null;
+  /** @nullable */
+  respondidaEm: string | null;
+  arquivos: number;
+  criadoEm: string;
+}
+
+export type SolicitacaoInputTipo = typeof SolicitacaoInputTipo[keyof typeof SolicitacaoInputTipo];
+
+
+export const SolicitacaoInputTipo = {
+  documento: 'documento',
+  informacao: 'informacao',
+} as const;
+
+export interface SolicitacaoInput {
+  /** @minimum 1 */
+  clienteId: number;
+  tipo?: SolicitacaoInputTipo;
+  /**
+     * @minLength 1
+     * @maxLength 2000
+     */
+  descricao: string;
+  /** @nullable */
+  prazo?: string | null;
+}
+
+export interface SolicitacaoPatch {
+  status?: StatusSolicitacao;
+  /**
+     * @minLength 1
+     * @maxLength 2000
+     */
+  descricao?: string;
+  /** @nullable */
+  prazo?: string | null;
+}
+
+export interface EventoAsaas {
+  id?: string;
+  event?: string;
+  [key: string]: unknown;
+ }
+
+export interface LinkPortal {
+  link: string;
+  expiraEm: string;
+}
+
 export type Papel = typeof Papel[keyof typeof Papel];
 
 
@@ -831,6 +1005,7 @@ export interface Processo {
   concluidoEm?: string | null;
   /** @nullable */
   observacao?: string | null;
+  origem: string;
   totalEtapas: number;
   etapasFeitas: number;
 }
@@ -1089,6 +1264,12 @@ export interface Pagamento {
      */
   codigo?: number | null;
   cliente: string;
+  /** @nullable */
+  cobrancaExternaId: string | null;
+  /** @nullable */
+  linkPagamento: string | null;
+  /** @nullable */
+  qrPix: string | null;
 }
 
 export type PagamentoInputStatus = typeof PagamentoInputStatus[keyof typeof PagamentoInputStatus];
@@ -1153,6 +1334,8 @@ export interface ObrigacaoAtrasada {
 }
 
 export interface Inadimplente {
+  /** @nullable */
+  linkPagamento?: string | null;
   id: number;
   competenciaId: number;
   /**
@@ -1774,5 +1957,18 @@ clienteId?: number;
 
 export type ListarJobsParams = {
 status?: StatusJob;
+};
+
+export type ListarSolicitacoesParams = {
+/**
+ * @minimum 1
+ */
+clienteId?: number;
+status?: StatusSolicitacao;
+};
+
+export type WebhookAsaas200 = {
+  ok: boolean;
+  duplicado?: boolean;
 };
 

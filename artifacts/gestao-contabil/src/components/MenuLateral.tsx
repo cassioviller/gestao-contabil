@@ -10,6 +10,7 @@ const itens: { href: string; rotulo: string; icone: string; somenteAdmin?: boole
   { href: "/senhas", rotulo: "Senhas", icone: "🔑" },
   { href: "/pedidos", rotulo: "Pedidos", icone: "📥" },
   { href: "/processos", rotulo: "Processos", icone: "📁" },
+  { href: "/solicitacoes", rotulo: "Solicitações", icone: "📨" },
   { href: "/competencias", rotulo: "Competências", icone: "📅" },
   { href: "/atrasos", rotulo: "Guias em atraso", icone: "🚨" },
   { href: "/pendencias", rotulo: "Pendências", icone: "⏰" },

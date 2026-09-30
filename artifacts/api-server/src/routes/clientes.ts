@@ -6,6 +6,7 @@ import {
   AtualizarClienteBody,
   AtualizarClienteParams,
   CriarClienteBody,
+  GerarLinkPortalParams,
   GetSegredosClienteParams,
   InativarClienteParams,
   ReativarClienteParams,
@@ -14,6 +15,7 @@ import {
 import { HttpError } from "../lib/http";
 import { auditar } from "../lib/auditoria";
 import { vincularObrigacoesAutomaticas } from "../lib/vinculos";
+import { gerarLinkDeAcesso } from "./portal";
 import { contaDaRequisicao, exigirPapel } from "../middlewares/autenticacao";
 
 const router = Router();
@@ -267,6 +269,21 @@ router.post("/:id/reativar", async (req, res) => {
   if (!c) throw new HttpError(404, "Cliente não encontrado.");
   await auditar(req, { acao: "reativar_cliente", entidade: "cliente", entidadeId: id });
   res.json(await clienteComVinculos(contaId, id));
+});
+
+// POST /api/clientes/:id/link-portal — link de acesso para entregar à mão
+// (cliente sem e-mail, ou que prefere receber pelo WhatsApp).
+router.post("/:id/link-portal", async (req, res) => {
+  const contaId = contaDaRequisicao(req);
+  const { id } = GerarLinkPortalParams.parse(req.params);
+  const [c] = await db
+    .select({ id: clientes.id })
+    .from(clientes)
+    .where(and(eq(clientes.id, id), eq(clientes.contaId, contaId), eq(clientes.ativo, true)));
+  if (!c) throw new HttpError(404, "Cliente não encontrado ou inativo.");
+  const link = await gerarLinkDeAcesso(contaId, id);
+  await auditar(req, { acao: "gerar_link_portal", entidade: "cliente", entidadeId: id });
+  res.json(link);
 });
 
 export default router;

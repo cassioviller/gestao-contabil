@@ -31,6 +31,7 @@ const camposProcesso = {
   prazo: processos.prazo,
   concluidoEm: processos.concluidoEm,
   observacao: processos.observacao,
+  origem: processos.origem,
   totalEtapas: sql<number>`(
     select count(*)::int from ${processoEtapas} where ${processoEtapas.processoId} = ${processos.id}
   )`.as("total_etapas"),

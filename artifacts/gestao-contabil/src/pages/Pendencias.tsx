@@ -237,6 +237,16 @@ export default function Pendencias() {
                   <td className="px-3 py-3 text-red-600">{i.diasAtraso} dia(s)</td>
                   <td className="px-3 py-3 text-xs text-neutral-500">
                     {i.cobradoEm ? `cobrado em ${formatarData(i.cobradoEm)}` : "—"}
+                    {i.linkPagamento && (
+                      <a
+                        href={i.linkPagamento}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="ml-2 text-blue-600 hover:underline"
+                      >
+                        🔗 link
+                      </a>
+                    )}
                   </td>
                   <td className="px-3 py-3 text-right">
                     <div className="flex justify-end gap-3">

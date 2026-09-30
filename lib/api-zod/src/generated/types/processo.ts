@@ -29,6 +29,7 @@ export interface Processo {
   concluidoEm?: string | null;
   /** @nullable */
   observacao?: string | null;
+  origem: string;
   totalEtapas: number;
   etapasFeitas: number;
 }

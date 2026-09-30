@@ -20,6 +20,7 @@ import { aplicaNoMes, calcularVencimento } from "@workspace/dominio";
 import { HttpError } from "../lib/http";
 import { contaDaRequisicao } from "../middlewares/autenticacao";
 import { camposChecklist } from "./checklist";
+import { camposPagamento } from "./pagamentos";
 
 const router = Router();
 
@@ -253,18 +254,7 @@ router.get("/:id/pagamentos", async (req, res) => {
   const contaId = contaDaRequisicao(req);
   const { id } = ListarPagamentosParams.parse(req.params);
   const pgs = await db
-    .select({
-      id: pagamentos.id,
-      status: pagamentos.status,
-      valor: pagamentos.valor,
-      dataPagamento: pagamentos.dataPagamento,
-      vencimento: pagamentos.vencimento,
-      forma: pagamentos.forma,
-      observacao: pagamentos.observacao,
-      clienteId: clientes.id,
-      codigo: clientes.codigo,
-      cliente: clientes.razaoSocial,
-    })
+    .select(camposPagamento)
     .from(pagamentos)
     .innerJoin(clientes, eq(clientes.id, pagamentos.clienteId))
     .where(and(eq(pagamentos.competenciaId, id), eq(pagamentos.contaId, contaId)))

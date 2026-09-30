@@ -1,8 +1,12 @@
-import { Switch, Route, Router as WouterRouter } from "wouter";
+import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
 import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useGetSessaoAtual } from "@workspace/api-client-react";
 import { CHAVE_SESSAO, ehSessao } from "@/lib/sessao";
 import MenuLateral from "@/components/MenuLateral";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import { Toaster } from "@/components/ui/toaster";
+import PortalApp from "@/portal/PortalApp";
+import Solicitacoes from "@/pages/Solicitacoes";
 import Login from "@/pages/Login";
 import Painel from "@/pages/Painel";
 import Clientes from "@/pages/Clientes";
@@ -68,6 +72,7 @@ function Router() {
           <Route path="/usuarios" component={Usuarios} />
           <Route path="/minha-conta" component={MinhaConta} />
           <Route path="/produtividade" component={Produtividade} />
+          <Route path="/solicitacoes" component={Solicitacoes} />
           <Route path="/processos/:id" component={ProcessoDetalhe} />
           {/* Forma com children: o Route do wouter passa props próprias ao
               `component`, que não casam com a prop `categoria`. */}
@@ -108,13 +113,22 @@ function Autenticado() {
   return data ? <Router /> : <Login />;
 }
 
+/** `/portal/*` é a área do cliente, com sessão própria; o resto é o escritório. */
+function Raiz() {
+  const [caminho] = useLocation();
+  return caminho === "/portal" || caminho.startsWith("/portal/") ? <PortalApp /> : <Autenticado />;
+}
+
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-        <Autenticado />
-      </WouterRouter>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+          <Raiz />
+        </WouterRouter>
+        <Toaster />
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 

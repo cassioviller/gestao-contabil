@@ -25,6 +25,9 @@ import avisosRouter from "./avisos";
 import jobsRouter, { executarJobs, exigirTokenJobs } from "./jobs";
 import protocoloRouter from "./protocolo";
 import produtividadeRouter from "./produtividade";
+import portalRouter from "./portal";
+import solicitacoesRouter from "./solicitacoes";
+import webhooksRouter from "./webhooks";
 
 const router: IRouter = Router();
 
@@ -36,6 +39,10 @@ router.use("/auth", authRouter);
 router.post("/jobs/executar", exigirTokenJobs, executarJobs);
 // Link público da guia enviada: quem tem o token é o cliente.
 router.use("/protocolo", protocoloRouter);
+// Portal do cliente: sessão própria (cookie e tabela separados do escritório).
+router.use("/portal", portalRouter);
+// Retornos de provedores, autenticados por token próprio.
+router.use("/webhooks", webhooksRouter);
 
 // A porta. Tudo o que vem depois só roda com sessão válida e enxerga apenas a
 // conta dela — rota nova nasce protegida por estar abaixo desta linha.
@@ -63,5 +70,6 @@ router.use("/arquivos", arquivosRouter);
 router.use("/avisos", avisosRouter);
 router.use("/jobs", jobsRouter);
 router.use("/produtividade", produtividadeRouter);
+router.use("/solicitacoes", solicitacoesRouter);
 
 export default router;

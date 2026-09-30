@@ -64,6 +64,9 @@ export default defineConfig({
         NODE_ENV: "test",
         // Fila e arquivos da suíte: token fixo e disco temporário.
         TOKEN_JOBS: "token-jobs-e2e",
+        ASAAS_WEBHOOK_TOKEN: "token-asaas-e2e",
+        // Links públicos (protocolo, portal) apontam para o front da suíte.
+        URL_PUBLICA: BASE_URL,
         DADOS_LOCAIS_DIR: path.join(os.tmpdir(), "contafacil-e2e-arquivos"),
       },
       url: `http://localhost:${API_PORT}/api/healthz`,

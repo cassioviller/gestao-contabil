@@ -30,4 +30,10 @@ export interface Pagamento {
      */
   codigo?: number | null;
   cliente: string;
+  /** @nullable */
+  cobrancaExternaId: string | null;
+  /** @nullable */
+  linkPagamento: string | null;
+  /** @nullable */
+  qrPix: string | null;
 }

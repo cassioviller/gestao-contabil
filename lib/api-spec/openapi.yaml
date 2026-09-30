@@ -43,6 +43,12 @@ tags:
     description: Fila de tarefas em segundo plano
   - name: produtividade
     description: Produtividade por colaborador e atrasos por cliente
+  - name: portal
+    description: Portal do cliente (sessão própria, só os dados dele)
+  - name: solicitacoes
+    description: Documentos e informações pedidos ao cliente
+  - name: webhooks
+    description: Retornos de provedores externos
 
 paths:
   /auth/entrar:
@@ -1843,6 +1849,424 @@ paths:
           $ref: "#/components/responses/Erro"
 
 
+  /portal/entrar:
+    post:
+      operationId: portalEntrar
+      tags: [portal]
+      summary: Pede um link de acesso por e-mail (sempre 204, para não revelar cadastros)
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PortalEntradaInput"
+      responses:
+        "204":
+          description: Se o e-mail estiver cadastrado, o link foi enviado
+
+  /portal/acesso/{token}:
+    get:
+      operationId: portalAcesso
+      tags: [portal]
+      summary: Abre a sessão do cliente a partir do link e redireciona ao portal
+      security: []
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 20
+            maxLength: 100
+      responses:
+        "302":
+          description: Sessão aberta; redireciona para o portal
+        "404":
+          $ref: "#/components/responses/Erro"
+        "410":
+          $ref: "#/components/responses/Erro"
+
+  /portal/eu:
+    get:
+      operationId: getPortalSessao
+      tags: [portal]
+      summary: Quem é o cliente logado no portal
+      responses:
+        "200":
+          description: Sessão do portal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortalSessao"
+        "401":
+          $ref: "#/components/responses/Erro"
+
+  /portal/sair:
+    post:
+      operationId: portalSair
+      tags: [portal]
+      summary: Encerra a sessão do portal
+      responses:
+        "204":
+          description: Sessão encerrada
+
+  /portal/guias:
+    get:
+      operationId: listarPortalGuias
+      tags: [portal]
+      summary: Guias emitidas ou enviadas ao cliente, com os arquivos
+      responses:
+        "200":
+          description: Guias
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PortalGuia"
+
+  /portal/guias/{id}/ciente:
+    post:
+      operationId: darCientePortal
+      tags: [portal]
+      summary: O cliente confirma que recebeu a guia (gera protocolo)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        "200":
+          description: Ciente registrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortalGuia"
+
+  /portal/arquivos/{id}/download-url:
+    get:
+      operationId: getUrlDownloadPortal
+      tags: [portal]
+      summary: URL para o cliente baixar um arquivo dele
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        "200":
+          description: URL de download
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UrlDownload"
+
+  /portal/arquivos/{id}/conteudo:
+    get:
+      operationId: baixarConteudoPortal
+      tags: [portal]
+      summary: Download pela API (armazenamento local)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        "200":
+          description: O arquivo, como anexo
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+    put:
+      operationId: enviarConteudoPortal
+      tags: [portal]
+      summary: Upload pela API de um arquivo registrado pelo portal
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        "200":
+          description: Conteúdo gravado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Arquivo"
+
+  /portal/honorarios:
+    get:
+      operationId: listarPortalHonorarios
+      tags: [portal]
+      summary: Honorários do cliente (últimos 12 meses), com link de pagamento quando houver
+      responses:
+        "200":
+          description: Honorários
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PortalHonorario"
+
+  /portal/solicitacoes:
+    get:
+      operationId: listarPortalSolicitacoes
+      tags: [portal]
+      summary: O que o escritório pediu ao cliente
+      responses:
+        "200":
+          description: Solicitações
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Solicitacao"
+
+  /portal/solicitacoes/{id}/arquivos:
+    post:
+      operationId: criarArquivoPortal
+      tags: [portal]
+      summary: Registra um arquivo enviado pelo cliente em resposta a uma solicitação
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PortalArquivoInput"
+      responses:
+        "200":
+          description: Registro criado; o conteúdo ainda precisa subir
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ArquivoCriado"
+
+  /portal/solicitacoes/{id}/responder:
+    post:
+      operationId: responderSolicitacaoPortal
+      tags: [portal]
+      summary: Resposta em texto do cliente a uma solicitação
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RespostaSolicitacaoInput"
+      responses:
+        "200":
+          description: Solicitação respondida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Solicitacao"
+
+  /portal/pedidos:
+    get:
+      operationId: listarPortalPedidos
+      tags: [portal]
+      summary: Pedidos do cliente ao escritório (categoria pedido)
+      responses:
+        "200":
+          description: Pedidos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Processo"
+    post:
+      operationId: criarPortalPedido
+      tags: [portal]
+      summary: O cliente abre um pedido ao escritório
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PortalPedidoInput"
+      responses:
+        "200":
+          description: Pedido aberto
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Processo"
+
+  /solicitacoes:
+    get:
+      operationId: listarSolicitacoes
+      tags: [solicitacoes]
+      summary: Solicitações feitas aos clientes
+      parameters:
+        - name: clienteId
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: status
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/StatusSolicitacao"
+      responses:
+        "200":
+          description: Solicitações
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Solicitacao"
+    post:
+      operationId: criarSolicitacao
+      tags: [solicitacoes]
+      summary: Pede um documento ou informação ao cliente (avisa por e-mail se houver)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SolicitacaoInput"
+      responses:
+        "200":
+          description: Solicitação criada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Solicitacao"
+
+  /solicitacoes/{id}:
+    patch:
+      operationId: atualizarSolicitacao
+      tags: [solicitacoes]
+      summary: Altera situação, descrição ou prazo de uma solicitação
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SolicitacaoPatch"
+      responses:
+        "200":
+          description: Solicitação atualizada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Solicitacao"
+
+  /clientes/{id}/link-portal:
+    post:
+      operationId: gerarLinkPortal
+      tags: [clientes]
+      summary: Gera um link de acesso ao portal para entregar ao cliente por outro meio
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        "200":
+          description: Link válido por 30 minutos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LinkPortal"
+
+  /pagamentos/{id}/cobrar:
+    post:
+      operationId: cobrarPagamento
+      tags: [pagamentos]
+      summary: Gera a cobrança no provedor (link e Pix) para o honorário
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        "200":
+          description: Cobrança criada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pagamento"
+        "400":
+          $ref: "#/components/responses/Erro"
+        "503":
+          $ref: "#/components/responses/Erro"
+
+  /webhooks/asaas:
+    post:
+      operationId: webhookAsaas
+      tags: [webhooks]
+      summary: Retorno do Asaas (baixa automática do honorário)
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EventoAsaas"
+      responses:
+        "200":
+          description: Evento recebido
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok]
+                properties:
+                  ok: { type: boolean }
+                  duplicado: { type: boolean }
+        "401":
+          $ref: "#/components/responses/Erro"
+
+
 components:
   securitySchemes:
     tokenJobs:
@@ -2027,6 +2451,135 @@ components:
         executados: { type: integer }
         falhas: { type: integer }
         restantes: { type: integer }
+
+    PortalEntradaInput:
+      type: object
+      required: [email]
+      properties:
+        email: { type: string, format: email, maxLength: 200 }
+
+    PortalSessao:
+      type: object
+      required: [clienteId, razaoSocial, escritorio, email, cnpj]
+      properties:
+        clienteId: { type: integer }
+        razaoSocial: { type: string }
+        escritorio: { type: string }
+        email: { type: string }
+        cnpj: { type: ["string", "null"] }
+
+    PortalGuia:
+      type: object
+      required: [id, obrigacao, ano, mes, vencimento, status, arquivos, enviadoEm, cienteEm]
+      properties:
+        id: { type: integer }
+        obrigacao: { type: string }
+        ano: { type: integer }
+        mes: { type: integer }
+        vencimento: { type: ["string", "null"], format: date }
+        status:
+          type: string
+          enum: [pendente, emitido, enviado, nao_aplica]
+        arquivos:
+          type: array
+          items:
+            type: object
+            required: [id, nome, tamanho]
+            properties:
+              id: { type: integer }
+              nome: { type: string }
+              tamanho: { type: integer }
+        enviadoEm: { type: ["string", "null"], format: date-time }
+        cienteEm: { type: ["string", "null"], format: date-time }
+
+    PortalHonorario:
+      type: object
+      required: [id, ano, mes, valor, vencimento, status, dataPagamento, linkPagamento, qrPix]
+      properties:
+        id: { type: integer }
+        ano: { type: integer }
+        mes: { type: integer }
+        valor: { type: ["string", "null"] }
+        vencimento: { type: ["string", "null"], format: date }
+        status:
+          type: string
+          enum: [pendente, pago, isento]
+        dataPagamento: { type: ["string", "null"], format: date }
+        linkPagamento: { type: ["string", "null"] }
+        qrPix: { type: ["string", "null"] }
+
+    PortalArquivoInput:
+      type: object
+      required: [nome, mime, tamanho]
+      properties:
+        nome: { type: string, minLength: 1, maxLength: 200 }
+        mime: { type: string, minLength: 1 }
+        tamanho: { type: integer, minimum: 1 }
+
+    RespostaSolicitacaoInput:
+      type: object
+      required: [resposta]
+      properties:
+        resposta: { type: string, minLength: 1, maxLength: 5000 }
+
+    PortalPedidoInput:
+      type: object
+      required: [tipo]
+      properties:
+        tipo: { type: string, minLength: 1, maxLength: 200 }
+        observacao: { type: ["string", "null"], maxLength: 5000 }
+
+    StatusSolicitacao:
+      type: string
+      enum: [aberta, respondida, concluida]
+
+    Solicitacao:
+      type: object
+      required: [id, clienteId, clienteNome, tipo, descricao, prazo, status, origem, resposta, respondidaEm, arquivos, criadoEm]
+      properties:
+        id: { type: integer }
+        clienteId: { type: integer }
+        clienteNome: { type: string }
+        tipo: { type: string }
+        descricao: { type: string }
+        prazo: { type: ["string", "null"], format: date }
+        status: { $ref: "#/components/schemas/StatusSolicitacao" }
+        origem: { type: string }
+        resposta: { type: ["string", "null"] }
+        respondidaEm: { type: ["string", "null"], format: date-time }
+        arquivos: { type: integer }
+        criadoEm: { type: string, format: date-time }
+
+    SolicitacaoInput:
+      type: object
+      required: [clienteId, descricao]
+      properties:
+        clienteId: { type: integer, minimum: 1 }
+        tipo: { type: string, enum: [documento, informacao] }
+        descricao: { type: string, minLength: 1, maxLength: 2000 }
+        prazo: { type: ["string", "null"], format: date }
+
+    SolicitacaoPatch:
+      type: object
+      properties:
+        status: { $ref: "#/components/schemas/StatusSolicitacao" }
+        descricao: { type: string, minLength: 1, maxLength: 2000 }
+        prazo: { type: ["string", "null"], format: date }
+
+    # Corpo do webhook do Asaas, guardado como veio (só `event` e `payment.id` importam).
+    EventoAsaas:
+      type: object
+      additionalProperties: true
+      properties:
+        id: { type: string }
+        event: { type: string }
+
+    LinkPortal:
+      type: object
+      required: [link, expiraEm]
+      properties:
+        link: { type: string }
+        expiraEm: { type: string, format: date-time }
 
     SessaoAtual:
       type: object
@@ -2380,7 +2933,7 @@ components:
 
     Processo:
       type: object
-      required: [id, clienteId, clienteNome, tipo, status, totalEtapas, etapasFeitas]
+      required: [id, clienteId, clienteNome, tipo, status, origem, totalEtapas, etapasFeitas]
       properties:
         id: { type: integer }
         clienteId: { type: integer }
@@ -2395,6 +2948,8 @@ components:
         prazo: { type: ["string", "null"], format: date }
         concluidoEm: { type: ["string", "null"] }
         observacao: { type: ["string", "null"] }
+        # `escritorio` ou `portal` (pedido aberto pelo próprio cliente).
+        origem: { type: string }
         totalEtapas: { type: integer }
         etapasFeitas: { type: integer }
 
@@ -2614,7 +3169,7 @@ components:
 
     Pagamento:
       type: object
-      required: [id, status, clienteId, cliente]
+      required: [id, status, clienteId, cliente, linkPagamento, qrPix, cobrancaExternaId]
       properties:
         id: { type: integer }
         status:
@@ -2628,6 +3183,10 @@ components:
         clienteId: { type: integer }
         codigo: { type: ["integer", "null"], minimum: 0 }
         cliente: { type: string }
+        # Cobrança no provedor (Asaas), quando gerada.
+        cobrancaExternaId: { type: ["string", "null"] }
+        linkPagamento: { type: ["string", "null"] }
+        qrPix: { type: ["string", "null"] }
 
     PagamentoInput:
       type: object
@@ -2664,6 +3223,7 @@ components:
       type: object
       required: [id, competenciaId, ano, mes, diasAtraso, clienteId, cliente]
       properties:
+        linkPagamento: { type: ["string", "null"] }
         id: { type: integer }
         competenciaId: { type: integer }
         ano: { type: integer, minimum: 2000, maximum: 2100 }

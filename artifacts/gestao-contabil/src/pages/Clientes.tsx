@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useListarClientes,
@@ -7,6 +7,7 @@ import {
   useRemoverCliente,
   useInativarCliente,
   useListarTipos,
+  gerarLinkPortal,
 } from "@workspace/api-client-react";
 import { FORMAS_ENVIO } from "@workspace/dominio";
 import { mensagemDeErro } from "@/lib/erros";
@@ -138,6 +139,25 @@ function FormularioCliente({
   const removerMutation = useRemoverCliente();
   const inativarMutation = useInativarCliente();
   const ehNovo = cliente.id === 0;
+  const [linkPortal, setLinkPortal] = useState<string | null>(null);
+
+  // Esc fecha o diálogo, como em qualquer modal.
+  useEffect(() => {
+    function tecla(e: KeyboardEvent) {
+      if (e.key === "Escape") aoFechar();
+    }
+    window.addEventListener("keydown", tecla);
+    return () => window.removeEventListener("keydown", tecla);
+  }, [aoFechar]);
+
+  async function gerarLink() {
+    try {
+      const { link } = await gerarLinkPortal(cliente.id);
+      setLinkPortal(link);
+    } catch (e) {
+      alert(mensagemDeErro(e, "Não foi possível gerar o link."));
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -204,7 +224,12 @@ function FormularioCliente({
 
   return (
     <div className="fixed inset-0 z-10 flex items-start justify-center overflow-y-auto bg-black/40 p-4">
-      <div className="my-8 w-full max-w-2xl rounded-xl border border-black/10 bg-white p-6 shadow-xl dark:border-white/10 dark:bg-neutral-950">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={ehNovo ? "Novo cliente" : `Editar ${cliente.razaoSocial}`}
+        className="my-8 w-full max-w-2xl rounded-xl border border-black/10 bg-white p-6 shadow-xl dark:border-white/10 dark:bg-neutral-950"
+      >
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold">
             {ehNovo ? "Novo cliente" : `Editar — ${cliente.razaoSocial}`}
@@ -352,13 +377,28 @@ function FormularioCliente({
           </label>
           <div className="flex items-center justify-between gap-2 sm:col-span-2">
             {!ehNovo ? (
-              <button
-                type="button"
-                onClick={handleRemover}
-                className="text-sm text-red-600 hover:underline"
-              >
-                Remover
-              </button>
+              <span className="flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleRemover}
+                  className="text-sm text-red-600 hover:underline"
+                >
+                  Remover
+                </button>
+                <button
+                  type="button"
+                  onClick={gerarLink}
+                  className="text-sm text-blue-600 hover:underline"
+                  title="Link de acesso ao portal do cliente, válido por 30 minutos"
+                >
+                  Link do portal
+                </button>
+                {linkPortal && (
+                  <code className="max-w-xs truncate text-xs" title={linkPortal}>
+                    {linkPortal}
+                  </code>
+                )}
+              </span>
             ) : (
               <span />
             )}

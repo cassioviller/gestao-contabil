@@ -70,6 +70,7 @@ router.get("/", async (req, res) => {
       codigo: clientes.codigo,
       cliente: clientes.razaoSocial,
       whatsapp: clientes.whatsapp,
+      linkPagamento: pagamentos.linkPagamento,
       cobradoEm: sql<string | null>`max(${cobrancas.enviadoEm})::text`,
     })
     .from(pagamentos)

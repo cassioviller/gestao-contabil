@@ -4,9 +4,19 @@ import { ArmazenamentoR2 } from "./armazenamento-r2";
 import { MensageiroMemoria } from "./mensageiro-memoria";
 import { EmailResend } from "./mensageiro-resend";
 import { WhatsappCloud } from "./mensageiro-whatsapp";
-import type { Armazenamento, Mensageiro } from "./tipos";
+import { CobradorAsaas } from "./cobrador-asaas";
+import { CobradorMemoria } from "./cobrador-memoria";
+import type { Armazenamento, Cobrador, Mensageiro } from "./tipos";
 
-export type { Armazenamento, Mensageiro, Email, MensagemWhatsapp, UrlAssinada } from "./tipos";
+export type {
+  Armazenamento,
+  Cobrador,
+  Mensageiro,
+  Email,
+  MensagemWhatsapp,
+  NovaCobranca,
+  UrlAssinada,
+} from "./tipos";
 
 const emTeste = process.env.NODE_ENV === "test";
 
@@ -54,3 +64,14 @@ function escolherMensageiro(): Mensageiro {
 
 export const armazenamento: Armazenamento = escolherArmazenamento();
 export const mensageiro: Mensageiro = escolherMensageiro();
+
+function escolherCobrador(): Cobrador {
+  const { ASAAS_API_KEY, ASAAS_AMBIENTE } = process.env;
+  if (ASAAS_API_KEY) return new CobradorAsaas(ASAAS_API_KEY, ASAAS_AMBIENTE);
+  avisar("[externos] ASAAS_API_KEY ausente: cobranças ficam só em memória (sem link real).");
+  return new CobradorMemoria();
+}
+
+export const cobrador: Cobrador = escolherCobrador();
+/** `true` quando há um provedor de verdade por trás (não o de memória). */
+export const cobradorEhReal = cobrador.nome !== "memoria";

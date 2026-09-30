@@ -7,6 +7,8 @@
  */
 
 export interface Inadimplente {
+  /** @nullable */
+  linkPagamento?: string | null;
   id: number;
   competenciaId: number;
   /**

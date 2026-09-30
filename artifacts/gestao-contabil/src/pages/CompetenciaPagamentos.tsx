@@ -6,7 +6,9 @@ import {
   useListarPagamentos,
   getListarPagamentosQueryKey,
   useAtualizarPagamento,
+  useCobrarPagamento,
 } from "@workspace/api-client-react";
+import { mensagemDeErro } from "@/lib/erros";
 import { rotuloCompetencia, formatarMoeda, formatarNumeroBR, paraDecimalAPI } from "@/lib/formato";
 
 type Pagamento = {
@@ -18,6 +20,9 @@ type Pagamento = {
   observacao: string | null;
   codigo: number | null;
   cliente: string;
+  cobrancaExternaId: string | null;
+  linkPagamento: string | null;
+  qrPix: string | null;
 };
 
 const ESTILO: Record<Pagamento["status"], string> = {
@@ -82,6 +87,8 @@ export default function CompetenciaPagamentos({ params }: { params: { id: string
   const qc = useQueryClient();
   const { data: pgts = [], isLoading } = useListarPagamentos(id);
   const atualizarMutation = useAtualizarPagamento();
+  const cobrarMutation = useCobrarPagamento();
+  const [erro, setErro] = useState<string | null>(null);
   const [estado, setEstado] = useState<Pagamento[]>([]);
   const [filtro, setFiltro] = useState<"todos" | "pendente" | "pago">("todos");
 
@@ -112,9 +119,28 @@ export default function CompetenciaPagamentos({ params }: { params: { id: string
 
   const visiveis = estadoAtual.filter((p) => (filtro === "todos" ? true : p.status === filtro));
 
+  async function cobrar(p: Pagamento) {
+    setErro(null);
+    try {
+      await cobrarMutation.mutateAsync({ id: p.id });
+      setEstado([]);
+      qc.invalidateQueries({ queryKey: getListarPagamentosQueryKey(id) });
+    } catch (e) {
+      setErro(mensagemDeErro(e, "Não foi possível gerar a cobrança."));
+    }
+  }
+
   return (
     <div>
       <CabecalhoCompetencia id={id} />
+      {erro && (
+        <p
+          role="alert"
+          className="mb-3 rounded-lg bg-red-600/10 px-3 py-2 text-sm text-red-700 dark:text-red-400"
+        >
+          {erro}
+        </p>
+      )}
       {isLoading ? (
         <p className="text-sm text-neutral-500">Carregando...</p>
       ) : (
@@ -139,6 +165,7 @@ export default function CompetenciaPagamentos({ params }: { params: { id: string
                   <th className="px-3 py-2 font-medium">Valor</th>
                   <th className="px-3 py-2 font-medium">Data</th>
                   <th className="px-3 py-2 font-medium">Forma</th>
+                  <th className="px-3 py-2 font-medium">Cobrança</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-black/10 dark:divide-white/10">
@@ -192,6 +219,42 @@ export default function CompetenciaPagamentos({ params }: { params: { id: string
                         placeholder="PIX, boleto…"
                         className="w-28 rounded-md border border-black/15 bg-transparent px-2 py-1 dark:border-white/15"
                       />
+                    </td>
+                    <td className="px-3 py-2 text-xs">
+                      {p.linkPagamento ? (
+                        <span className="flex items-center gap-2">
+                          <a
+                            href={p.linkPagamento}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-blue-600 hover:underline"
+                          >
+                            🔗 link
+                          </a>
+                          {p.qrPix && (
+                            <button
+                              type="button"
+                              onClick={() => navigator.clipboard?.writeText(p.qrPix ?? "")}
+                              className="text-blue-600 hover:underline"
+                              title="Copiar Pix copia e cola"
+                            >
+                              Pix
+                            </button>
+                          )}
+                        </span>
+                      ) : p.status === "pendente" ? (
+                        <button
+                          type="button"
+                          onClick={() => cobrar(p)}
+                          disabled={cobrarMutation.isPending}
+                          className="text-blue-600 hover:underline disabled:opacity-50"
+                          title="Gera link e Pix no provedor de cobrança"
+                        >
+                          Gerar cobrança
+                        </button>
+                      ) : (
+                        <span className="text-neutral-400">—</span>
+                      )}
                     </td>
                   </tr>
                 ))}
