@@ -41,4 +41,6 @@ export const db = drizzle(pool, { schema });
 
 export * from "./schema";
 export { gerarHashSenha, conferirSenha } from "./senha";
-export { garantirBanco } from "./instalacao";
+export { garantirBanco, inserirCatalogoPadrao } from "./instalacao";
+export { cifrar, decifrar, estaCifrado, hashToken, gerarToken } from "./cifra";
+export { TIPOS_PADRAO } from "./tipos-padrao";

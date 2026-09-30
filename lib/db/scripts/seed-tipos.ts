@@ -1,14 +1,17 @@
 /**
- * Popula o catálogo de tipos de obrigação com a lista padrão do escritório.
+ * Repõe o catálogo padrão de tipos de obrigação (o mesmo que `criar-conta` e o
+ * bootstrap da API usam) nas contas existentes.
  *
- * Idempotente: o nome é único dentro da conta, então rodar de novo só reordena
- * os que já existem e insere o que faltar — nunca duplica, nunca apaga tipos
- * criados à mão na tela de Tipos de obrigação.
+ * Idempotente: o nome é único dentro da conta, então rodar de novo só insere o
+ * que faltar e completa descrição/vencimento/regimes de quem estava sem —
+ * nunca duplica, nunca apaga nem reordena o que a contadora criou ou editou
+ * na tela de Tipos de obrigação.
  *
  * Uso: pnpm --filter @workspace/db run seed-tipos [-- --conta=2]
  * Sem `--conta`, repõe o catálogo de **todas** as contas.
  */
 import pg from "pg";
+import { inserirCatalogoPadrao } from "../src/instalacao.ts";
 import { TIPOS_PADRAO } from "../src/tipos-padrao.ts";
 
 if (!process.env.DATABASE_URL) {
@@ -40,22 +43,19 @@ if (!contas.length) {
   process.exit(1);
 }
 
-const ordens = TIPOS_PADRAO.map((_, i) => i + 1);
-
 for (const conta of contas) {
-  await client.query(
-    `insert into tipos_obrigacao (conta_id, nome, ordem)
-     select $1, * from unnest($2::text[], $3::int[])
-     on conflict (conta_id, nome) do update set ordem = excluded.ordem`,
-    [conta.id, TIPOS_PADRAO, ordens],
+  const { rows: antes } = await client.query<{ n: number }>(
+    "select count(*)::int n from tipos_obrigacao where conta_id = $1",
+    [conta.id],
   );
-
-  const { rows } = await client.query<{ n: number }>(
+  await inserirCatalogoPadrao(client, conta.id);
+  const { rows: depois } = await client.query<{ n: number }>(
     "select count(*)::int n from tipos_obrigacao where conta_id = $1",
     [conta.id],
   );
   console.log(
-    `[seed-tipos] conta #${conta.id} (${conta.nome}): ${TIPOS_PADRAO.length} tipos garantidos · ${rows[0].n} no catálogo`,
+    `[seed-tipos] conta #${conta.id} (${conta.nome}): ${TIPOS_PADRAO.length} tipos padrão garantidos · ` +
+      `${depois[0].n - antes[0].n} novo(s) · ${depois[0].n} no catálogo`,
   );
 }
 

@@ -1,7 +1,8 @@
 /**
  * Cria um escritório novo (conta + primeiro usuário) já com o catálogo padrão
- * de obrigações. É por aqui que entram novos clientes do sistema — não existe
- * tela de cadastro aberta.
+ * de obrigações. É por aqui que entram novos escritórios — não existe tela de
+ * cadastro aberta. (Num banco vazio, as variáveis BOOTSTRAP_* fazem o mesmo no
+ * primeiro boot da API.)
  *
  * Uso:
  *   pnpm --filter @workspace/db run criar-conta -- --nome="Contabilidade X" --login=x --senha=segredo
@@ -14,8 +15,8 @@
  */
 import { randomBytes } from "node:crypto";
 import pg from "pg";
+import { inserirCatalogoPadrao } from "../src/instalacao.ts";
 import { gerarHashSenha } from "../src/senha.ts";
-import { TIPOS_PADRAO } from "../src/tipos-padrao.ts";
 
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL must be set.");
@@ -91,21 +92,18 @@ try {
   );
   const contaId = contaRows[0].id;
 
+  // O primeiro usuário do escritório é admin: é ele quem convida os demais na
+  // tela de Usuários.
   await client.query(
-    "insert into usuarios (conta_id, login, senha_hash, nome) values ($1, $2, $3, $4)",
+    "insert into usuarios (conta_id, login, senha_hash, nome, papel) values ($1, $2, $3, $4, 'admin')",
     [contaId, login, await gerarHashSenha(senha), nome],
   );
 
-  await client.query(
-    `insert into tipos_obrigacao (conta_id, nome, ordem)
-     select $1, * from unnest($2::text[], $3::int[])
-     on conflict (conta_id, nome) do nothing`,
-    [contaId, TIPOS_PADRAO, TIPOS_PADRAO.map((_, i) => i + 1)],
-  );
+  const tipos = await inserirCatalogoPadrao(client, contaId);
 
   await client.query("commit");
 
-  console.log(`\nConta #${contaId} "${nome}" criada com ${TIPOS_PADRAO.length} tipos padrão.`);
+  console.log(`\nConta #${contaId} "${nome}" criada com ${tipos} tipos padrão.`);
   console.log(`  login: ${login}`);
   console.log(`  senha: ${senha}\n`);
   console.log("Anote a senha — ela não fica guardada em texto e não dá para recuperar.");

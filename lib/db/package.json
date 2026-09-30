@@ -6,20 +6,23 @@
   "exports": {
     ".": "./src/index.ts",
     "./schema": "./src/schema/index.ts",
-    "./senha": "./src/senha.ts"
+    "./senha": "./src/senha.ts",
+    "./cifra": "./src/cifra.ts"
   },
   "scripts": {
+    "generate": "drizzle-kit generate --config ./drizzle.config.ts",
+    "migrate": "drizzle-kit migrate --config ./drizzle.config.ts",
+    "check": "drizzle-kit check --config ./drizzle.config.ts",
     "push": "drizzle-kit push --config ./drizzle.config.ts",
     "seed-tipos": "node ./scripts/seed-tipos.ts",
     "criar-conta": "node ./scripts/criar-conta.ts",
     "migrar-multitenant": "node ./scripts/migrar-multitenant.ts",
-    "exportar-seed": "node ./scripts/exportar-seed.ts",
     "import-clientes": "node ./scripts/import-clientes-xlsx.mjs",
-    "push-force": "drizzle-kit push --force --config ./drizzle.config.ts"
+    "cifrar-segredos": "node ./scripts/cifrar-segredos.ts",
+    "test": "vitest run"
   },
   "dependencies": {
     "drizzle-orm": "catalog:",
-    "drizzle-zod": "^0.8.3",
     "pg": "^8.22.0",
     "zod": "catalog:"
   },
