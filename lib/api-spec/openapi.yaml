@@ -585,6 +585,28 @@ paths:
         "204":
           description: Removida
 
+  /competencias/{id}/sincronizar:
+    post:
+      operationId: sincronizarCompetencia
+      tags: [competencias]
+      summary: Acrescenta ao mês os clientes e obrigações incluídos depois da abertura
+      description: Idempotente — só cria o que falta; itens e pagamentos existentes não são tocados.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: O que foi acrescentado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResultadoSincronizacao"
+        "404":
+          description: Competência não encontrada
+
   /competencias/{id}/checklist:
     get:
       operationId: listarChecklist
@@ -1595,6 +1617,13 @@ components:
         # honorários (pagamentos), sem o checklist de obrigações daquele mês.
         somenteHonorarios: { type: boolean }
 
+    ResultadoSincronizacao:
+      type: object
+      required: [itensCriados, pagamentosCriados]
+      properties:
+        itensCriados: { type: integer }
+        pagamentosCriados: { type: integer }
+
     ChecklistItem:
       type: object
       required: [id, status, clienteId, cliente, tipoObrigacaoId, obrigacao, ordem]
@@ -1654,12 +1683,16 @@ components:
 
     ObrigacaoAtrasada:
       type: object
-      required: [id, competenciaId, ano, mes, diasAtraso, clienteId, cliente, obrigacao]
+      required: [id, competenciaId, ano, mes, status, diasAtraso, clienteId, cliente, obrigacao]
       properties:
         id: { type: integer }
         competenciaId: { type: integer }
         ano: { type: integer }
         mes: { type: integer }
+        # `pendente` = nem emitida; `emitido` = pronta, mas não chegou ao cliente.
+        status:
+          type: string
+          enum: [pendente, emitido]
         vencimento: { type: ["string", "null"] }
         diasAtraso: { type: integer }
         clienteId: { type: integer }
@@ -1923,7 +1956,7 @@ components:
 
     PeriodoFerias:
       type: object
-      required: [id, funcionarioId, funcionarioNome, aquisitivoInicio, aquisitivoFim, limiteGozo, vencendo, diasVendidos]
+      required: [id, funcionarioId, funcionarioNome, aquisitivoInicio, aquisitivoFim, limiteGozo, vencendo, vencida, situacao, diasVendidos]
       properties:
         id: { type: integer }
         funcionarioId: { type: integer }
@@ -1940,6 +1973,11 @@ components:
         # true quando o período ainda não foi gozado e o limite está a 90 dias
         # ou já passou.
         vencendo: { type: boolean }
+        # true quando o limite já passou sem gozo: férias devidas em dobro.
+        vencida: { type: boolean }
+        situacao:
+          type: string
+          enum: [gozada, vencida, vencendo, a_vencer]
         diasVendidos: { type: integer }
         valor: { type: ["string", "null"] }
         observacao: { type: ["string", "null"] }

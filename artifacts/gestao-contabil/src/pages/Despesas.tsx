@@ -9,7 +9,7 @@ import {
   useSalvarDespesa,
 } from "@workspace/api-client-react";
 import type { Despesa } from "@workspace/api-client-react";
-import { MESES, formatarMoeda } from "@/lib/formato";
+import { MESES, formatarMoeda, formatarNumeroBR, hojeBR, mesAtualBR, paraDecimalAPI } from "@/lib/formato";
 
 /** Categorias que quase todo escritório usa — o campo aceita qualquer outra. */
 const CATEGORIAS = [
@@ -33,20 +33,13 @@ const FORMAS = ["Pix", "Boleto", "Débito automático", "Cartão", "Dinheiro", "
 type Escopo = "escritorio" | "clientes" | "todos";
 type Campo = "data" | "categoria" | "descricao" | "valor" | "vencimento" | "formaPagamento";
 
-const HOJE = new Date();
-
-/** "1.234,56" (pt-BR) → "1234.56", o formato que o numeric do Postgres aceita. */
-function paraNumero(bruto: string): string | null {
-  const limpo = bruto.trim();
-  if (!limpo) return null;
-  return limpo.replace(/\./g, "").replace(",", ".");
-}
+const HOJE = mesAtualBR();
 
 export default function Despesas() {
   const qc = useQueryClient();
   const [escopo, setEscopo] = useState<Escopo>("escritorio");
-  const [ano, setAno] = useState(HOJE.getFullYear());
-  const [mes, setMes] = useState(HOJE.getMonth() + 1);
+  const [ano, setAno] = useState(HOJE.ano);
+  const [mes, setMes] = useState(HOJE.mes);
   const [soAbertas, setSoAbertas] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [salvo, setSalvo] = useState(false);
@@ -61,7 +54,7 @@ export default function Despesas() {
 
   const [novo, setNovo] = useState({
     clienteId: "",
-    data: new Date().toISOString().slice(0, 10),
+    data: hojeBR(),
     categoria: "",
     descricao: "",
     valor: "",
@@ -86,7 +79,7 @@ export default function Despesas() {
   }
 
   async function salvarCampo(id: number, campo: Campo, bruto: string) {
-    const valor = campo === "valor" ? paraNumero(bruto) : bruto.trim() || null;
+    const valor = campo === "valor" ? paraDecimalAPI(bruto) : bruto.trim() || null;
     await comAviso(async () => {
       await atualizar.mutateAsync({ id, data: { [campo]: valor } as never });
       invalidar();
@@ -110,7 +103,7 @@ export default function Despesas() {
           data: novo.data,
           categoria: novo.categoria.trim(),
           descricao: novo.descricao.trim(),
-          valor: paraNumero(novo.valor) ?? "0",
+          valor: paraDecimalAPI(novo.valor) ?? "0",
           formaPagamento: novo.formaPagamento.trim() || null,
           pago: novo.pago,
         } as never,
@@ -153,7 +146,7 @@ export default function Despesas() {
   const selectEscuro =
     "rounded-lg border border-black/15 bg-neutral-900 px-3 py-2 text-sm text-white dark:border-white/15";
 
-  const anos = Array.from({ length: 6 }, (_, i) => HOJE.getFullYear() - 3 + i);
+  const anos = Array.from({ length: 6 }, (_, i) => HOJE.ano - 3 + i);
 
   return (
     <div>
@@ -392,7 +385,7 @@ export default function Despesas() {
                   <td className={celula}>
                     <input
                       name="valor"
-                      defaultValue={d.valor ? Number(d.valor).toFixed(2).replace(".", ",") : ""}
+                      defaultValue={formatarNumeroBR(d.valor)}
                       onBlur={(e) => salvarCampo(d.id, "valor", e.target.value)}
                       inputMode="decimal"
                       className={`${entrada} text-right`}

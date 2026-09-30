@@ -38,9 +38,33 @@ export const CONTA_VIZINHA = {
   senha: "vizinho123",
 };
 
+/**
+ * A suíte TRUNCA o banco. Por isso ela só aceita um banco próprio, nomeado
+ * como tal, e nunca o mesmo `DATABASE_URL` do desenvolvimento — foi assim que
+ * os dados reais do escritório sumiram uma vez.
+ */
+export function urlDoBancoDeTeste(): string {
+  const url = process.env.E2E_DATABASE_URL;
+  if (!url) {
+    throw new Error(
+      "E2E_DATABASE_URL é obrigatória para o e2e (um banco só para testes, ex.: contafacil_e2e).",
+    );
+  }
+  if (process.env.DATABASE_URL && process.env.DATABASE_URL === url) {
+    throw new Error("E2E_DATABASE_URL não pode ser igual a DATABASE_URL: a suíte apaga tudo.");
+  }
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("O e2e não roda com NODE_ENV=production.");
+  }
+  const nome = new URL(url).pathname.replace(/^\//, "");
+  if (!/(test|e2e)/i.test(nome)) {
+    throw new Error(`O banco do e2e precisa ter "test" ou "e2e" no nome (recebido: "${nome}").`);
+  }
+  return url;
+}
+
 export default async function globalSetup() {
-  const url = process.env.DATABASE_URL;
-  if (!url) throw new Error("DATABASE_URL is required to run e2e tests.");
+  const url = urlDoBancoDeTeste();
 
   const pool = new pg.Pool({ connectionString: url });
   try {

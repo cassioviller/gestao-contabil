@@ -92,8 +92,10 @@ test("jornada completa do contador: tipo → cliente → competência → checkl
   await page.getByRole("link", { name: "Pagamentos" }).click();
   const linhaPgto = page.getByRole("row", { name: new RegExp(CLIENTE) });
   await linhaPgto.getByRole("combobox").selectOption("pago");
+  // O honorário do mês nasce com o valor do cadastro (350,00); digitar outro
+  // valor é o que prova que a edição persiste. Digitar o mesmo não grava nada.
   const valor = linhaPgto.getByPlaceholder("0,00");
-  await valor.fill("350,00");
+  await valor.fill("375,50");
   await Promise.all([
     page.waitForResponse(
       (r) => /\/api\/pagamentos\/\d+/.test(r.url()) && r.request().method() === "PATCH",
@@ -103,8 +105,9 @@ test("jornada completa do contador: tipo → cliente → competência → checkl
   await page.reload();
   const linhaPgtoApos = page.getByRole("row", { name: new RegExp(CLIENTE) });
   await expect(linhaPgtoApos.getByRole("combobox")).toHaveValue("pago");
-  // Valor deve persistir já normalizado (vírgula → ponto) na coluna numeric.
-  await expect(linhaPgtoApos.getByPlaceholder("0,00")).toHaveValue("350.00");
+  // Persistiu na coluna numeric e volta exibido em pt-BR — nunca "350.00",
+  // que reeditado sem mexer virava 35000.
+  await expect(linhaPgtoApos.getByPlaceholder("0,00")).toHaveValue("375,50");
   await expect(page.getByText("1 pagos")).toBeVisible(); // card "Recebido"
 
   // --- 6. Pendências: tudo resolvido, página carrega sem erro ---

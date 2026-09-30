@@ -5,12 +5,14 @@
  * ContaFácil API — gestão contábil
  * OpenAPI spec version: 0.1.0
  */
+import type { ObrigacaoAtrasadaStatus } from './obrigacaoAtrasadaStatus';
 
 export interface ObrigacaoAtrasada {
   id: number;
   competenciaId: number;
   ano: number;
   mes: number;
+  status: ObrigacaoAtrasadaStatus;
   /** @nullable */
   vencimento?: string | null;
   diasAtraso: number;

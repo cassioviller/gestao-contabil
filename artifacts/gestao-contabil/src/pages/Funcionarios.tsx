@@ -10,7 +10,7 @@ import {
   useSalvarFuncionario,
 } from "@workspace/api-client-react";
 import type { Funcionario } from "@workspace/api-client-react";
-import { formatarData, formatarMoeda } from "@/lib/formato";
+import { formatarData, formatarMoeda, formatarNumeroBR, paraDecimalAPI } from "@/lib/formato";
 import { SITUACOES, rotuloSituacao } from "@/lib/pessoal";
 
 type Escopo = "escritorio" | "clientes" | "todos";
@@ -52,12 +52,7 @@ export default function Funcionarios() {
   }
 
   async function salvarCampo(id: number, campo: Campo, bruto: string) {
-    const valor =
-      campo === "salario"
-        ? bruto.trim()
-          ? bruto.trim().replace(/\./g, "").replace(",", ".")
-          : null
-        : bruto.trim() || null;
+    const valor = campo === "salario" ? paraDecimalAPI(bruto) : bruto.trim() || null;
     await comAviso(async () => {
       await atualizar.mutateAsync({ id, data: { [campo]: valor } as never });
       invalidar();
@@ -81,9 +76,7 @@ export default function Funcionarios() {
           nome: novo.nome.trim(),
           cargo: novo.cargo.trim() || null,
           admissao: novo.admissao || null,
-          salario: novo.salario.trim()
-            ? novo.salario.trim().replace(/\./g, "").replace(",", ".")
-            : null,
+          salario: paraDecimalAPI(novo.salario),
         } as never,
       });
       setNovo((n) => ({ ...n, nome: "", cargo: "", salario: "" }));
@@ -319,7 +312,7 @@ export default function Funcionarios() {
                   <td className={celula}>
                     <input
                       name="salario"
-                      defaultValue={f.salario ? Number(f.salario).toFixed(2).replace(".", ",") : ""}
+                      defaultValue={formatarNumeroBR(f.salario)}
                       onBlur={(e) => salvarCampo(f.id, "salario", e.target.value)}
                       inputMode="decimal"
                       className={`${entrada} text-right`}

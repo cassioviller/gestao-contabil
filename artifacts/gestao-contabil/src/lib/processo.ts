@@ -1,12 +1,7 @@
-/** Status do enum `status_processo` do banco. */
-export const STATUS_PROCESSO = [
-  { valor: "aberto", rotulo: "Aberto" },
-  { valor: "em_andamento", rotulo: "Em andamento" },
-  { valor: "concluido", rotulo: "Concluído" },
-  { valor: "cancelado", rotulo: "Cancelado" },
-] as const;
+import { STATUS_PROCESSO, hojeBR, rotuloStatusProcesso, vencido } from "@workspace/dominio";
 
-export type StatusProcessoValor = (typeof STATUS_PROCESSO)[number]["valor"];
+export { STATUS_PROCESSO, rotuloStatusProcesso };
+export type { StatusProcessoValor } from "@workspace/dominio";
 
 /**
  * Processos e pedidos compartilham a mesma máquina (mesma tabela, mesmas rotas,
@@ -70,10 +65,6 @@ export const TEXTOS: Record<Categoria, {
   },
 };
 
-export function rotuloStatusProcesso(valor: string): string {
-  return STATUS_PROCESSO.find((s) => s.valor === valor)?.rotulo ?? valor;
-}
-
 export function corStatusProcesso(valor: string): string {
   switch (valor) {
     case "concluido":
@@ -90,5 +81,5 @@ export function corStatusProcesso(valor: string): string {
 /** Prazo vencido só conta enquanto o processo ainda está em aberto. */
 export function atrasado(prazo: string | null | undefined, status: string): boolean {
   if (!prazo || status === "concluido" || status === "cancelado") return false;
-  return prazo.slice(0, 10) < new Date().toISOString().slice(0, 10);
+  return vencido(prazo, hojeBR());
 }

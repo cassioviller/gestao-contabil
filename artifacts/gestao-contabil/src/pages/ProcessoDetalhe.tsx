@@ -11,7 +11,7 @@ import {
   useAtualizarEtapa,
   useRemoverEtapa,
 } from "@workspace/api-client-react";
-import { formatarData } from "@/lib/formato";
+import { formatarData, hojeBR } from "@/lib/formato";
 import {
   STATUS_PROCESSO,
   TEXTOS,
@@ -124,7 +124,7 @@ export default function ProcessoDetalhe({ params }: { params: { id: string } }) 
 
   async function mudarStatus(status: string) {
     // Concluir carimba a data; reabrir limpa.
-    const concluidoEm = status === "concluido" ? new Date().toISOString().slice(0, 10) : null;
+    const concluidoEm = status === "concluido" ? hojeBR() : null;
     otimista((p) => ({ ...p, status, concluidoEm }));
     await salvarCampo({ status, concluidoEm });
   }

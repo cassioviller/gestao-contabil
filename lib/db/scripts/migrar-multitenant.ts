@@ -9,6 +9,7 @@
  *
  * Uso: pnpm --filter @workspace/db run migrar-multitenant [-- --login=x --senha=y --nome="Escritório"]
  */
+import { randomBytes } from "node:crypto";
 import pg from "pg";
 import { gerarHashSenha } from "../src/senha.ts";
 
@@ -23,7 +24,8 @@ function arg(nome: string, padrao: string): string {
 
 // Minúsculas: é assim que a API procura o login na hora de entrar.
 const LOGIN = arg("login", "acesso").trim().toLowerCase();
-const SENHA = arg("senha", "acesso123");
+// Sem `--senha`, sorteia uma e imprime: senha padrão conhecida é convite para invasão.
+const SENHA = arg("senha", randomBytes(12).toString("base64url"));
 const NOME_CONTA = arg("nome", "Escritório");
 
 /** Tabelas de dados que ganham `conta_id` apontando para `contas`. */
@@ -111,6 +113,9 @@ try {
       [contaId, LOGIN, await gerarHashSenha(SENHA), NOME_CONTA],
     );
     console.log(`Usuário "${LOGIN}" criado na conta #${contaId}.`);
+    if (!arg("senha", "")) {
+      console.log(`  senha sorteada: ${SENHA}  (anote — não dá para recuperar)`);
+    }
   }
 
   // ------------------------------------------------------- coluna + backfill

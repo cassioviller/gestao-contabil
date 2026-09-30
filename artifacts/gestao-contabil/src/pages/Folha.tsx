@@ -8,27 +8,19 @@ import {
   useSalvarLancamentoFolha,
 } from "@workspace/api-client-react";
 import type { Funcionario, LancamentoFolha } from "@workspace/api-client-react";
-import { MESES, formatarMoeda } from "@/lib/formato";
+import { MESES, formatarMoeda, formatarNumeroBR, mesAtualBR, paraDecimalAPI } from "@/lib/formato";
 import { liquidoSugerido, rotuloTipoFolha } from "@/lib/pessoal";
 
 type Escopo = "escritorio" | "clientes" | "todos";
 
-const HOJE = new Date();
-
-function paraNumero(bruto: string): string | null {
-  const limpo = bruto.trim();
-  return limpo ? limpo.replace(/\./g, "").replace(",", ".") : null;
-}
-
-function emReais(valor: string | null | undefined): string {
-  return valor ? Number(valor).toFixed(2).replace(".", ",") : "";
-}
+const HOJE = mesAtualBR();
+const emReais = formatarNumeroBR;
 
 export default function Folha() {
   const qc = useQueryClient();
   const [escopo, setEscopo] = useState<Escopo>("escritorio");
-  const [ano, setAno] = useState(HOJE.getFullYear());
-  const [mes, setMes] = useState(HOJE.getMonth() + 1);
+  const [ano, setAno] = useState(HOJE.ano);
+  const [mes, setMes] = useState(HOJE.mes);
   const [erro, setErro] = useState<string | null>(null);
   const [salvo, setSalvo] = useState(false);
 
@@ -74,7 +66,7 @@ export default function Folha() {
           mes,
           tipo: "mensal",
           ...(lanc ? {} : { salarioBase: base ?? null }),
-          [campo]: campo === "pago" ? bruto === "sim" : paraNumero(bruto),
+          [campo]: campo === "pago" ? bruto === "sim" : paraDecimalAPI(bruto),
         } as never,
       });
       invalidar();
@@ -100,7 +92,7 @@ export default function Folha() {
   const selectEscuro =
     "rounded-lg border border-black/15 bg-neutral-900 px-3 py-2 text-sm text-white dark:border-white/15";
 
-  const anos = Array.from({ length: 6 }, (_, i) => HOJE.getFullYear() - 3 + i);
+  const anos = Array.from({ length: 6 }, (_, i) => HOJE.ano - 3 + i);
 
   return (
     <div>
@@ -213,7 +205,7 @@ export default function Folha() {
               {equipe.map((f) => {
                 const l = porFuncionario.get(f.id);
                 const liquido = l
-                  ? emReais(l.liquido) || liquidoSugerido(l).toFixed(2).replace(".", ",")
+                  ? emReais(l.liquido) || formatarNumeroBR(liquidoSugerido(l))
                   : "";
                 return (
                   <tr key={f.id} className="border-t border-black/10 dark:border-white/10">

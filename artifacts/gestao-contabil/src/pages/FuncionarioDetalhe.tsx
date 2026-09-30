@@ -15,7 +15,7 @@ import type {
   LancamentoFolha,
   PeriodoFerias,
 } from "@workspace/api-client-react";
-import { MESES, formatarData, formatarMoeda, nomeMes } from "@/lib/formato";
+import { MESES, formatarData, formatarMoeda, formatarNumeroBR, hojeBR, mesAtualBR, nomeMes, paraDecimalAPI } from "@/lib/formato";
 import { TIPOS_FOLHA, liquidoSugerido, rotuloTipoFolha } from "@/lib/pessoal";
 
 /** Campos do cadastro completo — o que a lista não mostra fica aqui. */
@@ -43,16 +43,9 @@ const VALORES_FOLHA = [
   { nome: "irrf", rotulo: "IRRF" },
 ] as const;
 
-const HOJE = new Date();
-
-function paraNumero(bruto: string): string | null {
-  const limpo = bruto.trim();
-  return limpo ? limpo.replace(/\./g, "").replace(",", ".") : null;
-}
-
-function emReais(valor: string | null | undefined): string {
-  return valor ? Number(valor).toFixed(2).replace(".", ",") : "";
-}
+const HOJE = mesAtualBR();
+const paraNumero = paraDecimalAPI;
+const emReais = formatarNumeroBR;
 
 export default function FuncionarioDetalhe() {
   const [, params] = useRoute("/funcionarios/:id");
@@ -73,8 +66,8 @@ export default function FuncionarioDetalhe() {
   const [erro, setErro] = useState<string | null>(null);
   const [salvo, setSalvo] = useState(false);
   const [novoLanc, setNovoLanc] = useState({
-    ano: String(HOJE.getFullYear()),
-    mes: String(HOJE.getMonth() + 1),
+    ano: String(HOJE.ano),
+    mes: String(HOJE.mes),
     tipo: "mensal",
     salarioBase: "",
   });
@@ -142,7 +135,7 @@ export default function FuncionarioDetalhe() {
           mes: lanc.mes,
           tipo: lanc.tipo,
           pago: !lanc.pago,
-          pagoEm: !lanc.pago ? new Date().toISOString().slice(0, 10) : null,
+          pagoEm: !lanc.pago ? hojeBR() : null,
         } as never,
       });
       invalidar();
@@ -352,7 +345,7 @@ export default function FuncionarioDetalhe() {
                     ))}
                     <td className="p-0 text-right">
                       <input
-                        defaultValue={emReais(l.liquido) || liquidoSugerido(l).toFixed(2).replace(".", ",")}
+                        defaultValue={emReais(l.liquido) || formatarNumeroBR(liquidoSugerido(l))}
                         onBlur={(e) => salvarValorFolha(l, "liquido", e.target.value)}
                         inputMode="decimal"
                         className={`${entradaCelula} font-medium`}

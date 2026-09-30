@@ -1,0 +1,14 @@
+{
+  "name": "@workspace/dominio",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Regras de negócio puras do ContaFácil, compartilhadas pela API e pelo front: moeda, datas, prazos, periodicidade, WhatsApp, férias, folha e documentos.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  }
+}

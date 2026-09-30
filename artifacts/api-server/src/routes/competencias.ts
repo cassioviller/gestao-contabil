@@ -16,6 +16,7 @@ import {
   ListarChecklistParams,
   ListarPagamentosParams,
 } from "@workspace/api-zod";
+import { aplicaNoMes, calcularVencimento } from "@workspace/dominio";
 import { HttpError } from "../lib/http";
 import { contaDaRequisicao } from "../middlewares/autenticacao";
 
@@ -49,39 +50,6 @@ async function resumoCompetencia(competenciaId: number, contaId: number) {
   return { obrigacoes: obr, pagamentos: pag };
 }
 
-const INTERVALO_MESES: Record<string, number> = {
-  mensal: 1,
-  bimestral: 2,
-  trimestral: 3,
-  semestral: 6,
-  anual: 12,
-};
-
-/**
- * A obrigação vale neste mês? Mensal sempre vale. As demais caem nos meses em
- * que a distância até o mês de referência é múltipla do intervalo — anual com
- * referência 7 só em julho, trimestral com referência 3 em 3/6/9/12.
- * Sem referência definida, o ciclo é ancorado em janeiro.
- */
-function aplicaNoMes(periodicidade: string, mesReferencia: number | null, mes: number): boolean {
-  const intervalo = INTERVALO_MESES[periodicidade] ?? 1;
-  if (intervalo === 1) return true;
-  const ref = mesReferencia && mesReferencia >= 1 && mesReferencia <= 12 ? mesReferencia : 1;
-  return (((mes - ref) % intervalo) + intervalo) % intervalo === 0;
-}
-
-function calcularVencimento(ano: number, mes: number, dia: number | null, offsetMes: number): string | null {
-  if (!dia || dia < 1) return null;
-  const base = mes - 1 + offsetMes;
-  const alvoAno = ano + Math.floor(base / 12);
-  const alvoMes = ((base % 12) + 12) % 12;
-  const ultimoDia = new Date(Date.UTC(alvoAno, alvoMes + 1, 0)).getUTCDate();
-  const diaFinal = Math.min(dia, ultimoDia);
-  const mm = String(alvoMes + 1).padStart(2, "0");
-  const dd = String(diaFinal).padStart(2, "0");
-  return `${alvoAno}-${mm}-${dd}`;
-}
-
 // GET /api/competencias
 router.get("/", async (req, res) => {
   const contaId = contaDaRequisicao(req);
@@ -97,6 +65,101 @@ router.get("/", async (req, res) => {
   res.json(comResumo);
 });
 
+/** Honorário sem dia definido vence no dia 10 do mês seguinte. */
+const DIA_PADRAO_HONORARIO = 10;
+
+type Transacao = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+/**
+ * Cria os itens de checklist e os pagamentos que ainda não existem para a
+ * competência. É o coração de "abrir mês" e de "sincronizar": a segunda chamada
+ * só acrescenta o que falta (cliente ou obrigação incluídos depois), sem tocar
+ * no que a contadora já trabalhou.
+ */
+export async function gerarItensDaCompetencia(
+  tx: Transacao,
+  contaId: number,
+  comp: { id: number; ano: number; mes: number },
+  somenteHonorarios: boolean,
+): Promise<{ itens: number; pagamentos: number }> {
+  const ativos = await tx
+    .select({
+      id: clientes.id,
+      valorHonorario: clientes.valorHonorario,
+      diaVencimentoHonorario: clientes.diaVencimentoHonorario,
+    })
+    .from(clientes)
+    .where(and(eq(clientes.contaId, contaId), eq(clientes.ativo, true)));
+  if (!ativos.length) return { itens: 0, pagamentos: 0 };
+
+  const ativosIds = ativos.map((c) => c.id);
+  // Obrigação inativa não entra em mês novo, mas o histórico dela fica.
+  const tipos = await tx
+    .select()
+    .from(tiposObrigacao)
+    .where(and(eq(tiposObrigacao.contaId, contaId), eq(tiposObrigacao.ativo, true)));
+  const tipoPorId = new Map(tipos.map((t) => [t.id, t]));
+
+  let itens = 0;
+  if (!somenteHonorarios) {
+    const vinculos = await tx
+      .select()
+      .from(clienteObrigacoes)
+      .where(inArray(clienteObrigacoes.clienteId, ativosIds));
+
+    // Uma obrigação anual/trimestral só entra no mês em que de fato vence.
+    const doMes = vinculos.filter((v) => {
+      const tipo = tipoPorId.get(v.tipoObrigacaoId);
+      return tipo ? aplicaNoMes(tipo.periodicidade, tipo.mesReferencia, comp.mes) : false;
+    });
+
+    if (doMes.length) {
+      const inseridos = await tx
+        .insert(checklistItens)
+        .values(
+          doMes.map((v) => {
+            const tipo = tipoPorId.get(v.tipoObrigacaoId)!;
+            return {
+              contaId,
+              competenciaId: comp.id,
+              clienteId: v.clienteId,
+              tipoObrigacaoId: v.tipoObrigacaoId,
+              status: "pendente" as const,
+              vencimento: calcularVencimento(comp.ano, comp.mes, tipo.diaVencimento, tipo.offsetMes),
+            };
+          }),
+        )
+        // O índice único (competência, cliente, obrigação) é o que torna a
+        // sincronização idempotente.
+        .onConflictDoNothing()
+        .returning({ id: checklistItens.id });
+      itens = inseridos.length;
+    }
+  }
+
+  const pagos = await tx
+    .insert(pagamentos)
+    .values(
+      ativos.map((c) => ({
+        contaId,
+        competenciaId: comp.id,
+        clienteId: c.id,
+        status: "pendente" as const,
+        valor: c.valorHonorario,
+        vencimento: calcularVencimento(
+          comp.ano,
+          comp.mes,
+          c.diaVencimentoHonorario ?? DIA_PADRAO_HONORARIO,
+          1,
+        ),
+      })),
+    )
+    .onConflictDoNothing()
+    .returning({ id: pagamentos.id });
+
+  return { itens, pagamentos: pagos.length };
+}
+
 // POST /api/competencias
 router.post("/", async (req, res) => {
   const contaId = contaDaRequisicao(req);
@@ -105,70 +168,41 @@ router.post("/", async (req, res) => {
     throw new HttpError(400, "Mês inválido (use 1 a 12).");
   }
 
-  const existente = await db
-    .select({ id: competencias.id })
-    .from(competencias)
-    .where(
-      and(eq(competencias.contaId, contaId), eq(competencias.ano, ano), eq(competencias.mes, mes)),
-    );
-  if (existente.length) {
-    throw new HttpError(400, "Esse mês já foi aberto.");
-  }
-
-  const [comp] = await db.insert(competencias).values({ contaId, ano, mes }).returning();
-
-  const ativos = await db
-    .select()
-    .from(clientes)
-    .where(and(eq(clientes.contaId, contaId), eq(clientes.ativo, true)));
-  const ativosIds = ativos.map((c) => c.id);
-  const tipos = await db.select().from(tiposObrigacao).where(eq(tiposObrigacao.contaId, contaId));
-  const tipoPorId = new Map(tipos.map((t) => [t.id, t]));
-
-  if (ativosIds.length) {
-    const vinculos = await db.select().from(clienteObrigacoes)
-      .where(inArray(clienteObrigacoes.clienteId, ativosIds));
-
-    // Meses anteriores ao início do uso do sistema entram só com os honorários:
-    // o checklist daqueles meses não faz sentido e só viraria ruído.
-    // Uma obrigação anual/trimestral só entra no mês em que de fato vence.
-    const doMes = somenteHonorarios
-      ? []
-      : vinculos.filter((v) => {
-          const tipo = tipoPorId.get(v.tipoObrigacaoId);
-          return tipo ? aplicaNoMes(tipo.periodicidade, tipo.mesReferencia, mes) : false;
-        });
-
-    if (doMes.length) {
-      await db.insert(checklistItens).values(
-        doMes.map((v) => {
-          const tipo = tipoPorId.get(v.tipoObrigacaoId);
-          return {
-            contaId,
-            competenciaId: comp.id,
-            clienteId: v.clienteId,
-            tipoObrigacaoId: v.tipoObrigacaoId,
-            status: "pendente" as const,
-            vencimento: tipo ? calcularVencimento(ano, mes, tipo.diaVencimento, tipo.offsetMes) : null,
-          };
-        })
-      );
-    }
-
-    const DIA_PADRAO = 10;
-    await db.insert(pagamentos).values(
-      ativos.map((c) => ({
-        contaId,
-        competenciaId: comp.id,
-        clienteId: c.id,
-        status: "pendente" as const,
-        valor: c.valorHonorario,
-        vencimento: calcularVencimento(ano, mes, c.diaVencimentoHonorario ?? DIA_PADRAO, 1),
-      }))
-    );
-  }
+  // Tudo numa transação: se a geração dos pagamentos falhar, o mês não fica
+  // "aberto pela metade" com a próxima tentativa recusada por já existir.
+  const comp = await db.transaction(async (tx) => {
+    const [criada] = await tx
+      .insert(competencias)
+      // O rótulo marca a competência "só honorários": a sincronização precisa
+      // saber que aquele mês não deve ganhar checklist depois.
+      .values({ contaId, ano, mes, rotulo: somenteHonorarios ? "honorarios" : null })
+      // Duas pessoas abrindo o mesmo mês ao mesmo tempo: a segunda recebe
+      // 409, e não um 500 de índice único.
+      .onConflictDoNothing()
+      .returning();
+    if (!criada) throw new HttpError(409, "Esse mês já foi aberto.", undefined, "duplicado");
+    await gerarItensDaCompetencia(tx, contaId, criada, somenteHonorarios);
+    return criada;
+  });
 
   res.json(comp);
+});
+
+// POST /api/competencias/:id/sincronizar — acrescenta clientes e obrigações
+// incluídos depois da abertura, sem tocar nos itens já existentes.
+router.post("/:id/sincronizar", async (req, res) => {
+  const contaId = contaDaRequisicao(req);
+  const { id } = GetCompetenciaParams.parse(req.params);
+  const resultado = await db.transaction(async (tx) => {
+    const [comp] = await tx
+      .select()
+      .from(competencias)
+      .where(and(eq(competencias.id, id), eq(competencias.contaId, contaId)));
+    if (!comp) throw new HttpError(404, "Competência não encontrada.");
+    // Competência aberta como "só honorários" continua só honorários.
+    return gerarItensDaCompetencia(tx, contaId, comp, comp.rotulo === "honorarios");
+  });
+  res.json({ itensCriados: resultado.itens, pagamentosCriados: resultado.pagamentos });
 });
 
 // GET /api/competencias/:id

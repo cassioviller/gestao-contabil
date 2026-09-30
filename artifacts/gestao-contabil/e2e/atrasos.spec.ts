@@ -46,7 +46,7 @@ test("registra guias em atraso, soma o devido e some do total ao pagar", async (
   // Persistiu no banco.
   await page.reload();
   await expect(linhaDe("INSS").locator('select[name="status"]')).toHaveValue("pago");
-  await expect(linhaDe("INSS").locator('input[name="valor"]')).toHaveValue("1200.50");
+  await expect(linhaDe("INSS").locator('input[name="valor"]')).toHaveValue("1.200,50");
   await expect(linhaDe("INSS").locator('input[name="competenciaRef"]')).toHaveValue("02/2020");
 });
 

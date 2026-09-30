@@ -716,6 +716,20 @@ export const RemoverCompetenciaResponse = zod.void()
 
 
 /**
+ * Idempotente — só cria o que falta; itens e pagamentos existentes não são tocados.
+ * @summary Acrescenta ao mês os clientes e obrigações incluídos depois da abertura
+ */
+export const SincronizarCompetenciaParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const SincronizarCompetenciaResponse = zod.object({
+  "itensCriados": zod.number(),
+  "pagamentosCriados": zod.number()
+})
+
+
+/**
  * @summary Lista itens do checklist da competência
  */
 export const ListarChecklistParams = zod.object({
@@ -844,6 +858,7 @@ export const ListarPendenciasResponse = zod.object({
   "competenciaId": zod.number(),
   "ano": zod.number(),
   "mes": zod.number(),
+  "status": zod.enum(['pendente', 'emitido']),
   "vencimento": zod.string().nullish(),
   "diasAtraso": zod.number(),
   "clienteId": zod.number(),
@@ -1216,6 +1231,8 @@ export const GetFuncionarioResponse = zod.object({
   "gozoFim": zod.string().nullish(),
   "limiteGozo": zod.string(),
   "vencendo": zod.boolean(),
+  "vencida": zod.boolean(),
+  "situacao": zod.enum(['gozada', 'vencida', 'vencendo', 'a_vencer']),
   "diasVendidos": zod.number(),
   "valor": zod.string().nullish(),
   "observacao": zod.string().nullish()
@@ -1434,6 +1451,8 @@ export const ListarFeriasResponseItem = zod.object({
   "gozoFim": zod.string().nullish(),
   "limiteGozo": zod.string(),
   "vencendo": zod.boolean(),
+  "vencida": zod.boolean(),
+  "situacao": zod.enum(['gozada', 'vencida', 'vencendo', 'a_vencer']),
   "diasVendidos": zod.number(),
   "valor": zod.string().nullish(),
   "observacao": zod.string().nullish()
@@ -1473,6 +1492,8 @@ export const SalvarFeriasResponse = zod.object({
   "gozoFim": zod.string().nullish(),
   "limiteGozo": zod.string(),
   "vencendo": zod.boolean(),
+  "vencida": zod.boolean(),
+  "situacao": zod.enum(['gozada', 'vencida', 'vencendo', 'a_vencer']),
   "diasVendidos": zod.number(),
   "valor": zod.string().nullish(),
   "observacao": zod.string().nullish()
@@ -1513,6 +1534,8 @@ export const AtualizarFeriasResponse = zod.object({
   "gozoFim": zod.string().nullish(),
   "limiteGozo": zod.string(),
   "vencendo": zod.boolean(),
+  "vencida": zod.boolean(),
+  "situacao": zod.enum(['gozada', 'vencida', 'vencendo', 'a_vencer']),
   "diasVendidos": zod.number(),
   "valor": zod.string().nullish(),
   "observacao": zod.string().nullish()

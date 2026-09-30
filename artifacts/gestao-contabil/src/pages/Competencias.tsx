@@ -6,7 +6,8 @@ import {
   getListarCompetenciasQueryKey,
   useAbrirCompetencia,
 } from "@workspace/api-client-react";
-import { rotuloCompetencia, MESES } from "@/lib/formato";
+import { rotuloCompetencia, MESES, mesAtualBR } from "@/lib/formato";
+import { mensagemDeErro } from "@/lib/erros";
 
 export default function Competencias() {
   const qc = useQueryClient();
@@ -14,9 +15,9 @@ export default function Competencias() {
   const abrirMutation = useAbrirCompetencia();
   const [aberto, setAberto] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
-  const agora = new Date();
-  const [ano, setAno] = useState(agora.getFullYear());
-  const [mes, setMes] = useState(agora.getMonth() + 1);
+  const agora = mesAtualBR();
+  const [ano, setAno] = useState(agora.ano);
+  const [mes, setMes] = useState(agora.mes);
   const [somenteHonorarios, setSomenteHonorarios] = useState(false);
 
   async function handleAbrir() {
@@ -26,9 +27,7 @@ export default function Competencias() {
       qc.invalidateQueries({ queryKey: getListarCompetenciasQueryKey() });
       setAberto(false);
     } catch (e: unknown) {
-      // @ts-ignore
-      const msg = e?.response?.data?.error ?? (e instanceof Error ? e.message : "Erro ao abrir mês.");
-      setErro(msg);
+      setErro(mensagemDeErro(e, "Erro ao abrir mês."));
     }
   }
 

@@ -7,7 +7,7 @@ import {
   getListarPagamentosQueryKey,
   useAtualizarPagamento,
 } from "@workspace/api-client-react";
-import { rotuloCompetencia, formatarMoeda } from "@/lib/formato";
+import { rotuloCompetencia, formatarMoeda, formatarNumeroBR, paraDecimalAPI } from "@/lib/formato";
 
 type Pagamento = {
   id: number;
@@ -135,13 +135,10 @@ export default function CompetenciaPagamentos({ params }: { params: { id: string
                       </select>
                     </td>
                     <td className="px-3 py-2">
-                      <input defaultValue={p.valor ?? ""}
+                      <input defaultValue={formatarNumeroBR(p.valor)}
                         onBlur={(e) => {
-                          const bruto = e.target.value;
-                          if ((bruto || "") !== (p.valor || "")) {
-                            const valor = bruto ? bruto.replace(/\./g, "").replace(",", ".") : null;
-                            salvar(p, { valor });
-                          }
+                          const valor = paraDecimalAPI(e.target.value);
+                          if (valor !== (p.valor ?? null)) salvar(p, { valor });
                         }}
                         placeholder="0,00"
                         className="w-24 rounded-md border border-black/15 bg-transparent px-2 py-1 dark:border-white/15" />

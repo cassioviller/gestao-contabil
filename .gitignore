@@ -56,5 +56,12 @@ test-results/
 playwright-report/
 blob-report/
 .playwright/
-# Cookie de sessão gravado pelo auth.setup.ts — credencial, não versionar
-e2e/.auth/
+# Cookie de sessão gravado pelo auth.setup.ts — credencial, não versionar.
+# Com `**/` a regra vale em qualquer pasta, não só na raiz.
+**/e2e/.auth/
+# Variáveis de ambiente locais
+.env
+.env.*
+!.env.example
+# Uploads do armazenamento local (dev/e2e)
+/dados-locais/

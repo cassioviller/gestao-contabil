@@ -10,6 +10,7 @@ import {
   RemoverProcessoParams,
   SalvarProcessoBody,
 } from "@workspace/api-zod";
+import { hojeBR } from "@workspace/dominio";
 import { HttpError } from "../lib/http";
 import { contaDaRequisicao } from "../middlewares/autenticacao";
 
@@ -91,7 +92,7 @@ router.post("/", async (req, res) => {
       .values({
         ...dados,
         contaId,
-        abertoEm: dados.abertoEm ?? new Date().toISOString().slice(0, 10),
+        abertoEm: dados.abertoEm ?? hojeBR(),
       })
       .returning({ id: processos.id });
     processoId = novo.id;

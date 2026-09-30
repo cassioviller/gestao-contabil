@@ -1,4 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
+import { urlDoBancoDeTeste } from "./e2e/global-setup";
 
 // Ports used only by the e2e run. The Vite preview server proxies `/api` to the
 // API server so the browser talks to a single origin.
@@ -10,8 +11,11 @@ export default defineConfig({
   testDir: "./e2e",
   fullyParallel: false,
   workers: 1,
-  retries: 0,
-  reporter: [["list"]],
+  // No CI uma repetição faz o trace ser gravado (`on-first-retry`).
+  retries: process.env.CI ? 1 : 0,
+  reporter: process.env.CI
+    ? [["list"], ["html", { open: "never" }], ["junit", { outputFile: "test-results/junit.xml" }]]
+    : [["list"]],
   timeout: 30_000,
   globalSetup: "./e2e/global-setup.ts",
 
@@ -49,7 +53,14 @@ export default defineConfig({
       // API server. Reads PORT; dist is already built by `pnpm --filter
       // @workspace/api-server build`, which the e2e script runs first.
       command: "node ../api-server/dist/index.mjs",
-      env: { PORT: String(API_PORT) },
+      env: {
+        PORT: String(API_PORT),
+        // A API da suíte aponta para o banco de teste, nunca para o de dev.
+        DATABASE_URL: urlDoBancoDeTeste(),
+        // Chave fixa só para o e2e: em produção ela vem de um secret.
+        CHAVE_CIFRA: process.env.CHAVE_CIFRA ?? "e2e-".padEnd(44, "0"),
+        NODE_ENV: "test",
+      },
       url: `http://localhost:${API_PORT}/api/healthz`,
       reuseExistingServer: !process.env.CI,
       timeout: 60_000,

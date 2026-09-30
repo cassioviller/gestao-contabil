@@ -476,6 +476,11 @@ export interface AbrirCompetenciaInput {
   somenteHonorarios?: boolean;
 }
 
+export interface ResultadoSincronizacao {
+  itensCriados: number;
+  pagamentosCriados: number;
+}
+
 export type ChecklistItemStatus = typeof ChecklistItemStatus[keyof typeof ChecklistItemStatus];
 
 
@@ -568,11 +573,20 @@ export interface PagamentoInput {
   observacao?: string | null;
 }
 
+export type ObrigacaoAtrasadaStatus = typeof ObrigacaoAtrasadaStatus[keyof typeof ObrigacaoAtrasadaStatus];
+
+
+export const ObrigacaoAtrasadaStatus = {
+  pendente: 'pendente',
+  emitido: 'emitido',
+} as const;
+
 export interface ObrigacaoAtrasada {
   id: number;
   competenciaId: number;
   ano: number;
   mes: number;
+  status: ObrigacaoAtrasadaStatus;
   /** @nullable */
   vencimento?: string | null;
   diasAtraso: number;
@@ -929,6 +943,16 @@ export interface LancamentoFolhaPatch {
   observacao?: string | null;
 }
 
+export type PeriodoFeriasSituacao = typeof PeriodoFeriasSituacao[keyof typeof PeriodoFeriasSituacao];
+
+
+export const PeriodoFeriasSituacao = {
+  gozada: 'gozada',
+  vencida: 'vencida',
+  vencendo: 'vencendo',
+  a_vencer: 'a_vencer',
+} as const;
+
 export interface PeriodoFerias {
   id: number;
   funcionarioId: number;
@@ -945,6 +969,8 @@ export interface PeriodoFerias {
   gozoFim?: string | null;
   limiteGozo: string;
   vencendo: boolean;
+  vencida: boolean;
+  situacao: PeriodoFeriasSituacao;
   diasVendidos: number;
   /** @nullable */
   valor?: string | null;

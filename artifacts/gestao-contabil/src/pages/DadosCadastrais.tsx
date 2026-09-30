@@ -7,7 +7,8 @@ import {
   useAtualizarCliente,
   useRemoverCliente,
 } from "@workspace/api-client-react";
-import { REGIMES, rotuloRegime } from "@/lib/formato";
+import { REGIMES, formatarNumeroBR, hojeBR, paraDecimalAPI, rotuloRegime } from "@/lib/formato";
+import { paraCsv } from "@workspace/dominio";
 
 type Cliente = {
   id: number;
@@ -66,31 +67,25 @@ const COLUNAS: Coluna[] = [
   { campo: "observacao", rotulo: "Observação", largura: "w-64" },
 ];
 
-const HOJE = new Date().toISOString().slice(0, 10);
-
 /** Converte o texto digitado no tipo que a API espera para aquele campo. */
 function normalizar(campo: Campo, bruto: string): string | number | null {
   const v = bruto.trim();
   if (campo === "codigo" || campo === "diaVencimentoHonorario") return v ? Number(v) : null;
   if (campo === "razaoSocial") return v;
   // "1.350,00" (pt-BR) → "1350.00", que é o formato que o numeric do Postgres aceita.
-  if (campo === "valorHonorario") return v ? v.replace(/\./g, "").replace(",", ".") : null;
+  if (campo === "valorHonorario") return paraDecimalAPI(v);
   return v || null;
 }
 
-function paraCsv(linhas: string[][]): string {
-  const escapar = (v: string) => `"${v.replace(/"/g, '""')}"`;
-  // BOM + separador ";" para o Excel pt-BR abrir em colunas sem pedir importação.
-  return "﻿" + linhas.map((l) => l.map(escapar).join(";")).join("\r\n");
-}
-
 function baixarCsv(clientes: Cliente[]) {
-  const cabecalho = ["Cód.", "Empresa", ...COLUNAS.map((c) => c.rotulo), "Ativo"];
+  // Senhas nunca vão para o arquivo: um CSV circula por e-mail e pendrive.
+  const colunas = COLUNAS.filter((c) => !c.senha);
+  const cabecalho = ["Cód.", "Empresa", ...colunas.map((c) => c.rotulo), "Ativo"];
   const corpo = clientes.map((c) => [
     String(c.codigo ?? ""),
     c.razaoSocial,
     // Colunas de lista exportam o rótulo legível, não o valor do enum.
-    ...COLUNAS.map((col) =>
+    ...colunas.map((col) =>
       col.opcoes ? rotuloRegime(c[col.campo] as string) : String(c[col.campo] ?? "")
     ),
     c.ativo ? "Sim" : "Não",
@@ -101,7 +96,7 @@ function baixarCsv(clientes: Cliente[]) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `dados-cadastrais-${HOJE}.csv`;
+  a.download = `dados-cadastrais-${hojeBR()}.csv`;
   a.click();
   URL.revokeObjectURL(url);
 }
@@ -116,6 +111,7 @@ export default function DadosCadastrais() {
   const [busca, setBusca] = useState("");
   const [revelarSenhas, setRevelarSenhas] = useState(false);
   const [salvo, setSalvo] = useState(false);
+  const hoje = hojeBR();
 
   function invalidar() {
     qc.invalidateQueries({ queryKey: getListarClientesQueryKey() });
@@ -225,7 +221,7 @@ export default function DadosCadastrais() {
             </thead>
             <tbody className="divide-y divide-black/10">
               {filtrados.map((c) => {
-                const vencida = !!c.procuracaoVencimento && c.procuracaoVencimento < HOJE;
+                const vencida = !!c.procuracaoVencimento && c.procuracaoVencimento < hoje;
                 return (
                   <tr key={c.id} className={c.ativo ? "" : "bg-black/[0.03]"}>
                     <td className={`sticky left-0 z-20 w-16 ${fixa} ${celula}`}>
@@ -258,6 +254,16 @@ export default function DadosCadastrais() {
                     {COLUNAS.map((col) => {
                       const atual = c[col.campo];
                       const alerta = col.campo === "procuracaoVencimento" && vencida;
+                      // Dinheiro é exibido em pt-BR ("350,00") e comparado já
+                      // normalizado: assim reeditar sem mexer não grava nada.
+                      const ehMoeda = col.campo === "valorHonorario";
+                      const exibido = ehMoeda
+                        ? formatarNumeroBR(atual as string | null)
+                        : ((atual as string | number | null) ?? "");
+                      const mudou = (digitado: string) =>
+                        ehMoeda
+                          ? paraDecimalAPI(digitado) !== ((atual as string | null) ?? null)
+                          : String(atual ?? "") !== digitado.trim();
                       if (col.opcoes) {
                         return (
                           <td key={col.campo} className={`${col.largura} ${celula}`}>
@@ -284,18 +290,18 @@ export default function DadosCadastrais() {
                           <input
                             type={col.senha && !revelarSenhas ? "password" : col.tipo ?? "text"}
                             name={col.campo}
-                            defaultValue={(atual as string | number | null) ?? ""}
+                            defaultValue={exibido}
                             placeholder={col.placeholder}
                             title={alerta ? "Procuração vencida" : undefined}
                             onKeyDown={(e) => {
                               if (e.key === "Enter") e.currentTarget.blur();
                               if (e.key === "Escape") {
-                                e.currentTarget.value = String(atual ?? "");
+                                e.currentTarget.value = String(exibido);
                                 e.currentTarget.blur();
                               }
                             }}
                             onBlur={(e) => {
-                              if (String(atual ?? "") !== e.target.value.trim())
+                              if (mudou(e.target.value))
                                 salvarCampo(c.id, col.campo, normalizar(col.campo, e.target.value));
                             }}
                             className={`${entrada} ${alerta ? "font-medium text-red-600" : ""}`}

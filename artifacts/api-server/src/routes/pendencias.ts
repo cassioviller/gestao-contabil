@@ -1,7 +1,8 @@
 import { Router } from "express";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@workspace/db";
 import { checklistItens, clientes, cobrancas, competencias, pagamentos, tiposObrigacao } from "@workspace/db";
+import { hojeBR } from "@workspace/dominio";
 import {
   MarcarObrigacaoFeitaParams,
   MarcarPagamentoPagoParams,
@@ -15,6 +16,9 @@ const router = Router();
 // GET /api/pendencias
 router.get("/", async (req, res) => {
   const contaId = contaDaRequisicao(req);
+  // "Hoje" vem de Brasília, não do fuso do banco: depois das 21h o
+  // `current_date` do Postgres (UTC) já seria amanhã.
+  const hoje = hojeBR();
 
   const obrigacoes = await db
     .select({
@@ -22,8 +26,9 @@ router.get("/", async (req, res) => {
       competenciaId: checklistItens.competenciaId,
       ano: competencias.ano,
       mes: competencias.mes,
+      status: checklistItens.status,
       vencimento: checklistItens.vencimento,
-      diasAtraso: sql<number>`(current_date - ${checklistItens.vencimento})::int`,
+      diasAtraso: sql<number>`(${hoje}::date - ${checklistItens.vencimento})::int`,
       clienteId: clientes.id,
       codigo: clientes.codigo,
       cliente: clientes.razaoSocial,
@@ -35,11 +40,13 @@ router.get("/", async (req, res) => {
     .innerJoin(competencias, eq(competencias.id, checklistItens.competenciaId))
     .where(and(
       eq(checklistItens.contaId, contaId),
-      eq(checklistItens.status, "pendente"),
+      // Emitida e não enviada também está atrasada — é justamente a guia que
+      // ficou parada na mesa depois de pronta.
+      inArray(checklistItens.status, ["pendente", "emitido"]),
       sql`${checklistItens.vencimento} is not null`,
-      sql`${checklistItens.vencimento} < current_date`,
+      sql`${checklistItens.vencimento} < ${hoje}::date`,
     ))
-    .orderBy(sql`(current_date - ${checklistItens.vencimento}) desc`);
+    .orderBy(sql`(${hoje}::date - ${checklistItens.vencimento}) desc`);
 
   const inadimplentes = await db
     .select({
@@ -49,7 +56,7 @@ router.get("/", async (req, res) => {
       mes: competencias.mes,
       valor: pagamentos.valor,
       vencimento: pagamentos.vencimento,
-      diasAtraso: sql<number>`(current_date - ${pagamentos.vencimento})::int`,
+      diasAtraso: sql<number>`(${hoje}::date - ${pagamentos.vencimento})::int`,
       clienteId: clientes.id,
       codigo: clientes.codigo,
       cliente: clientes.razaoSocial,
@@ -65,10 +72,10 @@ router.get("/", async (req, res) => {
       eq(pagamentos.status, "pendente"),
       sql`${pagamentos.valor} is not null`,
       sql`${pagamentos.vencimento} is not null`,
-      sql`${pagamentos.vencimento} < current_date`,
+      sql`${pagamentos.vencimento} < ${hoje}::date`,
     ))
     .groupBy(pagamentos.id, clientes.id, competencias.id)
-    .orderBy(sql`(current_date - ${pagamentos.vencimento}) desc`);
+    .orderBy(sql`(${hoje}::date - ${pagamentos.vencimento}) desc`);
 
   res.json({ obrigacoes, inadimplentes });
 });
@@ -90,9 +97,11 @@ router.patch("/obrigacoes/:id/feito", async (req, res) => {
 router.patch("/pagamentos/:id/pago", async (req, res) => {
   const contaId = contaDaRequisicao(req);
   const { id } = MarcarPagamentoPagoParams.parse(req.params);
+  // Marcar pago pela tela de pendências carimba a data de hoje: sem isso o
+  // recebimento ficava sem data e sumia dos relatórios por período.
   const [alterado] = await db
     .update(pagamentos)
-    .set({ status: "pago", atualizadoEm: new Date() })
+    .set({ status: "pago", dataPagamento: hojeBR(), atualizadoEm: new Date() })
     .where(and(eq(pagamentos.id, id), eq(pagamentos.contaId, contaId)))
     .returning({ id: pagamentos.id });
   if (!alterado) throw new HttpError(404, "Pagamento não encontrado.");

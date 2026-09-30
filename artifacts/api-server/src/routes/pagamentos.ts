@@ -12,18 +12,20 @@ const router = Router();
 router.patch("/:id", async (req, res) => {
   const contaId = contaDaRequisicao(req);
   const { id } = AtualizarPagamentoParams.parse(req.params);
-  const { status, valor, dataPagamento, forma, observacao } = AtualizarPagamentoBody.parse(req.body);
+  const body = AtualizarPagamentoBody.parse(req.body);
+
+  // Só o que veio no corpo é gravado: um PATCH com `{ status: "pago" }` não
+  // pode zerar o valor nem a data. Texto vazio vale como "limpar" (null).
+  const mudancas: Record<string, unknown> = {};
+  for (const [chave, v] of Object.entries(body)) {
+    if (v === undefined) continue;
+    mudancas[chave] = typeof v === "string" && v.trim() === "" ? null : v;
+  }
+  if (Object.keys(mudancas).length === 0) throw new HttpError(400, "Nenhum campo para atualizar.");
 
   const [alterado] = await db
     .update(pagamentos)
-    .set({
-      status: status ?? "pendente",
-      valor: valor || null,
-      dataPagamento: dataPagamento || null,
-      forma: forma || null,
-      observacao: observacao || null,
-      atualizadoEm: new Date(),
-    })
+    .set({ ...mudancas, atualizadoEm: new Date() })
     .where(and(eq(pagamentos.id, id), eq(pagamentos.contaId, contaId)))
     .returning({ id: pagamentos.id });
   if (!alterado) throw new HttpError(404, "Pagamento não encontrado.");

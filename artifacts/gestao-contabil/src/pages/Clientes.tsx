@@ -7,7 +7,7 @@ import {
   useRemoverCliente,
   useListarTipos,
 } from "@workspace/api-client-react";
-import { formatarMoeda, REGIMES, rotuloRegime } from "@/lib/formato";
+import { formatarMoeda, formatarNumeroBR, paraDecimalAPI, REGIMES, rotuloRegime } from "@/lib/formato";
 
 type Cliente = {
   id: number;
@@ -78,7 +78,7 @@ function FormularioCliente({ cliente, tipos, aoFechar }: {
       procuracao: String(fd.get("procuracao") ?? "") || null,
       senhaNfse: String(fd.get("senhaNfse") ?? "") || null,
       observacao: String(fd.get("observacao") ?? "") || null,
-      valorHonorario: String(fd.get("valorHonorario") ?? "").replace(/\./g, "").replace(",", ".") || null,
+      valorHonorario: paraDecimalAPI(String(fd.get("valorHonorario") ?? "")),
       diaVencimentoHonorario: fd.get("diaVencimentoHonorario") ? Number(fd.get("diaVencimentoHonorario")) : null,
       contatoNome: String(fd.get("contatoNome") ?? "") || null,
       whatsapp: String(fd.get("whatsapp") ?? "") || null,
@@ -137,7 +137,7 @@ function FormularioCliente({ cliente, tipos, aoFechar }: {
           <Campo label="Forma de envio" name="formaEnvio" defaultValue={cliente.formaEnvio ?? ""} />
           <Campo label="Procuração" name="procuracao" defaultValue={cliente.procuracao ?? ""} />
           <Campo label="Senha NFS-e" name="senhaNfse" defaultValue={cliente.senhaNfse ?? ""} />
-          <Campo label="Honorário mensal (R$)" name="valorHonorario" defaultValue={cliente.valorHonorario ?? ""} placeholder="ex: 350,00" />
+          <Campo label="Honorário mensal (R$)" name="valorHonorario" defaultValue={formatarNumeroBR(cliente.valorHonorario)} placeholder="ex: 350,00" />
           <Campo label="Contato (WhatsApp)" name="contatoNome" defaultValue={cliente.contatoNome ?? ""} placeholder="ex: Maria (financeiro)" />
           <Campo label="WhatsApp" name="whatsapp" defaultValue={cliente.whatsapp ?? ""} placeholder="ex: (11) 99999-9999" />
           <Campo label="E-mail de contato" name="email" type="email" defaultValue={cliente.email ?? ""} placeholder="ex: contato@empresa.com.br" />

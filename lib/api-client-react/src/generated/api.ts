@@ -69,6 +69,7 @@ import type {
   ProcessoComEtapas,
   ProcessoEtapa,
   ProcessoInput,
+  ResultadoSincronizacao,
   SessaoAtual,
   StatusChecklistInput,
   TipoObrigacao,
@@ -2367,6 +2368,77 @@ export const useRemoverCompetencia = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getRemoverCompetenciaMutationOptions(options));
+    }
+
+export const getSincronizarCompetenciaUrl = (id: number,) => {
+
+
+
+
+  return `/api/competencias/${id}/sincronizar`
+}
+
+/**
+ * Idempotente — só cria o que falta; itens e pagamentos existentes não são tocados.
+ * @summary Acrescenta ao mês os clientes e obrigações incluídos depois da abertura
+ */
+export const sincronizarCompetencia = async (id: number, options?: RequestInit): Promise<ResultadoSincronizacao> => {
+
+  return customFetch<ResultadoSincronizacao>(getSincronizarCompetenciaUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getSincronizarCompetenciaMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sincronizarCompetencia>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof sincronizarCompetencia>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['sincronizarCompetencia'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof sincronizarCompetencia>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  sincronizarCompetencia(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SincronizarCompetenciaMutationResult = NonNullable<Awaited<ReturnType<typeof sincronizarCompetencia>>>
+
+    export type SincronizarCompetenciaMutationError = ErrorType<void>
+
+    /**
+ * @summary Acrescenta ao mês os clientes e obrigações incluídos depois da abertura
+ */
+export const useSincronizarCompetencia = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sincronizarCompetencia>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof sincronizarCompetencia>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getSincronizarCompetenciaMutationOptions(options));
     }
 
 export const getListarChecklistUrl = (id: number,) => {

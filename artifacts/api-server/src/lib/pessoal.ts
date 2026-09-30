@@ -1,5 +1,6 @@
 import { and, eq, type SQL } from "drizzle-orm";
 import { clientes, db, ferias, folhaLancamentos, funcionarios } from "@workspace/db";
+import { comVencimento as comVencimentoDominio, hojeBR } from "@workspace/dominio";
 
 /** Projeção comum a todas as listas de folha — a tela sempre mostra de quem é. */
 export const camposFolha = {
@@ -58,30 +59,12 @@ export function consultaFerias(contaId: number, ...extras: Array<SQL | undefined
 
 type LinhaFerias = Awaited<ReturnType<typeof consultaFerias>>[number];
 
-/** Faltando este tanto para o limite, o período já entra como "vencendo". */
-const AVISO_DIAS = 90;
-
 /**
  * Acrescenta o que a tela precisa mas o banco não guarda: o **limite legal**
- * para conceder as férias (um ano depois do fim do período aquisitivo) e se ele
- * está próximo. Calculado na API, e não na tela, para o aviso ser o mesmo em
- * qualquer lugar que liste férias.
+ * para conceder as férias (um ano depois do fim do período aquisitivo), se ele
+ * está próximo (`vencendo`) e se já passou (`vencida`). A regra mora em
+ * `@workspace/dominio`; aqui só entra a data de hoje em Brasília.
  */
-export function comVencimento(
-  linha: LinhaFerias,
-  hoje = new Date(),
-): LinhaFerias & { limiteGozo: string; vencendo: boolean } {
-  const fim = new Date(`${linha.aquisitivoFim}T00:00:00Z`);
-  const limite = new Date(
-    Date.UTC(fim.getUTCFullYear() + 1, fim.getUTCMonth(), fim.getUTCDate()),
-  );
-  const aviso = new Date(limite);
-  aviso.setUTCDate(aviso.getUTCDate() - AVISO_DIAS);
-
-  return {
-    ...linha,
-    limiteGozo: limite.toISOString().slice(0, 10),
-    // Já gozado não vence mais, mesmo com a data no passado.
-    vencendo: !linha.gozoInicio && hoje >= aviso,
-  };
+export function comVencimento(linha: LinhaFerias, hoje: string = hojeBR()) {
+  return comVencimentoDominio(linha, hoje);
 }

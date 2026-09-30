@@ -5,6 +5,7 @@
  * ContaFácil API — gestão contábil
  * OpenAPI spec version: 0.1.0
  */
+import type { PeriodoFeriasSituacao } from './periodoFeriasSituacao';
 
 export interface PeriodoFerias {
   id: number;
@@ -22,6 +23,8 @@ export interface PeriodoFerias {
   gozoFim?: string | null;
   limiteGozo: string;
   vencendo: boolean;
+  vencida: boolean;
+  situacao: PeriodoFeriasSituacao;
   diasVendidos: number;
   /** @nullable */
   valor?: string | null;

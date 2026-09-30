@@ -9,7 +9,8 @@ import {
   useListarClientes,
   useListarTipos,
 } from "@workspace/api-client-react";
-import { formatarMoeda, formatarData } from "@/lib/formato";
+import { formatarMoeda, formatarNumeroBR, hojeBR, paraDecimalAPI } from "@/lib/formato";
+import { diasAtraso as calcularDiasAtraso } from "@workspace/dominio";
 
 type Debito = {
   id: number;
@@ -34,14 +35,10 @@ const STATUS = [
 /** Guias que não vêm do catálogo mas aparecem sempre. */
 const GUIAS_EXTRA = ["Parcelamento", "DAS", "Simples Nacional", "IRPJ", "CSLL", "ICMS", "ISS", "PIS/COFINS"];
 
-const HOJE = new Date().toISOString().slice(0, 10);
-
 /** Dias de atraso — só conta enquanto a guia não foi quitada. */
-function diasAtraso(vencimento: string | null, status: string): number | null {
+function diasAtraso(vencimento: string | null, status: string, hoje: string): number | null {
   if (!vencimento || status === "pago") return null;
-  const dias = Math.floor(
-    (Date.parse(HOJE) - Date.parse(vencimento.slice(0, 10))) / 86_400_000
-  );
+  const dias = calcularDiasAtraso(vencimento, hoje);
   return dias > 0 ? dias : null;
 }
 
@@ -64,6 +61,7 @@ export default function Atrasos() {
   const [salvo, setSalvo] = useState(false);
   const [novoCliente, setNovoCliente] = useState("");
   const [novaGuia, setNovaGuia] = useState("");
+  const hoje = hojeBR();
 
   function invalidar() {
     qc.invalidateQueries({ queryKey: getListarDebitosQueryKey() });
@@ -97,12 +95,7 @@ export default function Atrasos() {
 
   async function salvarCampo(id: number, campo: Campo, bruto: string) {
     // "1.234,56" (pt-BR) → "1234.56", que é o formato do numeric do Postgres.
-    const valor =
-      campo === "valor"
-        ? bruto.trim()
-          ? bruto.trim().replace(/\./g, "").replace(",", ".")
-          : null
-        : bruto.trim() || null;
+    const valor = campo === "valor" ? paraDecimalAPI(bruto) : bruto.trim() || null;
     await comAviso(async () => {
       await atualizar.mutateAsync({ id, data: { [campo]: valor } as never });
       invalidar();
@@ -251,7 +244,7 @@ export default function Atrasos() {
             </thead>
             <tbody className="divide-y divide-black/10 dark:divide-white/10">
               {filtrados.map((d) => {
-                const atraso = diasAtraso(d.vencimento, d.status);
+                const atraso = diasAtraso(d.vencimento, d.status, hoje);
                 return (
                   <tr key={d.id} className={d.status === "pago" ? "opacity-60" : ""}>
                     <td className={`w-56 px-2 py-2 font-medium ${celula}`}>{d.clienteNome}</td>
@@ -288,10 +281,11 @@ export default function Atrasos() {
                       )}
                     </td>
                     <td className={`w-28 ${celula}`}>
-                      <input name="valor" defaultValue={d.valor ?? ""} placeholder="0,00"
-                        onKeyDown={teclas(d.valor ?? "")}
+                      <input name="valor" defaultValue={formatarNumeroBR(d.valor)} placeholder="0,00"
+                        onKeyDown={teclas(formatarNumeroBR(d.valor))}
                         onBlur={(e) =>
-                          e.target.value !== (d.valor ?? "") && salvarCampo(d.id, "valor", e.target.value)
+                          paraDecimalAPI(e.target.value) !== (d.valor ?? null) &&
+                          salvarCampo(d.id, "valor", e.target.value)
                         }
                         className={entrada} />
                     </td>

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useListarPendencias,
@@ -25,13 +25,31 @@ export default function Pendencias() {
   const inadimplentes = data?.inadimplentes ?? [];
   const modelo = confData?.valor || MODELO_WHATSAPP_PADRAO;
 
-  const [obrs, setObrs] = useState<typeof obrigacoes>([]);
-  const [inads, setInads] = useState<typeof inadimplentes>([]);
+  // Ids já resolvidos nesta sessão de tela: somem da lista na hora, sem esperar
+  // o refetch, e voltam a aparecer se a API recusar a mudança.
+  const [resolvidos, setResolvidos] = useState<Set<number>>(new Set());
   const [filtro, setFiltro] = useState(0);
   const [modeloEdit, setModeloEdit] = useState("");
+  const [modeloSalvo, setModeloSalvo] = useState(false);
 
-  const obrsView = (obrs.length ? obrs : obrigacoes).filter((o) => !filtro || o.clienteId === filtro);
-  const inadsView = (inads.length ? inads : inadimplentes).filter((i) => !filtro || i.clienteId === filtro);
+  // O textarea é controlado e sincroniza quando a configuração chega — com
+  // `defaultValue`, se a lista chegasse antes da configuração, o texto padrão
+  // ficava congelado e o clique em Salvar sobrescrevia o modelo salvo.
+  useEffect(() => {
+    setModeloEdit(modelo);
+  }, [modelo]);
+
+  const obrsView = obrigacoes.filter((o) => !resolvidos.has(o.id) && (!filtro || o.clienteId === filtro));
+  const inadsView = inadimplentes.filter((i) => !resolvidos.has(i.id) && (!filtro || i.clienteId === filtro));
+
+  function marcarResolvido(id: number, desfazer = false) {
+    setResolvidos((s) => {
+      const proximo = new Set(s);
+      if (desfazer) proximo.delete(id);
+      else proximo.add(id);
+      return proximo;
+    });
+  }
 
   const opcoesClientes = useMemo(() => {
     const m = new Map<number, string>();
@@ -41,16 +59,18 @@ export default function Pendencias() {
   }, [obrigacoes, inadimplentes]);
 
   function handleMarcarFeito(o: typeof obrigacoes[0]) {
-    setObrs((s) => (s.length ? s : obrigacoes).filter((x) => x.id !== o.id));
+    marcarResolvido(o.id);
     marcarFeito.mutate({ id: o.id }, {
       onSuccess: () => qc.invalidateQueries({ queryKey: getListarPendenciasQueryKey() }),
+      onError: () => marcarResolvido(o.id, true),
     });
   }
 
   function handleMarcarPago(i: typeof inadimplentes[0]) {
-    setInads((s) => (s.length ? s : inadimplentes).filter((x) => x.id !== i.id));
+    marcarResolvido(i.id);
     marcarPago.mutate({ id: i.id }, {
       onSuccess: () => qc.invalidateQueries({ queryKey: getListarPendenciasQueryKey() }),
+      onError: () => marcarResolvido(i.id, true),
     });
   }
 
@@ -67,13 +87,17 @@ export default function Pendencias() {
     registrarCobranca.mutate({ data: { pagamentoId: i.id } }, {
       onSuccess: () => qc.invalidateQueries({ queryKey: getListarPendenciasQueryKey() }),
     });
-    setInads((s) => (s.length ? s : inadimplentes).map((x) => x.id === i.id ? { ...x, cobradoEm: new Date().toISOString() } : x));
     window.open(linkWhatsapp(tel, msg), "_blank", "noopener");
   }
 
   async function handleSalvarModelo(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    await salvarConf.mutateAsync({ chave: "modelo_whatsapp_inadimplencia", data: { valor: modeloEdit || modelo } });
+    await salvarConf.mutateAsync({
+      chave: "modelo_whatsapp_inadimplencia",
+      data: { valor: modeloEdit.trim() || MODELO_WHATSAPP_PADRAO },
+    });
+    setModeloSalvo(true);
+    window.setTimeout(() => setModeloSalvo(false), 2000);
   }
 
   if (isLoading) return <p className="text-sm text-neutral-500">Carregando...</p>;
@@ -104,6 +128,7 @@ export default function Pendencias() {
               <tr>
                 <th className="px-3 py-3 font-medium">Cliente</th>
                 <th className="px-3 py-3 font-medium">Obrigação</th>
+                <th className="px-3 py-3 font-medium">Situação</th>
                 <th className="px-3 py-3 font-medium">Competência</th>
                 <th className="px-3 py-3 font-medium">Vencimento</th>
                 <th className="px-3 py-3 font-medium">Atraso</th>
@@ -115,6 +140,17 @@ export default function Pendencias() {
                 <tr key={o.id}>
                   <td className="px-3 py-3"><span className="text-neutral-400">{o.codigo ?? "—"}</span> {o.cliente}</td>
                   <td className="px-3 py-3">{o.obrigacao}</td>
+                  <td className="px-3 py-3">
+                    {o.status === "emitido" ? (
+                      <span className="rounded bg-blue-500/15 px-2 py-0.5 text-xs text-blue-700 dark:text-blue-300" title="Guia pronta, mas ainda não enviada ao cliente">
+                        Emitida, não enviada
+                      </span>
+                    ) : (
+                      <span className="rounded bg-amber-500/15 px-2 py-0.5 text-xs text-amber-700 dark:text-amber-300">
+                        Pendente
+                      </span>
+                    )}
+                  </td>
                   <td className="px-3 py-3">{rotuloCompetencia(o.ano, o.mes)}</td>
                   <td className="px-3 py-3">{formatarData(o.vencimento)}</td>
                   <td className="px-3 py-3 text-red-600">{o.diasAtraso} dia(s)</td>
@@ -124,7 +160,7 @@ export default function Pendencias() {
                 </tr>
               ))}
               {obrsView.length === 0 && (
-                <tr><td colSpan={6} className="px-3 py-6 text-center text-neutral-500">Nenhuma obrigação em atraso. 🎉</td></tr>
+                <tr><td colSpan={7} className="px-3 py-6 text-center text-neutral-500">Nenhuma obrigação em atraso. 🎉</td></tr>
               )}
             </tbody>
           </table>
@@ -183,15 +219,19 @@ export default function Pendencias() {
         <h2 className="mb-3 text-lg font-semibold">Modelo da mensagem de cobrança</h2>
         <form onSubmit={handleSalvarModelo}
           className="max-w-2xl rounded-xl border border-black/10 p-4 dark:border-white/10">
-          <textarea defaultValue={modelo} onChange={(e) => setModeloEdit(e.target.value)} rows={4}
+          <textarea value={modeloEdit} onChange={(e) => setModeloEdit(e.target.value)} rows={4}
+            aria-label="Modelo da mensagem de cobrança"
             className="w-full rounded-lg border border-black/15 bg-transparent px-3 py-2 text-sm dark:border-white/15" />
           <p className="mt-2 text-xs text-neutral-500">
             Variáveis: {"{cliente}"} {"{valor}"} {"{competencia}"} {"{vencimento}"} {"{dias_atraso}"}
           </p>
-          <button type="submit" disabled={salvarConf.isPending}
-            className="mt-3 rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50">
-            {salvarConf.isPending ? "Salvando..." : "Salvar modelo"}
-          </button>
+          <div className="mt-3 flex items-center gap-3">
+            <button type="submit" disabled={salvarConf.isPending || modeloEdit === modelo}
+              className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50">
+              {salvarConf.isPending ? "Salvando..." : "Salvar modelo"}
+            </button>
+            {modeloSalvo && <span className="text-sm text-green-600">✓ modelo salvo</span>}
+          </div>
         </form>
       </section>
     </div>
